@@ -6,11 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.expendedora.GatorGate.Model.Cart;
-import com.expendedora.GatorGate.Service.CartService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 @RestController
 @RequestMapping("/cart")
 public class CartController {
@@ -29,7 +24,6 @@ public class CartController {
         }
     }
 
-
     @GetMapping("/{userId}/cartId")
     public ResponseEntity<Long> getCartIdByUserId(@PathVariable Long userId) {
         Cart cart = cartService.getCartByUserId(userId);
@@ -41,21 +35,15 @@ public class CartController {
         }
     }
 
-
-
-
-
-
     @PostMapping("/add")
     public void addItemToCart(@RequestParam Long userId, @RequestParam Long productId, @RequestParam Integer quantity) {
         cartService.addItemToCart(userId, productId, quantity);
     }
 
-    // Nuevo método para crear un carrito
+    // Método para crear un carrito para un usuario
     @PostMapping("/create")
     public ResponseEntity<Cart> createCartForUser(@RequestParam Long userId) {
         Cart cart = cartService.createCartForUser(userId);
         return ResponseEntity.ok(cart);
     }
-
 }

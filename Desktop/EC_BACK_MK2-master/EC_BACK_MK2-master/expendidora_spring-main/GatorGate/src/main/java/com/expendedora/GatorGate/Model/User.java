@@ -21,7 +21,7 @@ public class User {
     @Column(unique = true)
     private String email;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)     ///asegura la eliminacion en cascada
     private List<Order> orders;
 
     // Getters y setters
@@ -65,7 +65,5 @@ public class User {
         this.orders = orders;
     }
 }
-
-
 
 

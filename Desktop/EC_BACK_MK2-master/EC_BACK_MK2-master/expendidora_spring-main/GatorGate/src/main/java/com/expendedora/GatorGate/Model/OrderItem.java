@@ -1,4 +1,5 @@
 package com.expendedora.GatorGate.Model;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -18,6 +19,7 @@ public class OrderItem {
     private Integer quantity;
     private Double price;
 
+    // Getters y setters
     public Long getId() {
         return id;
     }
@@ -57,7 +59,4 @@ public class OrderItem {
     public void setPrice(Double price) {
         this.price = price;
     }
-
-
-    // Getters y setters
 }

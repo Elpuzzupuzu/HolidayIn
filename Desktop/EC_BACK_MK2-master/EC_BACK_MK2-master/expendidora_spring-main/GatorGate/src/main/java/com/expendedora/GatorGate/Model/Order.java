@@ -1,6 +1,6 @@
 package com.expendedora.GatorGate.Model;
-import jakarta.persistence.*;
 
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.List;
 
@@ -17,12 +17,10 @@ public class Order {
 
     private Date orderDate;
 
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
 
     // Getters y setters
-
-
     public Long getId() {
         return id;
     }
