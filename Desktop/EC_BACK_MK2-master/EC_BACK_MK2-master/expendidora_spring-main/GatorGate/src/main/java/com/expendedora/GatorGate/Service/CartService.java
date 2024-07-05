@@ -11,6 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
+
+
+
 @Service
 public class CartService {
 
@@ -58,12 +62,16 @@ public class CartService {
         cartRepository.save(cart);
     }
 
-    // Nuevo método para crear un carrito
     @Transactional
-    public Cart createCart(Long userId) {
+    public Cart createCartForUser(Long userId) {
+        Cart existingCart = cartRepository.findByUserId(userId);
+        if (existingCart != null) {
+            return existingCart; // Si el carrito ya existe, devolverlo
+        }
+
         User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
-        Cart cart = new Cart();
-        cart.setUser(user);
-        return cartRepository.save(cart);
+        Cart newCart = new Cart();
+        newCart.setUser(user);
+        return cartRepository.save(newCart);
     }
 }
