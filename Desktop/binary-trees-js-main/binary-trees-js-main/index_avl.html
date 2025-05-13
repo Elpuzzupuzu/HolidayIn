@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">      
+        <title> AVL </title>
+        <link rel="stylesheet" href="styles/style.css"/>
+    </head>
+    <body>
+        <h1> Árbol Adelson-Velsky y Landis (AVL)</h1> 
+        
+        <input type="number" id="Num">
+        <button onclick="insertButtonAVL()">AGREGAR</button>
+        <button onclick="findButton()">BUSCAR</button>
+        <button onclick="printButton()">IMPRIMIR</button>
+        <button onclick="deleteButtonAVL()">ELIMINAR</button>
+        <button onclick="minButton()">MÍNIMO</button>
+        <button onclick="maxButton()">MÁXIMO</button>
+
+        <div id="canvas-wrap">
+            <canvas id="canv" width="2000" height="600"></canvas>
+            <div id="overlay"></div>
+        </div>
+
+        <div id="poljeIspis"></div>
+
+        <script src="scripts/tree.js"></script>
+        <script src="scripts/button_functions.js"></script>
+        <script src="scripts/help_functions.js"></script>
+        <script src="scripts/canvas.js"></script>
+    </body>
+</html>

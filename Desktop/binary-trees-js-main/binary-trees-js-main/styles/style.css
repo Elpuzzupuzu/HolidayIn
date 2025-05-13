@@ -1,0 +1,46 @@
+body {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+/* Para el índice principal */
+#container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+#container a {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: 50px;
+}
+
+/* Estilo para los nodos */
+.node {
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    position: absolute;
+    left: 50%;
+    background-color: beige;
+    border: 2px solid black;
+    line-height: 50px;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 20px;
+    transition: 2s;
+}
+
+/* Nodo encontrado por la función de búsqueda */
+.foundNode {
+    background-color: yellow;
+}
+
+/* Canvas para las líneas */
+#canvas-wrap {
+    position: relative;
+}
+
+#overlay {
+    position: absolute;
+    top: 20px;
+    left: 30px;
+}
+
