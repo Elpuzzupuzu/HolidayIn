@@ -20,4 +20,8 @@ router.get("/daterange", AttendanceEventController.getByDateRange);
 //
 router.get("/export-csv", AttendanceEventController.exportCSV);
 
+///
+
+router.get("/worked-hours", AttendanceEventController.getWorkedHours);
+
 module.exports = router;

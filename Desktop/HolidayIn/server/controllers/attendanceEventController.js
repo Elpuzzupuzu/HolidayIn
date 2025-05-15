@@ -65,9 +65,19 @@ static async exportCSV(req, res) {
 }
 
 
+///
+static async getWorkedHours(req, res) {
+  try {
+    const { csv } = await AttendanceEvent.getWorkedHoursWithCSV();
 
-
-
+    res.setHeader('Content-Disposition', 'attachment; filename="horas_trabajadas.csv"');
+    res.setHeader('Content-Type', 'text/csv');
+    res.status(200).send(csv);
+  } catch (error) {
+    console.error("Error al generar el CSV:", error.message);
+    res.status(500).json({ error: "Error al generar el archivo CSV." });
+  }
+}
 
 
 
