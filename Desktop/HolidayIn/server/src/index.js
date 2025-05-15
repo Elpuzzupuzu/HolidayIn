@@ -10,6 +10,7 @@ const departmentRoutes = require("../routes/departamentRoutes");
 const roleRoutes = require("../routes/roleRoutes");
 const employeeRoutes = require("../routes/employeeRoutes");
 const attendanceLogRoutes = require("../routes/attendanceLogRoutes");
+const attendanceEventRoutes = require("../routes/attendanceEventRoutes");
 
 
 
@@ -47,6 +48,10 @@ app.use("/api/employees", employeeRoutes);
 
 //rutas checkIn/checkOut
 app.use("/api/attendance", attendanceLogRoutes);
+
+// eventos entrada salida
+app.use("/attendance-events", attendanceEventRoutes);
+
 
 
 
