@@ -16,6 +16,11 @@ router.get("/employee/:employee_number", AttendanceLogController.getByEmployeeNu
 
 ///
 router.get("/date-range", AttendanceLogController.getByDateRange);
+///
+router.get("/export", AttendanceLogController.exportCSV);
+///
+
+router.get("/export", AttendanceLogController.downloadCSV);
 
 
 module.exports = router;

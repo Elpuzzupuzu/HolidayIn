@@ -1,4 +1,5 @@
 const supabase = require("../config/supabase");
+const { Parser } = require("json2csv");
 
 class AttendanceLog {
 
@@ -226,6 +227,53 @@ static async getByDateRange(startDate, endDate) {
   return data;
 }
 
+//// test csv 
+
+
+  static async exportCSV(startDate, endDate) {
+    // Validar fechas mínimamente (opcional)
+    if (!startDate || !endDate) {
+      throw new Error("startDate y endDate son requeridos");
+    }
+
+    const { data, error } = await supabase
+      .from("attendance_logs")
+      .select(`
+        id,
+        employee:employees(name, employee_number, role_id),
+        check_in,
+        check_out,
+        log_date
+      `)
+      .gte("log_date", startDate)
+      .lte("log_date", endDate);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (data.length === 0) {
+      throw new Error("No hay registros para el rango de fechas indicado");
+    }
+
+    // Formatear datos para CSV
+    // Aplanamos el objeto para columnas directas
+    const formattedData = data.map(row => ({
+      id: row.id,
+      employee_number: row.employee?.employee_number || "",
+      employee_name: row.employee?.name || "",
+      role_id: row.employee?.role_id || "",
+      check_in: row.check_in,
+      check_out: row.check_out,
+      log_date: row.log_date,
+    }));
+
+    const fields = ["id", "employee_number", "employee_name", "role_id", "check_in", "check_out", "log_date"];
+    const json2csvParser = new Parser({ fields });
+    const csv = json2csvParser.parse(formattedData);
+
+    return csv;
+  }
 
 
 
