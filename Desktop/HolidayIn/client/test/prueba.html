@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escáner QR para Asistencia</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <link rel="stylesheet" href="prueba.css">
+  <style>
+    .hidden { display: none; }
+    .neutral-message { color: #555; margin-top: 20px; }
+    .success-message { color: green; margin-top: 20px; }
+    .error-message { color: red; margin-top: 20px; }
+    .loader {
+      display: none;
+      margin: 20px auto;
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #reset-button {
+      margin-top: 20px;
+      padding: 10px 15px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">
+      <span class="logo-icon">⌘</span> Sistema de Asistencia
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Escanea tu QR para registrar entrada/salida</h2>
+    <div id="qr-reader"></div>
+    <div id="resultado" class="hidden"></div>
+    <div class="loader" id="loading"></div>
+    <button id="reset-button" class="hidden">Escanear otro código</button>
+  </div>
+
+  <script>
+    const backendUrl = "http://localhost:3000/attendance-events/register-event";
+    let html5QrcodeScanner;
+    let scanCompleted = false;
+
+    function onScanSuccess(decodedText, decodedResult) {
+      if (scanCompleted) return;
+      scanCompleted = true;
+
+      html5QrcodeScanner.html5Qrcode.stop().then(() => {
+        console.log("Escáner detenido");
+      }).catch(err => {
+        console.error("Error al detener el escáner:", err);
+      });
+
+      const resultadoElement = document.getElementById('resultado');
+      resultadoElement.innerText = `Procesando código: ${decodedText}`;
+      resultadoElement.className = 'neutral-message';
+      resultadoElement.classList.remove('hidden');
+      document.getElementById('loading').style.display = 'block';
+
+      fetch(backendUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ employee_number: decodedText })
+      })
+      .then(response => {
+        document.getElementById('loading').style.display = 'none';
+        if (!response.ok) throw new Error("Error en la respuesta del servidor");
+        return response.json();
+      })
+      .then(data => {
+        const tipo = data.event?.event_type || "evento";
+        // Aquí agregamos 'Z' para forzar UTC y luego convertimos a hora local de Merida
+        const utcDate = new Date(data.event?.timestamp + 'Z');
+        const hora = utcDate.toLocaleTimeString('es-ES', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          timeZone: 'America/Merida' 
+        });
+
+        const nombre = data.event?.employees?.name || "empleado";
+        resultadoElement.innerText = `✅ ${nombre}: ${tipo === "IN" ? "Entrada" : "Salida"} registrada a las ${hora}.`;
+        resultadoElement.className = 'success-message';
+        document.getElementById('reset-button').classList.remove('hidden');
+      })
+      .catch(err => {
+        resultadoElement.innerText = `❌ Error: ${err.message}`;
+        resultadoElement.className = 'error-message';
+        document.getElementById('reset-button').classList.remove('hidden');
+      });
+    }
+
+    function onScanError(errorMessage) {
+      // Opcional: manejar errores de escaneo
+    }
+
+    function initScanner() {
+      scanCompleted = false;
+      const resultadoElement = document.getElementById('resultado');
+      resultadoElement.innerText = '';
+      resultadoElement.className = 'hidden';
+      document.getElementById('reset-button').classList.add('hidden');
+      document.getElementById('loading').style.display = 'none';
+
+      html5QrcodeScanner = new Html5QrcodeScanner(
+        "qr-reader", 
+        { fps: 10, qrbox: 250 },
+        false
+      );
+
+      html5QrcodeScanner.render(onScanSuccess, onScanError);
+    }
+
+    window.addEventListener('load', initScanner);
+    document.getElementById('reset-button').addEventListener('click', initScanner);
+  </script>
+</body>
+</html>

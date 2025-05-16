@@ -1,26 +1,7 @@
 const AttendanceEvent = require("../models/attendanceEvent");
 
 class AttendanceEventController {
-  static async checkIn(req, res) {
-    try {
-      const { employee_number } = req.body;
-      const event = await AttendanceEvent.createEvent(employee_number, "IN");
-      res.status(201).json(event);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  }
-
-  static async checkOut(req, res) {
-    try {
-      const { employee_number } = req.body;
-      const event = await AttendanceEvent.createEvent(employee_number, "OUT");
-      res.status(201).json(event);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
-  }
-
+ 
   static async getAll(req, res) {
     try {
       const events = await AttendanceEvent.getAll();
@@ -40,51 +21,39 @@ class AttendanceEventController {
     }
   }
 
-  static async getByDateRange(req, res) {
+
+  // static async registerAutoEvent(req, res) {
+  //   try {
+  //     const { employee_number } = req.body;
+  //     if (!employee_number) {
+  //       return res.status(400).json({ error: "Número de empleado requerido" });
+  //     }
+
+  //     const newEvent = await AttendanceEvent.registerAutoEvent(employee_number);
+
+  //     res.status(201).json({
+  //       message: `Empleado ${employee_number}: evento '${newEvent.event_type}' registrado.`,
+  //       event: newEvent
+  //     });
+  //   } catch (error) {
+  //     res.status(500).json({ error: error.message });
+  //   }
+  // }
+
+  static async registerAutoEvent(req, res) {
     try {
-      const { startDate, endDate } = req.query;
-      const events = await AttendanceEvent.getByDateRange(startDate, endDate);
-      res.status(200).json(events);
+      const { employee_number } = req.body;
+      const event = await AttendanceEvent.registerAutoEvent(employee_number);
+      res.status(201).json({ event });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   }
 
-  
-
-static async exportCSV(req, res) {
-  try {
-    const csvData = await AttendanceEvent.exportCSV();
-
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", "attachment; filename=attendance_report.csv");
-    res.status(200).send(csvData);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-}
-
-
-///
-static async getWorkedHours(req, res) {
-  try {
-    const { csv } = await AttendanceEvent.getWorkedHoursWithCSV();
-
-    res.setHeader('Content-Disposition', 'attachment; filename="horas_trabajadas.csv"');
-    res.setHeader('Content-Type', 'text/csv');
-    res.status(200).send(csv);
-  } catch (error) {
-    console.error("Error al generar el CSV:", error.message);
-    res.status(500).json({ error: "Error al generar el archivo CSV." });
-  }
-}
-
-
-
-
-
-
 
 }
+
+
+
 
 module.exports = AttendanceEventController;
