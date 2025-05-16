@@ -23,15 +23,45 @@ class DatEventController {
   }
 
   // Obtiene horas trabajadas por día
-  static async getWorkedHours(req, res) {
-    try {
-      const result = await DatEvent.getWorkedHoursPerDay();
-      res.status(200).json(result);
-    } catch (error) {
-      console.error("Error al obtener las horas trabajadas:", error.message);
-      res.status(500).json({ error: "No se pudo obtener la información de horas trabajadas." });
-    }
+//   static async getWorkedHours(req, res) {
+//     try {
+//       const result = await DatEvent.getWorkedHoursPerDay();
+//       res.status(200).json(result);
+//     } catch (error) {
+//       console.error("Error al obtener las horas trabajadas:", error.message);
+//       res.status(500).json({ error: "No se pudo obtener la información de horas trabajadas." });
+//     }
+//   }
+ static async getWorkedHours(req, res) {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const result = await DatEvent.getWorkedHoursPerDay(page, limit);
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error al obtener las horas trabajadas:", error.message);
+    res.status(500).json({ error: "No se pudo obtener la información de horas trabajadas." });
   }
+}
+
+
+
+
+//   static async getWorkedHours(req, res) {
+//     try {
+//       const result = await DatEvent.getWorkedHoursPerDay();
+//       res.status(200).json(result);
+//     } catch (error) {
+//       console.error("Error al obtener las horas trabajadas:", error.message);
+//       res.status(500).json({ error: "No se pudo obtener la información de horas trabajadas." });
+//     }
+//   }
+
+
+
+
 }
 
 module.exports = DatEventController;

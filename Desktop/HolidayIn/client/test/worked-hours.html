@@ -2,92 +2,137 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Horas Trabajadas</title>
+  <title>Prueba de Horas Trabajadas Paginadas</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
-      background-color: #f9f9f9;
     }
-    h1 {
-      text-align: center;
+    #results {
+      margin-top: 20px;
     }
     table {
-      width: 90%;
-      margin: 0 auto;
       border-collapse: collapse;
-      background-color: #fff;
+      width: 100%;
+      max-width: 700px;
     }
     th, td {
-      border: 1px solid #ccc;
-      padding: 10px;
+      border: 1px solid #ddd;
+      padding: 8px;
       text-align: center;
     }
     th {
-      background-color: #007bff;
-      color: white;
+      background: #f4f4f4;
     }
-    tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
-    .error {
-      text-align: center;
-      color: red;
+    button {
+      padding: 8px 12px;
+      margin: 10px 5px 0 0;
     }
   </style>
 </head>
 <body>
-  <h1>Horas Trabajadas por Empleado</h1>
-  <div id="table-container"></div>
+  <h1>Horas Trabajadas - Paginación</h1>
+  <div>
+    <label for="limit">Registros por página:</label>
+    <select id="limit">
+      <option value="3" selected>3</option>
+      <option value="5">5</option>
+      <option value="10">10</option>
+    </select>
+  </div>
+
+  <div id="results"></div>
+
+  <div>
+    <button id="prevBtn" disabled>Anterior</button>
+    <button id="nextBtn">Siguiente</button>
+  </div>
 
   <script>
-    async function loadWorkedHours() {
+    const resultsDiv = document.getElementById("results");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const limitSelect = document.getElementById("limit");
+
+    let currentPage = 1;
+    let limit = parseInt(limitSelect.value);
+
+    async function fetchWorkedHours(page, limit) {
       try {
-        const response = await fetch("http://localhost:3000/api/datEvents/worked-hours");
-        const data = await response.json();
-
-        if (!Array.isArray(data)) {
-          document.getElementById("table-container").innerHTML =
-            "<p class='error'>No se pudo cargar la información.</p>";
-          return;
-        }
-
-        const table = document.createElement("table");
-
-        const headers = `
-          <tr>
-            <th>Número de Empleado</th>
-            <th>Fecha de Entrada</th>
-            <th>Hora de Entrada</th>
-            <th>Fecha de Salida</th>
-            <th>Hora de Salida</th>
-            <th>Horas Trabajadas</th>
-          </tr>
-        `;
-
-        const rows = data.map(row => `
-          <tr>
-            <td>${row.employee_number}</td>
-            <td>${row.entry_date}</td>
-            <td>${row.entry_time}</td>
-            <td>${row.exit_date}</td>
-            <td>${row.exit_time}</td>
-            <td>${row.hours_worked}</td>
-          </tr>
-        `).join("");
-
-        table.innerHTML = headers + rows;
-
-        document.getElementById("table-container").appendChild(table);
-      } catch (error) {
-        console.error("Error al cargar las horas trabajadas:", error);
-        document.getElementById("table-container").innerHTML =
-          "<p class='error'>Error al conectar con el servidor.</p>";
+        const res = await fetch(`http://localhost:3000/api/datEvents/worked-hours?page=${page}&limit=${limit}`);
+        if (!res.ok) throw new Error("Error en la petición");
+        const json = await res.json();
+        return json;
+      } catch (err) {
+        resultsDiv.innerHTML = `<p style="color:red;">${err.message}</p>`;
+        return null;
       }
     }
 
-    loadWorkedHours();
+    function renderTable(data) {
+      if (!data || data.data.length === 0) {
+        resultsDiv.innerHTML = "<p>No hay datos para mostrar.</p>";
+        return;
+      }
+
+      let html = `<table>
+        <thead>
+          <tr>
+            <th>Empleado</th>
+            <th>Entrada (Fecha)</th>
+            <th>Entrada (Hora)</th>
+            <th>Salida (Fecha)</th>
+            <th>Salida (Hora)</th>
+            <th>Horas Trabajadas</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+      for (const row of data.data) {
+        html += `<tr>
+          <td>${row.employee_number}</td>
+          <td>${row.entry_date}</td>
+          <td>${row.entry_time}</td>
+          <td>${row.exit_date}</td>
+          <td>${row.exit_time}</td>
+          <td>${row.hours_worked.toFixed(2)}</td>
+        </tr>`;
+      }
+
+      html += "</tbody></table>";
+      resultsDiv.innerHTML = html;
+    }
+
+    async function loadPage(page, limit) {
+      const data = await fetchWorkedHours(page, limit);
+      if (!data) return;
+
+      currentPage = data.page;
+      limit = data.limit;
+
+      renderTable(data);
+
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = data.data.length < limit;
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (currentPage > 1) {
+        loadPage(currentPage - 1, limit);
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      loadPage(currentPage + 1, limit);
+    });
+
+    limitSelect.addEventListener("change", () => {
+      limit = parseInt(limitSelect.value);
+      loadPage(1, limit);
+    });
+
+    // Carga inicial
+    loadPage(currentPage, limit);
   </script>
 </body>
 </html>
