@@ -2,6 +2,7 @@ const DatEvent = require("../models/datEvent");
 const path = require("path");
 
 class DatEventController {
+  // Procesa archivo .dat
   static async processDatFile(req, res) {
     try {
       const { filePath } = req.body;
@@ -18,6 +19,17 @@ class DatEventController {
     } catch (error) {
       console.error("Error al procesar el archivo .dat:", error.message);
       res.status(500).json({ error: "No se pudo procesar el archivo .dat" });
+    }
+  }
+
+  // Obtiene horas trabajadas por día
+  static async getWorkedHours(req, res) {
+    try {
+      const result = await DatEvent.getWorkedHoursPerDay();
+      res.status(200).json(result);
+    } catch (error) {
+      console.error("Error al obtener las horas trabajadas:", error.message);
+      res.status(500).json({ error: "No se pudo obtener la información de horas trabajadas." });
     }
   }
 }

@@ -3,6 +3,7 @@ const path = require("path");
 const supabase = require("../config/supabase");
 
 class DatEvent {
+
   static async processDatFile(filePath) {
     try {
       const raw = fs.readFileSync(path.resolve(filePath), "utf-8");
@@ -47,6 +48,23 @@ class DatEvent {
       throw new Error(`Error procesando el archivo .dat: ${err.message}`);
     }
   }
+  
+
+  //// horas trabajadas
+    // Método para obtener horas trabajadas
+  static async getWorkedHoursPerDay() {
+    const { data, error } = await supabase.rpc("get_worked_hours");
+
+    if (error) {
+      throw new Error(`Error al obtener horas trabajadas: ${error.message}`);
+    }
+
+    return data;
+  }
 }
+
+
+
+
 
 module.exports = DatEvent;
