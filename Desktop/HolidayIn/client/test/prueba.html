@@ -63,41 +63,43 @@
       });
 
       const resultadoElement = document.getElementById('resultado');
-      resultadoElement.innerText = `Procesando código: ${decodedText}`;
+      resultadoElement.innerText = `Código leído: ${decodedText}\nEsperando...`;
       resultadoElement.className = 'neutral-message';
       resultadoElement.classList.remove('hidden');
       document.getElementById('loading').style.display = 'block';
 
-      fetch(backendUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ employee_number: decodedText })
-      })
-      .then(response => {
-        document.getElementById('loading').style.display = 'none';
-        if (!response.ok) throw new Error("Error en la respuesta del servidor");
-        return response.json();
-      })
-      .then(data => {
-        const tipo = data.event?.event_type || "evento";
-        // Aquí agregamos 'Z' para forzar UTC y luego convertimos a hora local de Merida
-        const utcDate = new Date(data.event?.timestamp + 'Z');
-        const hora = utcDate.toLocaleTimeString('es-ES', { 
-          hour: '2-digit', 
-          minute: '2-digit',
-          timeZone: 'America/Merida' 
-        });
+      // Esperar 2 segundos antes de procesar
+      setTimeout(() => {
+        fetch(backendUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ employee_number: decodedText })
+        })
+        .then(response => {
+          document.getElementById('loading').style.display = 'none';
+          if (!response.ok) throw new Error("Error en la respuesta del servidor");
+          return response.json();
+        })
+        .then(data => {
+          const tipo = data.event?.event_type || "evento";
+          const utcDate = new Date(data.event?.timestamp + 'Z');
+          const hora = utcDate.toLocaleTimeString('es-ES', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            timeZone: 'America/Merida' 
+          });
 
-        const nombre = data.event?.employees?.name || "empleado";
-        resultadoElement.innerText = `✅ ${nombre}: ${tipo === "IN" ? "Entrada" : "Salida"} registrada a las ${hora}.`;
-        resultadoElement.className = 'success-message';
-        document.getElementById('reset-button').classList.remove('hidden');
-      })
-      .catch(err => {
-        resultadoElement.innerText = `❌ Error: ${err.message}`;
-        resultadoElement.className = 'error-message';
-        document.getElementById('reset-button').classList.remove('hidden');
-      });
+          const nombre = data.event?.employees?.name || "empleado";
+          resultadoElement.innerText = `✅ ${nombre}: ${tipo === "IN" ? "Entrada" : "Salida"} registrada a las ${hora}.`;
+          resultadoElement.className = 'success-message';
+          document.getElementById('reset-button').classList.remove('hidden');
+        })
+        .catch(err => {
+          resultadoElement.innerText = `❌ Error: ${err.message}`;
+          resultadoElement.className = 'error-message';
+          document.getElementById('reset-button').classList.remove('hidden');
+        });
+      }, 3000);
     }
 
     function onScanError(errorMessage) {

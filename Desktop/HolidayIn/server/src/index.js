@@ -11,6 +11,7 @@ const roleRoutes = require("../routes/roleRoutes");
 const employeeRoutes = require("../routes/employeeRoutes");
 const attendanceLogRoutes = require("../routes/attendanceLogRoutes");
 const attendanceEventRoutes = require("../routes/attendanceEventRoutes");
+const datEventRoutes = require("../routes/datEventRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,12 +33,13 @@ app.get("/", (req, res) => {
   res.send("¡Backend de HolidayIn funcionando!");
 });
 
-// 🔹 Usar rutas
+// 🔹 rutas
 app.use("/api/departments", departmentRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/attendance", attendanceLogRoutes);
 app.use("/attendance-events", attendanceEventRoutes);
+app.use("/api/datEvents", datEventRoutes)
 
 // 🔹 Iniciar servidor
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
