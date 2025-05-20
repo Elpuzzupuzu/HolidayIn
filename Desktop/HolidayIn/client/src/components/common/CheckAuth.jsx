@@ -30,7 +30,7 @@ export default function CheckAuth({ isAuthenticated, user }) {
               isActive ? "nav-link active" : "nav-link"
             }
           >
-            buscar por Numero de Empleado
+            buscar por Departamento
           </NavLink>
               <NavLink
             to="/admin/logs"
