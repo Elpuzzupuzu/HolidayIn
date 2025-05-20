@@ -178,6 +178,104 @@ static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
 
 /// por departamento : 
 
+// static async getTotalWorkedHoursByDepartment(department_id, from, to) {
+//   if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
+
+//   // 1) Obtener el nombre del departamento
+//   const { data: depts, error: deptErr } = await supabase
+//     .from("departments")
+//     .select("name")
+//     .eq("id", department_id)
+//     .single();
+//   if (deptErr) throw new Error(deptErr.message);
+//   const departmentName = depts.name;
+
+//   // 2) Listar todos los empleados de ese departamento
+//   const { data: emps, error: empErr } = await supabase
+//     .from("employees")
+//     .select("employee_number, name")
+//     .eq("department_id", department_id);
+//   if (empErr) throw new Error(empErr.message);
+//   if (!emps.length) {
+//     return { department_id, department: departmentName, from, to, data: [] };
+//   }
+
+//   // 3) Obtener eventos de esos empleados en el rango
+//   const employeeNumbers = emps.map((e) => e.employee_number);
+//   const { data: events, error: evErr } = await supabase
+//     .from("dat_events")
+//     .select("*")
+//     .in("employee_number", employeeNumbers)
+//     .gte("event_date", from)
+//     .lte("event_date", to)
+//     .order("event_date", { ascending: true })
+//     .order("event_time", { ascending: true });
+//   if (evErr) throw new Error(evErr.message);
+
+//   // 4) Agrupar eventos por empleado y por fecha
+//   const groupedEvents = {};
+
+//   for (const ev of events) {
+//     const key = `${ev.employee_number}-${ev.event_date}`;
+//     if (!groupedEvents[key]) {
+//       groupedEvents[key] = [];
+//     }
+//     groupedEvents[key].push(ev);
+//   }
+
+//   const totalsByEmp = {};
+
+//   for (const key in groupedEvents) {
+//     const dailyEvents = groupedEvents[key];
+
+//     // Ordenar eventos por hora por seguridad
+//     dailyEvents.sort((a, b) => {
+//       const t1 = new Date(`${a.event_date}T${a.event_time}`);
+//       const t2 = new Date(`${b.event_date}T${b.event_time}`);
+//       return t1 - t2;
+//     });
+
+//     const empNum = dailyEvents[0].employee_number;
+//     let i = 0;
+//     while (i < dailyEvents.length) {
+//       const entry = dailyEvents[i];
+
+//       if (entry.event_type === "0") {
+//         // Buscar la siguiente salida
+//         let j = i + 1;
+//         while (j < dailyEvents.length) {
+//           const exit = dailyEvents[j];
+//           if (exit.event_type === "1") {
+//             const start = new Date(`${entry.event_date}T${entry.event_time}`);
+//             const end   = new Date(`${exit.event_date}T${exit.event_time}`);
+//             const diffH = (end - start) / 3600000;
+
+//             if (diffH > 0) {
+//               totalsByEmp[empNum] = (totalsByEmp[empNum] || 0) + diffH;
+//             }
+
+//             i = j; // saltamos al índice del evento de salida
+//             break;
+//           }
+//           j++;
+//         }
+//       }
+
+//       i++;
+//     }
+//   }
+
+//   // 5) Formar el array de respuesta
+//   const data = emps.map((e) => ({
+//     employee_number: e.employee_number,
+//     name: e.name,
+//     department: departmentName,
+//     total_hours: Math.round((totalsByEmp[e.employee_number] || 0) * 100) / 100,
+//   }));
+
+//   return { department_id, department: departmentName, from, to, data };
+// }
+
 static async getTotalWorkedHoursByDepartment(department_id, from, to) {
   if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
 
@@ -190,7 +288,7 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
   if (deptErr) throw new Error(deptErr.message);
   const departmentName = depts.name;
 
-  // 2) Listar todos los empleados de ese departamento
+  // 2) Obtener empleados del departamento
   const { data: emps, error: empErr } = await supabase
     .from("employees")
     .select("employee_number, name")
@@ -200,7 +298,7 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
     return { department_id, department: departmentName, from, to, data: [] };
   }
 
-  // 3) Obtener eventos de esos empleados en el rango
+  // 3) Obtener eventos en el rango
   const employeeNumbers = emps.map((e) => e.employee_number);
   const { data: events, error: evErr } = await supabase
     .from("dat_events")
@@ -208,53 +306,45 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
     .in("employee_number", employeeNumbers)
     .gte("event_date", from)
     .lte("event_date", to)
+    .order("employee_number", { ascending: true })
     .order("event_date", { ascending: true })
     .order("event_time", { ascending: true });
   if (evErr) throw new Error(evErr.message);
 
-  // 4) Agrupar eventos por empleado y por fecha
+  // 4) Agrupar eventos por empleado
   const groupedEvents = {};
-
   for (const ev of events) {
-    const key = `${ev.employee_number}-${ev.event_date}`;
-    if (!groupedEvents[key]) {
-      groupedEvents[key] = [];
+    if (!groupedEvents[ev.employee_number]) {
+      groupedEvents[ev.employee_number] = [];
     }
-    groupedEvents[key].push(ev);
+    groupedEvents[ev.employee_number].push(ev);
   }
 
+  // 5) Emparejar entradas/salidas secuenciales y calcular horas
   const totalsByEmp = {};
 
-  for (const key in groupedEvents) {
-    const dailyEvents = groupedEvents[key];
+  for (const empNum in groupedEvents) {
+    const empEvents = groupedEvents[empNum];
 
-    // Ordenar eventos por hora por seguridad
-    dailyEvents.sort((a, b) => {
-      const t1 = new Date(`${a.event_date}T${a.event_time}`);
-      const t2 = new Date(`${b.event_date}T${b.event_time}`);
-      return t1 - t2;
-    });
-
-    const empNum = dailyEvents[0].employee_number;
     let i = 0;
-    while (i < dailyEvents.length) {
-      const entry = dailyEvents[i];
+    while (i < empEvents.length) {
+      const entry = empEvents[i];
 
       if (entry.event_type === "0") {
         // Buscar la siguiente salida
         let j = i + 1;
-        while (j < dailyEvents.length) {
-          const exit = dailyEvents[j];
+        while (j < empEvents.length) {
+          const exit = empEvents[j];
           if (exit.event_type === "1") {
             const start = new Date(`${entry.event_date}T${entry.event_time}`);
-            const end   = new Date(`${exit.event_date}T${exit.event_time}`);
+            const end = new Date(`${exit.event_date}T${exit.event_time}`);
             const diffH = (end - start) / 3600000;
 
-            if (diffH > 0) {
+            if (diffH > 0 && diffH < 24) {
               totalsByEmp[empNum] = (totalsByEmp[empNum] || 0) + diffH;
             }
 
-            i = j; // saltamos al índice del evento de salida
+            i = j; // saltamos al evento de salida
             break;
           }
           j++;
@@ -265,7 +355,7 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
     }
   }
 
-  // 5) Formar el array de respuesta
+  // 6) Armar respuesta
   const data = emps.map((e) => ({
     employee_number: e.employee_number,
     name: e.name,
@@ -275,6 +365,7 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
 
   return { department_id, department: departmentName, from, to, data };
 }
+
 
 
 
