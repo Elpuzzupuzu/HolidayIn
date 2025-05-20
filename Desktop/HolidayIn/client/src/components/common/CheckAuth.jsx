@@ -25,12 +25,20 @@ export default function CheckAuth({ isAuthenticated, user }) {
             Dashboard
           </NavLink>
           <NavLink
+            to="/admin/logs/findbyID"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            buscar por Numero de Empleado
+          </NavLink>
+              <NavLink
             to="/admin/logs"
             className={({ isActive }) =>
               isActive ? "nav-link active" : "nav-link"
             }
           >
-            Registros
+            Todos los Registros
           </NavLink>
         </nav>
 
@@ -44,9 +52,9 @@ export default function CheckAuth({ isAuthenticated, user }) {
           <section className="main-section">
             <Outlet />
           </section>
-          <aside className="right-aside">
+          {/* <aside className="right-aside">
             <AsideResumen />
-          </aside>
+          </aside> */}
         </div>
       </main>
     </div>

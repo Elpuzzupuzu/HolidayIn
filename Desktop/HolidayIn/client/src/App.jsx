@@ -39,7 +39,7 @@ function App() {
       >
         <Route path="dashboard" element={<Home />} />
         <Route path="logs" element={<LogsList />} />
-        <Route path="logs/" element={<LogDetail />} />
+        <Route path="logs/FindByID" element={<LogDetail />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />
