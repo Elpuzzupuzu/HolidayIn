@@ -37,6 +37,25 @@ class DatEventController {
   }
 }
 
+static async getWorkedHoursByEmployee(req, res) {
+  try {
+    const employee_number = req.params.employee_number;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const from = req.query.from || null;  // opcional
+    const to = req.query.to || null;      // opcional
+
+    const result = await DatEvent.getWorkedHoursByEmployee(employee_number, page, limit, from, to);
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error al obtener las horas trabajadas:", error.message);
+    res.status(500).json({ error: "No se pudo obtener la información de horas trabajadas." });
+  }
+}
+
+
+
 
 
 }

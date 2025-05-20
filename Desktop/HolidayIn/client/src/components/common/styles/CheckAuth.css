@@ -1,0 +1,94 @@
+/* src/components/common/CheckAuth.css */
+
+/* Main layout */
+.admin-layout {
+  display: flex;
+  height: 100vh;
+  background-color: #f5f7fa;
+}
+
+/* Sidebar styling */
+.sidebar {
+  width: 260px;
+  background-color: #1f2937;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+.sidebar-header {
+  margin-bottom: 2rem;
+}
+
+.sidebar-header h2 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 0 0 0.5rem 0;
+}
+
+.user-name {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+/* Navigation styling */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav-link {
+  display: block;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  color: white;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.nav-link:hover {
+  background-color: #374151;
+}
+
+.nav-link.active {
+  background-color: #374151;
+  font-weight: 600;
+}
+
+/* Footer section with logout button */
+.sidebar-footer {
+  margin-top: auto;
+}
+
+.logout-button {
+  width: 100%;
+  text-align: left;
+  padding: 0.75rem 1rem;
+  margin-top: 1.5rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.logout-button:hover {
+  background-color: #b91c1c;
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow: auto;
+}
+
+/* Unauthorized message */
+.unauthorized {
+  padding: 2rem;
+  font-size: 1.25rem;
+  color: #dc2626;
+}
