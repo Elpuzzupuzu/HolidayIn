@@ -1,0 +1,146 @@
+.resumen-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+}
+
+.resumen-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.input-container {
+  margin-bottom: 20px;
+}
+
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.input-label {
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.input-field {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.button-group {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #545b62;
+}
+
+.table-container {
+  margin-top: 10px; /* O ajusta según necesidad */
+  padding: 0;
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table-header {
+  background-color: #f8f9fa;
+  text-align: left;
+  padding: 12px;
+}
+
+.column-header {
+  background-color: #e9ecef;
+  padding: 8px;
+}
+
+.data-cell {
+  padding: 8px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.row-even {
+  background-color: #f9f9f9;
+}
+
+.row-odd {
+  background-color: #ffffff;
+}
+
+.status-cell {
+  text-align: center;
+  padding: 16px;
+}
+
+.loading-indicator .spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #ccc;
+  border-top-color: #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text,
+.error-text,
+.warning-text {
+  margin-top: 8px;
+}
+
+.error-icon,
+.warning-icon {
+  font-size: 24px;
+  color: red;
+}
+
+.results-summary {
+  margin-top: 10px;
+  font-size: 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

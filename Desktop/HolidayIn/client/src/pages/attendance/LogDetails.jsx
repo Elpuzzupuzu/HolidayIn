@@ -1,164 +1,183 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getWorkedHours } from "../../features/datEvents/datEventsSlice";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { ChevronLeft, ChevronRight, Clock, Users, AlertCircle } from "lucide-react";
+import { getWorkedHoursByDepartment } from "../../features/datEvents/datEventsSlice";
+import { clearWorkedHours } from "../../features/datEvents/datEventsSlice";
 
-const LogList = () => {
+import "./styles/LogDetail.css";
+
+const ResumenPorDepartamento = () => {
   const dispatch = useDispatch();
+
+  // Local state for user input
+  const [departmentId, setDepartmentId] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [totalHours, setTotalHours] = useState(0);
+  
+  // Global state from Redux
   const { workedHours, status, error } = useSelector((state) => state.datEvents);
 
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
-
+  // Calculate total hours whenever workedHours changes
   useEffect(() => {
-    dispatch(getWorkedHours({ page, limit }));
-  }, [dispatch, page, limit]);
+    if (workedHours && workedHours.length > 0) {
+      const sum = workedHours.reduce((acc, curr) => acc + parseFloat(curr.total_hours || 0), 0);
+      setTotalHours(sum.toFixed(2));
+    } else {
+      setTotalHours(0);
+    }
+  }, [workedHours]);
 
-  const calculateWorkedHours = (entryDate, entryTime, exitDate, exitTime) => {
-    const start = new Date(`${entryDate}T${entryTime}`);
-    const end = new Date(`${exitDate}T${exitTime}`);
-    const diffMs = end - start;
-    if (diffMs < 0) return "0.00";
-    const diffHrs = diffMs / (1000 * 60 * 60);
-    return diffHrs.toFixed(2);
+    useEffect(() => {
+    dispatch(clearWorkedHours());
+  }, []);
+
+  const handleBuscar = () => {
+    if (!departmentId || !from || !to) {
+      alert("Por favor completa todos los campos requeridos");
+      return;
+    }
+
+    dispatch(getWorkedHoursByDepartment({ department_id: departmentId, from, to }));
   };
 
-  if (status === "loading") {
-    return (
-      <div>
-        <div>Cargando registros de asistencia...</div>
-      </div>
-    );
-  }
-
-  if (status === "failed") {
-    return (
-      <div>
-        <h3>Error al cargar datos</h3>
-        <p>{error}</p>
-        <button onClick={() => dispatch(getWorkedHours({ page, limit }))}>
-          Reintentar
-        </button>
-      </div>
-    );
-  }
-
-  const hasData = workedHours.length > 0;
-
-  const currentDate = new Date().toLocaleDateString("es-ES", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  // Set default dates for yesterday and today
+  const setDefaultDates = () => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    setFrom(yesterday.toISOString().split('T')[0]);
+    setTo(today.toISOString().split('T')[0]);
+  };
 
   return (
-    <div>
-      <div>
-        {/* Header */}
-        <div>
-          <h2>
-            <Clock />
-            Control de Asistencia
-          </h2>
-          <p>
-            <Users />
-            Departamento de Recursos Humanos
-          </p>
-          <p>{currentDate}</p>
-        </div>
+    <div className="resumen-container">
+      <h2 className="resumen-title">Resumen por Departamento</h2>
 
-        {/* Registros por página */}
-        <div>
-          <label>Registros por página:</label>
-          <select
-            value={limit}
-            onChange={(e) => {
-              setLimit(Number(e.target.value));
-              setPage(1);
-            }}
-          >
-            <option value={5}>5 registros</option>
-            <option value={10}>10 registros</option>
-            <option value={20}>20 registros</option>
-            <option value={50}>50 registros</option>
-          </select>
+      <div className="input-container">
+        <div className="input-grid">
+          <div className="input-group">
+            <label className="input-label">
+              ID Departamento:
+            </label>
+            <input
+              type="text"
+              value={departmentId}
+              onChange={(e) => setDepartmentId(e.target.value)}
+              className="input-field"
+              placeholder="Ej: DEPT01"
+            />
+          </div>
+          <div className="input-group">
+            <label className="input-label">
+              Desde:
+            </label>
+            <input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="input-field"
+            />
+          </div>
+          <div className="input-group">
+            <label className="input-label">
+              Hasta:
+            </label>
+            <input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="input-field"
+            />
+          </div>
+          <div className="button-group">
+            <button onClick={handleBuscar} className="btn btn-primary">
+              {status === "loading" ? "Buscando..." : "Buscar"}
+            </button>
+            <button onClick={setDefaultDates} className="btn btn-secondary">
+              Hoy
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Tabla de registros */}
-      <div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>N° Empleado</TableHead>
-              <TableHead>Fecha Entrada</TableHead>
-              <TableHead>Hora Entrada</TableHead>
-              <TableHead>Fecha Salida</TableHead>
-              <TableHead>Hora Salida</TableHead>
-              <TableHead>Horas Trabajadas</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {workedHours.map((log, index) => {
-              const hours = parseFloat(
-                calculateWorkedHours(
-                  log.entry_date,
-                  log.entry_time,
-                  log.exit_date,
-                  log.exit_time
-                )
-              );
-
-              return (
-                <TableRow key={index}>
-                  <TableCell>{log.employee_number}</TableCell>
-                  <TableCell>{log.entry_date}</TableCell>
-                  <TableCell>{log.entry_time}</TableCell>
-                  <TableCell>{log.exit_date}</TableCell>
-                  <TableCell>{log.exit_time}</TableCell>
-                  <TableCell>{hours.toFixed(2)}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Paginación */}
-      <div>
-        <div>
-          <span>Página {page}</span>
-          <span> • </span>
-          <span>{limit} registros por página</span>
-        </div>
-
-        <div>
-          <button
-            onClick={() => setPage((p) => Math.max(p - 1, 1))}
-            disabled={page === 1}
-          >
-            <ChevronLeft />
-            Anterior
-          </button>
-
-          <button onClick={() => setPage((p) => p + 1)}>
-            Siguiente
-            <ChevronRight />
-          </button>
-        </div>
+      {/* Results table - contains all data states */}
+      <div className="table-container">
+        <table className="results-table">
+          <thead>
+            <tr>
+              <th colSpan="2" className="table-header">
+                <div className="header-content">
+                  <h3 className="results-title">Resultados</h3>
+                  {status === "succeeded" && workedHours.length > 0 && (
+                    <div className="results-summary">
+                      <p className="total-records">Total registros: {workedHours.length}</p>
+                      <p className="total-hours">Total horas: {totalHours}</p>
+                    </div>
+                  )}
+                </div>
+              </th>
+            </tr>
+            {status === "succeeded" && workedHours.length > 0 && (
+              <tr>
+                <th className="column-header">Número de Empleado</th>
+                <th className="column-header">Horas Trabajadas</th>
+              </tr>
+            )}
+          </thead>
+          <tbody>
+            {/* Loading state */}
+            {status === "loading" && (
+              <tr>
+                <td colSpan="2" className="status-cell">
+                  <div className="loading-indicator">
+                    <div className="spinner"></div>
+                    <p className="loading-text">Cargando datos...</p>
+                  </div>
+                </td>
+              </tr>
+            )}
+            
+            {/* Error state */}
+            {status === "failed" && (
+              <tr>
+                <td colSpan="2" className="status-cell">
+                  <div className="error-message">
+                    <div className="error-icon">!</div>
+                    <div className="error-text">{error}</div>
+                  </div>
+                </td>
+              </tr>
+            )}
+            
+            {/* No results state */}
+            {status === "succeeded" && workedHours.length === 0 && (
+              <tr>
+                <td colSpan="2" className="status-cell">
+                  <div className="warning-message">
+                    <div className="warning-icon">⚠</div>
+                    <div className="warning-text">
+                      No se encontraron resultados para los parámetros de búsqueda indicados.
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            )}
+            
+            {/* Results data */}
+            {status === "succeeded" && workedHours.length > 0 && 
+              workedHours.map((item, idx) => (
+                <tr key={idx} className={idx % 2 === 0 ? 'row-even' : 'row-odd'}>
+                  <td className="data-cell">{item.employee_number}</td>
+                  <td className="data-cell">{parseFloat(item.total_hours).toFixed(2)}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
       </div>
     </div>
   );
 };
 
-export default LogList;
+export default ResumenPorDepartamento;

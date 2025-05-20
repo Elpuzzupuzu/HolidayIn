@@ -49,6 +49,31 @@ export const getWorkedHoursByDateRange = createAsyncThunk(
   }
 );
 
+// Thunk para obtener horas trabajadas por departamento
+export const getWorkedHoursByDepartment = createAsyncThunk(
+  "datEvents/getWorkedHoursByDepartment",
+  async ({ department_id, from, to }, thunkAPI) => {
+    try {
+      if (!from || !to) {
+        return thunkAPI.rejectWithValue({ error: "Se requieren fechas 'from' y 'to'." });
+      }
+
+      const response = await axios.get(
+        `${API_URL}/datEvents/worked-hours/department/${department_id}?from=${from}&to=${to}`
+      );
+
+      console.log("Respuesta getWorkedHoursByDepartment:", response.data);
+      return response.data;
+
+    } catch (error) {
+      console.error("Error en getWorkedHoursByDepartment:", error.response?.data || error.message);
+      return thunkAPI.rejectWithValue(
+        error.response?.data || { error: "Error al obtener horas por departamento" }
+      );
+    }
+  }
+);
+
 const datEventsSlice = createSlice({
   name: "datEvents",
   initialState: {
@@ -59,7 +84,15 @@ const datEventsSlice = createSlice({
     status: "idle",
     error: null,
   },
-  reducers: {},
+  reducers: {
+    clearWorkedHours(state) {
+      state.workedHours = [];
+      state.page = 1;
+      state.limit = 10;
+      state.status = "idle";
+      state.error = null;
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(processDatFile.pending, (state) => {
@@ -96,7 +129,6 @@ const datEventsSlice = createSlice({
         state.error = action.payload?.error || "Error desconocido";
       })
 
-      // ExtraReducers para getWorkedHoursByDateRange
       .addCase(getWorkedHoursByDateRange.pending, (state) => {
         console.log("getWorkedHoursByDateRange pending");
         state.status = "loading";
@@ -113,8 +145,26 @@ const datEventsSlice = createSlice({
         console.log("getWorkedHoursByDateRange rejected, error:", action.payload);
         state.status = "failed";
         state.error = action.payload?.error || "Error desconocido";
+      })
+
+      .addCase(getWorkedHoursByDepartment.pending, (state) => {
+        console.log("getWorkedHoursByDepartment pending");
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(getWorkedHoursByDepartment.fulfilled, (state, action) => {
+        console.log("getWorkedHoursByDepartment fulfilled:", action.payload);
+        state.status = "succeeded";
+        state.workedHours = action.payload.data || [];
+      })
+      .addCase(getWorkedHoursByDepartment.rejected, (state, action) => {
+        console.log("getWorkedHoursByDepartment rejected:", action.payload);
+        state.status = "failed";
+        state.error = action.payload?.error || "Error desconocido";
       });
   },
 });
+
+export const { clearWorkedHours } = datEventsSlice.actions;
 
 export default datEventsSlice.reducer;
