@@ -1,0 +1,279 @@
+/* src/components/common/AsideResumen.css */
+
+.aside-resumen {
+  width: 25%;
+  min-width: 320px;
+  height: fit-content;
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  border: 1px solid #ddd6fe;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.resumen-header {
+  border-bottom: 2px solid #e0e7ff;
+  padding-bottom: 1rem;
+}
+
+.resumen-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #312e81;
+  margin-bottom: 0.25rem;
+}
+
+.resumen-subtitle {
+  color: #6366f1;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* Stats cards */
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  background-color: #f5f7ff;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border-left: 4px solid #4f46e5;
+}
+
+.stat-icon-container {
+  background-color: #e0e7ff;
+  height: 2.5rem;
+  width: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.stat-icon {
+  color: #4338ca;
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-title {
+  font-size: 0.875rem;
+  color: #4f46e5;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #312e81;
+}
+
+/* Distribution section */
+.distribution-section {
+  background-color: #f5f7ff;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.distribution-title {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  color: #312e81;
+  margin-bottom: 1rem;
+}
+
+.distribution-icon {
+  height: 1rem;
+  width: 1rem;
+  margin-right: 0.5rem;
+  color: #4f46e5;
+}
+
+.distribution-chart {
+  margin-top: 1rem;
+}
+
+.chart-bar {
+  height: 1.5rem;
+  background-color: #e5e7eb;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.bar-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.low-hours {
+  background-color: #ef4444;
+}
+
+.medium-hours {
+  background-color: #f59e0b;
+}
+
+.high-hours {
+  background-color: #10b981;
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.low-color {
+  background-color: #ef4444;
+}
+
+.medium-color {
+  background-color: #f59e0b;
+}
+
+.high-color {
+  background-color: #10b981;
+}
+
+.legend-label {
+  flex: 1;
+  color: #4b5563;
+}
+
+.legend-value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Observations section */
+.observations-section {
+  background-color: #f5f7ff;
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.observations-title {
+  font-size: 1rem;
+  color: #312e81;
+  margin-bottom: 0.75rem;
+}
+
+.observations-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.observation-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.observation-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  background-color: #6b7280;
+}
+
+.low-observation .observation-dot {
+  background-color: #ef4444;
+}
+
+.high-observation .observation-dot {
+  background-color: #10b981;
+}
+
+/* Report section */
+.report-section {
+  margin-top: 0.5rem;
+}
+
+.report-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.report-button:hover {
+  background-color: #4338ca;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 1200px) {
+  .aside-resumen {
+    width: 100%;
+    min-width: unset;
+    margin-top: 1.5rem;
+  }
+  
+  .log-list-container {
+    flex-direction: column;
+  }
+  
+  .log-list-main-content {
+    max-width: 100%;
+  }
+  
+  .stats-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .stat-card {
+    flex: 1;
+    min-width: calc(33.33% - 0.67rem);
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-container {
+    flex-direction: column;
+  }
+  
+  .stat-card {
+    width: 100%;
+  }
+}

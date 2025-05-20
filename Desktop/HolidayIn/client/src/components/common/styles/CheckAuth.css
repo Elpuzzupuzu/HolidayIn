@@ -4,7 +4,10 @@
 .admin-layout {
   display: flex;
   height: 100vh;
+  width: 100vw; /* NUEVO: asegura que use todo el ancho de la ventana */
+  overflow: hidden; /* Evita scroll horizontal */
   background-color: #f5f7fa;
+  box-sizing: border-box; /* NUEVO: controla el desbordamiento de padding */
 }
 
 /* Sidebar styling */
@@ -83,7 +86,35 @@
 .main-content {
   flex: 1;
   padding: 1.5rem;
-  overflow: auto;
+  overflow-y: auto; /* scroll solo vertical */
+  box-sizing: border-box;
+  width: 100%; /* NUEVO */
+}
+
+/* Wrapper para el contenido principal y el aside derecho */
+.content-wrapper {
+  display: flex;
+  width: 100%;
+  gap: 2rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  max-width: 100%; /* NUEVO: asegura que no se pase del 100% */
+  box-sizing: border-box;
+}
+
+/* Contenido central (Outlet) */
+.main-section {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Aside derecho */
+.right-aside {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  box-sizing: border-box;
 }
 
 /* Unauthorized message */

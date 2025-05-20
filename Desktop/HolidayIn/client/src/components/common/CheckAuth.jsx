@@ -1,11 +1,10 @@
-// src/components/common/CheckAuth.jsx
-
 import { NavLink, Outlet } from "react-router-dom";
 import "./styles/CheckAuth.css";
+import AsideResumen from "../../components/common/AsideResumen";
 
-export default function CheckAuth({ isAuthenticated, user, children }) {
+export default function CheckAuth({ isAuthenticated, user }) {
   if (!isAuthenticated) {
-    return <div className="unauthorized">No autorizado</div>; // Or redirection
+    return <div className="unauthorized">No autorizado</div>;
   }
 
   return (
@@ -36,14 +35,19 @@ export default function CheckAuth({ isAuthenticated, user, children }) {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="logout-button">
-            Cerrar sesión
-          </button>
+          <button className="logout-button">Cerrar sesión</button>
         </div>
       </aside>
 
       <main className="main-content">
-        <Outlet />
+        <div className="content-wrapper">
+          <section className="main-section">
+            <Outlet />
+          </section>
+          <aside className="right-aside">
+            <AsideResumen />
+          </aside>
+        </div>
       </main>
     </div>
   );
