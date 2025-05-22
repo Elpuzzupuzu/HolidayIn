@@ -1,0 +1,345 @@
+/* Employee Resume Modal Overlay */
+.employee-resume-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.employee-resume-modal {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 28rem;
+  width: 100%;
+  transform: scale(0.95);
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Header Styles */
+.employee-resume-header {
+  background: linear-gradient(135deg, #2563eb 0%, #4338ca 100%);
+  padding: 1.5rem;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-decoration-1 {
+  position: absolute;
+  top: -2.5rem;
+  right: -2.5rem;
+  width: 5rem;
+  height: 5rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.header-decoration-2 {
+  position: absolute;
+  bottom: -2rem;
+  left: -2rem;
+  width: 4rem;
+  height: 4rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 10;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-icon {
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.header-subtitle {
+  color: rgba(219, 234, 254, 1);
+  font-size: 0.875rem;
+  margin: 0;
+  margin-top: 0.125rem;
+}
+
+.header-close-btn {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: none;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Body Styles */
+.employee-resume-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Date Section */
+.date-section {
+  background-color: #f9fafb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.section-header svg {
+  color: #6b7280;
+}
+
+.section-title {
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.date-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.date-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.date-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.date-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1f2937;
+  text-align: right;
+}
+
+/* Hours Section */
+.hours-section {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #bbf7d0;
+}
+
+.hours-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hours-icon {
+  background-color: #dcfce7;
+  padding: 0.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hours-icon svg {
+  color: #16a34a;
+}
+
+.hours-info {
+  flex: 1;
+}
+
+.hours-title {
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+  font-size: 0.95rem;
+}
+
+.hours-main {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.hours-number {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #16a34a;
+  line-height: 1;
+}
+
+.hours-unit {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.hours-equivalent {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Average Section */
+.average-section {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  border: 1px solid #93c5fd;
+}
+
+.average-content {
+  text-align: center;
+}
+
+.average-label {
+  font-size: 0.875rem;
+  color: #2563eb;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.average-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e40af;
+}
+
+/* Footer Styles */
+.employee-resume-footer {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+}
+
+.footer-close-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.footer-close-btn:hover {
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.footer-close-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .employee-resume-overlay {
+    padding: 0.5rem;
+  }
+  
+  .employee-resume-modal {
+    max-width: 100%;
+  }
+  
+  .employee-resume-header {
+    padding: 1.25rem;
+  }
+  
+  .employee-resume-body {
+    padding: 1.25rem;
+    gap: 1.25rem;
+  }
+  
+  .header-title {
+    font-size: 1rem;
+  }
+  
+  .hours-number {
+    font-size: 1.5rem;
+  }
+  
+  .date-value {
+    font-size: 0.8rem;
+    max-width: 60%;
+    word-break: break-word;
+  }
+}

@@ -15,7 +15,7 @@ export const processDatFile = createAsyncThunk(
     }
   }
 );
-
+// este trae toda la data
 export const getWorkedHours = createAsyncThunk(
   "datEvents/getWorkedHours",
   async ({ page = 1, limit = 10 }, thunkAPI) => {
@@ -30,7 +30,7 @@ export const getWorkedHours = createAsyncThunk(
   }
 );
 
-// Nuevo thunk para filtrar por rango de fechas
+// funciona  para filtrar por rango de fechas
 export const getWorkedHoursByDateRange = createAsyncThunk(
   "datEvents/getWorkedHoursByDateRange",
   async ({ employee_number, from, to, page = 1, limit = 10 }, thunkAPI) => {
@@ -75,6 +75,8 @@ export const getWorkedHoursByDepartment = createAsyncThunk(
 );
 
 // Thunk para obtener el total de horas trabajadas por un empleado
+
+/// ESTE FUE PARA EL TEXT FUNCIONO PERFECTO 
 export const getTotalWorkedHoursByEmployee = createAsyncThunk(
   "datEvents/getTotalWorkedHoursByEmployee",
   async ({ employee_number, from, to }, thunkAPI) => {
@@ -83,7 +85,14 @@ export const getTotalWorkedHoursByEmployee = createAsyncThunk(
         return thunkAPI.rejectWithValue({ error: "Los parámetros 'from' y 'to' son obligatorios." });
       }
 
-      const response = await axios.get(`${API_URL}/datEvents/total-worked-hours/${employee_number}?from=${from}&to=${to}`);
+      const response = await axios.get(`${API_URL}/datEvents/worked-hours/employee`, {
+        params: {
+          employee_number,
+          from,
+          to,
+        },
+      });
+
       console.log("Respuesta getTotalWorkedHoursByEmployee:", response.data);
       return response.data;
     } catch (error) {
@@ -94,7 +103,6 @@ export const getTotalWorkedHoursByEmployee = createAsyncThunk(
     }
   }
 );
-
 
 
 

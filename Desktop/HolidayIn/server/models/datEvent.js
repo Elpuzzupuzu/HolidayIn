@@ -71,50 +71,7 @@ static async getWorkedHoursPerDay(page = 1, limit = 10) {
     };
   }
 
-
-static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
-  if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
-
-  let query = supabase
-    .from("dat_events")
-    .select("*")
-    .eq("employee_number", employee_number)
-    .gte("event_date", from)
-    .lte("event_date", to)
-    .order("event_date", { ascending: true })
-    .order("event_time", { ascending: true });
-
-  const { data: events, error } = await query;
-
-  if (error) throw new Error(error.message);
-  if (!events.length) return { employee_number, from, to, total_hours: 0 };
-
-  let totalHours = 0;
-
-  for (let i = 0; i < events.length - 1; i++) {
-    const curr = events[i];
-    const next = events[i + 1];
-
-    if (curr.event_type === "0" && next.event_type === "1") {
-      // Emparejar entrada-salida consecutiva
-      const start = new Date(`${curr.event_date}T${curr.event_time}`);
-      const end = new Date(`${next.event_date}T${next.event_time}`);
-      const diffHours = (end - start) / 3600000; // diferencia en horas
-
-      totalHours += diffHours;
-      i++; // saltar el siguiente evento (ya emparejado)
-    }
-  }
-
-  return {
-    employee_number,
-    from,
-    to,
-    total_hours: Math.round(totalHours * 100) / 100, // redondeo a 2 decimales
-  };
-}
-
-
+/// esto busca por departamento y filtra por un rango de fechas A
 
 static async getTotalWorkedHoursByDepartment(department_id, from, to) {
   if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
@@ -206,6 +163,53 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
   return { department_id, department: departmentName, from, to, data };
 }
 
+
+
+
+
+
+//// testing
+static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
+  if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
+
+  let query = supabase
+    .from("dat_events")
+    .select("*")
+    .eq("employee_number", employee_number)
+    .gte("event_date", from)
+    .lte("event_date", to)
+    .order("event_date", { ascending: true })
+    .order("event_time", { ascending: true });
+
+  const { data: events, error } = await query;
+
+  if (error) throw new Error(error.message);
+  if (!events.length) return { employee_number, from, to, total_hours: 0 };
+
+  let totalHours = 0;
+
+  for (let i = 0; i < events.length - 1; i++) {
+    const curr = events[i];
+    const next = events[i + 1];
+
+    if (curr.event_type === "0" && next.event_type === "1") {
+      // Emparejar entrada-salida consecutiva
+      const start = new Date(`${curr.event_date}T${curr.event_time}`);
+      const end = new Date(`${next.event_date}T${next.event_time}`);
+      const diffHours = (end - start) / 3600000; // diferencia en horas
+
+      totalHours += diffHours;
+      i++; // saltar el siguiente evento (ya emparejado)
+    }
+  }
+
+  return {
+    employee_number,
+    from,
+    to,
+    total_hours: Math.round(totalHours * 100) / 100, // redondeo a 2 decimales
+  };
+}
 
 
 

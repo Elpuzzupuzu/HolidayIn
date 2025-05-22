@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getWorkedHoursByDepartment, clearWorkedHours,getTotalWorkedHoursByEmployee } from "../../features/datEvents/datEventsSlice";
 import "./styles/LogDetail.css";
+import EmployeeResume from "./EmployeeResume";
+
 
 const ResumenPorDepartamento = () => {
   const dispatch = useDispatch();
@@ -12,9 +14,13 @@ const ResumenPorDepartamento = () => {
   const [to, setTo] = useState("");
   const [totalHours, setTotalHours] = useState(0);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showResume, setShowResume] = useState(false);
+
 
   // Global state
   const { workedHours, status, error } = useSelector((state) => state.datEvents);
+  const { totalWorkedHours } = useSelector((state) => state.datEvents);
+
 
   // Calcular total de horas
   useEffect(() => {
@@ -48,20 +54,29 @@ const ResumenPorDepartamento = () => {
     setTo(today.toISOString().split("T")[0]);
   };
 
- const handleRowClick = (employeeNumber) => {
-  setSelectedEmployee(employeeNumber);
 
+
+const handleRowClick = (employeeNumber) => {
   if (!from || !to) {
-    alert("Por favor define las fechas antes de seleccionar un empleado.");
+    alert("Por favor selecciona un rango de fechas antes de ver el resumen del empleado.");
     return;
   }
 
-  const empleado = workedHours.find(emp => emp.employee_number === employeeNumber);
-  console.log("Empleado seleccionado:", empleado);
+  setSelectedEmployee(employeeNumber);
+  setShowResume(true); // Mostrar la pantalla lateral
 
-  // Aquí podrías disparar otra acción si fuera necesario
-  dispatch(getTotalWorkedHoursByEmployee({ employee_number: employeeNumber, from, to }));
+  const empleado = workedHours.find(emp => emp.employee_number === employeeNumber);
+  console.log("Empleado seleccionado testing:", empleado);
+
+  dispatch(getTotalWorkedHoursByEmployee({
+    employee_number: employeeNumber,
+    from,
+    to
+  }));
 };
+
+
+
 
 
   return (
@@ -184,7 +199,13 @@ const ResumenPorDepartamento = () => {
           </tbody>
         </table>
       </div>
+      <EmployeeResume
+  resumen={totalWorkedHours}
+  onClose={() => setSelectedEmployee(null)}
+/>
+
     </div>
+    
   );
 };
 

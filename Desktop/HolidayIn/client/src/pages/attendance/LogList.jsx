@@ -57,6 +57,7 @@ const LogList = () => {
     );
   }
 
+
   // Determine if data has rows
   const hasData = workedHours.length > 0;
 
@@ -68,6 +69,10 @@ const LogList = () => {
     day: 'numeric' 
   });
 
+
+
+
+  
   return (
     <div className="log-list-container">
       <div className="log-list-main-content">

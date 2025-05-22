@@ -24,7 +24,7 @@ class DatEventController {
     }
   }
 
-
+/// trae todos los registros del dat procesado
  static async getWorkedHours(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -39,51 +39,8 @@ class DatEventController {
   }
 }
 
-// static async getWorkedHoursByEmployee(req, res) {   este va a servir luego 
-//   try {
-//     const employee_number = req.params.employee_number;
-//     const page = parseInt(req.query.page) || 1;
-//     const limit = parseInt(req.query.limit) || 10;
-//     const from = req.query.from || null;  // opcional
-//     const to = req.query.to || null;      // opcional
 
-//     const result = await DatEvent.getWorkedHoursByEmployee(employee_number, page, limit, from, to);
-
-//     res.status(200).json(result);
-//   } catch (error) {
-//     console.error("Error al obtener las horas trabajadas:", error.message);
-//     res.status(500).json({ error: "No se pudo obtener la información de horas trabajadas." });
-//   }
-// }
-
-// static async getTotalWorkedHours(req, res) {
-//   try {
-//     const employee_number = req.params.employee_number;
-//     const from = req.query.from;
-//     const to = req.query.to;
-
-//     if (!from || !to) {
-//       return res.status(400).json({ error: "Parámetros 'from' y 'to' son obligatorios." });
-//     }
-
-//     const result = await DatEvent.getTotalWorkedHoursByEmployee(employee_number, from, to);
-
-//     res.status(200).json(result);
-//   } catch (error) {
-//     console.error("Error al obtener total de horas trabajadas:", error.message);
-//     res.status(500).json({ error: "No se pudo obtener el total de horas trabajadas." });
-//   }
-// }
-
-
-// por departamentos y fechas : 
-
-
-// Thunk para obtener el total de horas trabajadas por un empleado
-
-
-
-
+/// por departamento 
 static async getTotalWorkedHoursByDepartment(req, res) {
   try {
     const department_id = parseInt(req.params.department_id, 10);
@@ -109,6 +66,33 @@ static async getTotalWorkedHoursByDepartment(req, res) {
     res
       .status(500)
       .json({ error: "No se pudo obtener la información de horas trabajadas." });
+  }
+}
+
+
+////
+static async getTotalWorkedHoursByEmployee(req, res) {
+  try {
+    const { employee_number, from, to } = req.query;
+
+    if (!employee_number || !from || !to) {
+      return res.status(400).json({
+        error: "Parámetros 'employee_number', 'from' y 'to' son obligatorios.",
+      });
+    }
+
+    const result = await DatEvent.getTotalWorkedHoursByEmployee(
+      employee_number,
+      from,
+      to
+    );
+
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error al obtener las horas trabajadas del empleado:", error.message);
+    res
+      .status(500)
+      .json({ error: "No se pudo obtener la información de horas trabajadas del empleado." });
   }
 }
 

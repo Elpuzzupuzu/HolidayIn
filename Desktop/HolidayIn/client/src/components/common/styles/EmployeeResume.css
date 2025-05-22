@@ -1,0 +1,37 @@
+/* src/components/styles/EmpleadoResumen.css */
+
+.empleado-resumen {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 20px;
+  width: 280px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+
+.resumen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.resumen-body p {
+  margin: 8px 0;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #888;
+}
+
+.btn-close:hover {
+  color: #e00;
+}
