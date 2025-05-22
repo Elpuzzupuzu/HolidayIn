@@ -4,6 +4,7 @@ import { getWorkedHoursByDepartment, clearWorkedHours, getTotalWorkedHoursByEmpl
 import "./styles/LogDetail.css";
 import EmployeeResume from "./EmployeeResume";
 
+
 const ResumenPorDepartamento = () => {
   const dispatch = useDispatch();
 
@@ -194,6 +195,8 @@ const ResumenPorDepartamento = () => {
           }}
         />
       )}
+      {/* Nuevo componente de resumen por fechas y/o empleado */}
+     
     </div>
   );
 };

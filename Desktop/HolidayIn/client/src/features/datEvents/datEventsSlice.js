@@ -15,6 +15,7 @@ export const processDatFile = createAsyncThunk(
     }
   }
 );
+
 // este trae toda la data
 export const getWorkedHours = createAsyncThunk(
   "datEvents/getWorkedHours",
@@ -30,7 +31,7 @@ export const getWorkedHours = createAsyncThunk(
   }
 );
 
-// funciona  para filtrar por rango de fechas
+// funciona para filtrar por rango de fechas
 export const getWorkedHoursByDateRange = createAsyncThunk(
   "datEvents/getWorkedHoursByDateRange",
   async ({ employee_number, from, to, page = 1, limit = 10 }, thunkAPI) => {
@@ -75,8 +76,6 @@ export const getWorkedHoursByDepartment = createAsyncThunk(
 );
 
 // Thunk para obtener el total de horas trabajadas por un empleado
-
-/// ESTE FUE PARA EL TEST FUNCIONO PERFECTO 
 export const getTotalWorkedHoursByEmployee = createAsyncThunk(
   "datEvents/getTotalWorkedHoursByEmployee",
   async ({ employee_number, from, to }, thunkAPI) => {
@@ -104,16 +103,34 @@ export const getTotalWorkedHoursByEmployee = createAsyncThunk(
   }
 );
 
-//// TEST 
+// NUEVO THUNK - obtener horas trabajadas entre fechas con opción a filtrar por empleado
+export const getWorkedHoursBetweenDates = createAsyncThunk(
+  "datEvents/getWorkedHoursBetweenDates",
+  async ({ startDate, endDate, employeeNumber = null }, thunkAPI) => {
+    try {
+      if (!startDate || !endDate) {
+        return thunkAPI.rejectWithValue({ error: "Los parámetros startDate y endDate son obligatorios." });
+      }
 
+      const response = await axios.get(`${API_URL}/datEvents/worked-hours/filter`, {
+        params: {
+          startDate,
+          endDate,
+          employeeNumber,
+        },
+      });
 
+      console.log("Respuesta getWorkedHoursBetweenDates:", response.data);
+      return response.data.data; // asumiendo que en tu backend devuelves { data: [...] }
+    } catch (error) {
+      console.error("Error en getWorkedHoursBetweenDates:", error.response?.data || error.message);
 
-
-
-
-
-
-////////////////
+      return thunkAPI.rejectWithValue(
+        error.response?.data || { error: "Error al obtener horas trabajadas" }
+      );
+    }
+  }
+);
 
 const datEventsSlice = createSlice({
   name: "datEvents",
@@ -137,6 +154,7 @@ const datEventsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // processDatFile
       .addCase(processDatFile.pending, (state) => {
         console.log("processDatFile pending");
         state.status = "loading";
@@ -153,6 +171,7 @@ const datEventsSlice = createSlice({
         state.error = action.payload?.error || "Error desconocido";
       })
 
+      // getWorkedHours
       .addCase(getWorkedHours.pending, (state) => {
         console.log("getWorkedHours pending");
         state.status = "loading";
@@ -171,6 +190,7 @@ const datEventsSlice = createSlice({
         state.error = action.payload?.error || "Error desconocido";
       })
 
+      // getWorkedHoursByDateRange
       .addCase(getWorkedHoursByDateRange.pending, (state) => {
         console.log("getWorkedHoursByDateRange pending");
         state.status = "loading";
@@ -189,6 +209,7 @@ const datEventsSlice = createSlice({
         state.error = action.payload?.error || "Error desconocido";
       })
 
+      // getWorkedHoursByDepartment
       .addCase(getWorkedHoursByDepartment.pending, (state) => {
         console.log("getWorkedHoursByDepartment pending");
         state.status = "loading";
@@ -203,23 +224,45 @@ const datEventsSlice = createSlice({
         console.log("getWorkedHoursByDepartment rejected:", action.payload);
         state.status = "failed";
         state.error = action.payload?.error || "Error desconocido";
-      }).addCase(getTotalWorkedHoursByEmployee.pending, (state) => {
-  console.log("getTotalWorkedHoursByEmployee pending");
-  state.status = "loading";
-  state.error = null;
-})
-.addCase(getTotalWorkedHoursByEmployee.fulfilled, (state, action) => {
-  console.log("getTotalWorkedHoursByEmployee fulfilled:", action.payload);
-  state.status = "succeeded";
-  // Puedes guardarlo en un nuevo campo si lo necesitas, por ejemplo:
-  state.totalWorkedHours = action.payload;
-})
-.addCase(getTotalWorkedHoursByEmployee.rejected, (state, action) => {
-  console.log("getTotalWorkedHoursByEmployee rejected:", action.payload);
+      })
+
+      // getTotalWorkedHoursByEmployee
+      .addCase(getTotalWorkedHoursByEmployee.pending, (state) => {
+        console.log("getTotalWorkedHoursByEmployee pending");
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(getTotalWorkedHoursByEmployee.fulfilled, (state, action) => {
+        console.log("getTotalWorkedHoursByEmployee fulfilled:", action.payload);
+        state.status = "succeeded";
+        state.totalWorkedHours = action.payload;
+      })
+      .addCase(getTotalWorkedHoursByEmployee.rejected, (state, action) => {
+        console.log("getTotalWorkedHoursByEmployee rejected:", action.payload);
+        state.status = "failed";
+        state.error = action.payload?.error || "Error desconocido";
+      })
+
+      // NUEVO: getWorkedHoursBetweenDates
+      .addCase(getWorkedHoursBetweenDates.pending, (state) => {
+        console.log("getWorkedHoursBetweenDates pending");
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(getWorkedHoursBetweenDates.fulfilled, (state, action) => {
+        console.log("getWorkedHoursBetweenDates fulfilled:", action.payload);
+        state.status = "succeeded";
+        state.workedHours = action.payload || [];
+      })
+      .addCase(getWorkedHoursBetweenDates.rejected, (state, action) => {
+  console.log("getWorkedHoursBetweenDates rejected, action:", action);
   state.status = "failed";
-  state.error = action.payload?.error || "Error desconocido";
+  state.error =
+    (action.payload && (typeof action.payload === "string" ? action.payload : action.payload.error)) ||
+    action.error?.message ||
+    "Error desconocido";
 });
-;
+
   },
 });
 

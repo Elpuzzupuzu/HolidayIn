@@ -1,6 +1,7 @@
 import React from "react";
 import { X, Clock, User, Calendar, List } from "lucide-react";
 import "./styles/EmployeeResume.css";
+import WorkedHoursSummary from "./WorkedHoursSummary";
 
 const EmployeeResume = ({ resumen, onClose }) => {
   if (!resumen) return null;
@@ -114,6 +115,11 @@ const EmployeeResume = ({ resumen, onClose }) => {
             </div>
           </div>
         </div>
+        <WorkedHoursSummary
+        employeeNumber={resumen.employee_number}
+        from={resumen.from}
+        to={resumen.to}
+      />
 
         {/* Footer */}
         <div className="employee-resume-footer">
