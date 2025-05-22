@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getWorkedHoursBetweenDates } from "../../features/datEvents/datEventsSlice";
+import "./styles/WorkedHoursSummary.css";
+
 
 const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
   const dispatch = useDispatch();
@@ -36,8 +38,9 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
             <thead>
               <tr>
                 <th>Nº Empleado</th>
-              
                 <th>Fecha</th>
+                <th>entrada</th>
+                <th>salida</th>
                 <th>Horas Trabajadas</th>
               </tr>
             </thead>
@@ -45,8 +48,9 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
               {workedHours.map((item, index) => (
                 <tr key={index}>
                   <td>{item.employee_number}</td>
-                  <td>{item.employeeName || "-"}</td>
                   <td>{item.entry_date}</td>
+                  <td>{item.entry_time}</td>
+                  <td>{item.exit_time}</td>
                   <td>{item.hours_worked ? item.hours_worked.toFixed(2) : "-"}</td>
                 </tr>
               ))}
