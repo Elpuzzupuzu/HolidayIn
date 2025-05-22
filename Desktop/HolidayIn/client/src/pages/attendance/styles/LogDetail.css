@@ -119,6 +119,11 @@
   margin: auto;
 }
 
+.row-selected {
+  background-color: #d1e7dd; /* verde claro o el color que prefieras */
+}
+
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

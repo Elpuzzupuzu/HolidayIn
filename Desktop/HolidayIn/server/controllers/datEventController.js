@@ -2,6 +2,8 @@ const DatEvent = require("../models/datEvent");
 const path = require("path");
 
 class DatEventController {
+
+
   // Procesa archivo .dat
   static async processDatFile(req, res) {
     try {
@@ -54,27 +56,33 @@ class DatEventController {
 //   }
 // }
 
-static async getTotalWorkedHours(req, res) {
-  try {
-    const employee_number = req.params.employee_number;
-    const from = req.query.from;
-    const to = req.query.to;
+// static async getTotalWorkedHours(req, res) {
+//   try {
+//     const employee_number = req.params.employee_number;
+//     const from = req.query.from;
+//     const to = req.query.to;
 
-    if (!from || !to) {
-      return res.status(400).json({ error: "Parámetros 'from' y 'to' son obligatorios." });
-    }
+//     if (!from || !to) {
+//       return res.status(400).json({ error: "Parámetros 'from' y 'to' son obligatorios." });
+//     }
 
-    const result = await DatEvent.getTotalWorkedHoursByEmployee(employee_number, from, to);
+//     const result = await DatEvent.getTotalWorkedHoursByEmployee(employee_number, from, to);
 
-    res.status(200).json(result);
-  } catch (error) {
-    console.error("Error al obtener total de horas trabajadas:", error.message);
-    res.status(500).json({ error: "No se pudo obtener el total de horas trabajadas." });
-  }
-}
+//     res.status(200).json(result);
+//   } catch (error) {
+//     console.error("Error al obtener total de horas trabajadas:", error.message);
+//     res.status(500).json({ error: "No se pudo obtener el total de horas trabajadas." });
+//   }
+// }
 
 
 // por departamentos y fechas : 
+
+
+// Thunk para obtener el total de horas trabajadas por un empleado
+
+
+
 
 static async getTotalWorkedHoursByDepartment(req, res) {
   try {
@@ -103,8 +111,6 @@ static async getTotalWorkedHoursByDepartment(req, res) {
       .json({ error: "No se pudo obtener la información de horas trabajadas." });
   }
 }
-
-
 
 
 

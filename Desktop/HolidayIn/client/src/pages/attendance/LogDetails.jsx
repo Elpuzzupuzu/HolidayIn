@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getWorkedHoursByDepartment } from "../../features/datEvents/datEventsSlice";
-import { clearWorkedHours } from "../../features/datEvents/datEventsSlice";
-
+import { getWorkedHoursByDepartment, clearWorkedHours,getTotalWorkedHoursByEmployee } from "../../features/datEvents/datEventsSlice";
 import "./styles/LogDetail.css";
 
 const ResumenPorDepartamento = () => {
   const dispatch = useDispatch();
 
-  // Local state for user input
+  // Local state
   const [departmentId, setDepartmentId] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [totalHours, setTotalHours] = useState(0);
-  
-  // Global state from Redux
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+
+  // Global state
   const { workedHours, status, error } = useSelector((state) => state.datEvents);
 
-  // Calculate total hours whenever workedHours changes
+  // Calcular total de horas
   useEffect(() => {
     if (workedHours && workedHours.length > 0) {
       const sum = workedHours.reduce((acc, curr) => acc + parseFloat(curr.total_hours || 0), 0);
@@ -27,7 +26,8 @@ const ResumenPorDepartamento = () => {
     }
   }, [workedHours]);
 
-    useEffect(() => {
+  // Limpiar al montar
+  useEffect(() => {
     dispatch(clearWorkedHours());
   }, []);
 
@@ -36,19 +36,33 @@ const ResumenPorDepartamento = () => {
       alert("Por favor completa todos los campos requeridos");
       return;
     }
-
     dispatch(getWorkedHoursByDepartment({ department_id: departmentId, from, to }));
   };
 
-  // Set default dates for yesterday and today
   const setDefaultDates = () => {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
-    setFrom(yesterday.toISOString().split('T')[0]);
-    setTo(today.toISOString().split('T')[0]);
+
+    setFrom(yesterday.toISOString().split("T")[0]);
+    setTo(today.toISOString().split("T")[0]);
   };
+
+ const handleRowClick = (employeeNumber) => {
+  setSelectedEmployee(employeeNumber);
+
+  if (!from || !to) {
+    alert("Por favor define las fechas antes de seleccionar un empleado.");
+    return;
+  }
+
+  const empleado = workedHours.find(emp => emp.employee_number === employeeNumber);
+  console.log("Empleado seleccionado:", empleado);
+
+  // Aquí podrías disparar otra acción si fuera necesario
+  dispatch(getTotalWorkedHoursByEmployee({ employee_number: employeeNumber, from, to }));
+};
+
 
   return (
     <div className="resumen-container">
@@ -57,9 +71,7 @@ const ResumenPorDepartamento = () => {
       <div className="input-container">
         <div className="input-grid">
           <div className="input-group">
-            <label className="input-label">
-              ID Departamento:
-            </label>
+            <label className="input-label">ID Departamento:</label>
             <input
               type="text"
               value={departmentId}
@@ -69,9 +81,7 @@ const ResumenPorDepartamento = () => {
             />
           </div>
           <div className="input-group">
-            <label className="input-label">
-              Desde:
-            </label>
+            <label className="input-label">Desde:</label>
             <input
               type="date"
               value={from}
@@ -80,9 +90,7 @@ const ResumenPorDepartamento = () => {
             />
           </div>
           <div className="input-group">
-            <label className="input-label">
-              Hasta:
-            </label>
+            <label className="input-label">Hasta:</label>
             <input
               type="date"
               value={to}
@@ -101,7 +109,6 @@ const ResumenPorDepartamento = () => {
         </div>
       </div>
 
-      {/* Results table - contains all data states */}
       <div className="table-container">
         <table className="results-table">
           <thead>
@@ -126,7 +133,6 @@ const ResumenPorDepartamento = () => {
             )}
           </thead>
           <tbody>
-            {/* Loading state */}
             {status === "loading" && (
               <tr>
                 <td colSpan="2" className="status-cell">
@@ -137,8 +143,7 @@ const ResumenPorDepartamento = () => {
                 </td>
               </tr>
             )}
-            
-            {/* Error state */}
+
             {status === "failed" && (
               <tr>
                 <td colSpan="2" className="status-cell">
@@ -149,8 +154,7 @@ const ResumenPorDepartamento = () => {
                 </td>
               </tr>
             )}
-            
-            {/* No results state */}
+
             {status === "succeeded" && workedHours.length === 0 && (
               <tr>
                 <td colSpan="2" className="status-cell">
@@ -163,11 +167,15 @@ const ResumenPorDepartamento = () => {
                 </td>
               </tr>
             )}
-            
-            {/* Results data */}
-            {status === "succeeded" && workedHours.length > 0 && 
+
+            {status === "succeeded" && workedHours.length > 0 &&
               workedHours.map((item, idx) => (
-                <tr key={idx} className={idx % 2 === 0 ? 'row-even' : 'row-odd'}>
+                <tr
+                  key={idx}
+                  className={`${idx % 2 === 0 ? 'row-even' : 'row-odd'} ${selectedEmployee === item.employee_number ? 'row-selected' : ''}`}
+                  onClick={() => handleRowClick(item.employee_number)}
+                  style={{ cursor: "pointer" }}
+                >
                   <td className="data-cell">{item.employee_number}</td>
                   <td className="data-cell">{parseFloat(item.total_hours).toFixed(2)}</td>
                 </tr>

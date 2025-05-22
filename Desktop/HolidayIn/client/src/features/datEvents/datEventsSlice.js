@@ -74,11 +74,42 @@ export const getWorkedHoursByDepartment = createAsyncThunk(
   }
 );
 
+// Thunk para obtener el total de horas trabajadas por un empleado
+export const getTotalWorkedHoursByEmployee = createAsyncThunk(
+  "datEvents/getTotalWorkedHoursByEmployee",
+  async ({ employee_number, from, to }, thunkAPI) => {
+    try {
+      if (!from || !to) {
+        return thunkAPI.rejectWithValue({ error: "Los parámetros 'from' y 'to' son obligatorios." });
+      }
+
+      const response = await axios.get(`${API_URL}/datEvents/total-worked-hours/${employee_number}?from=${from}&to=${to}`);
+      console.log("Respuesta getTotalWorkedHoursByEmployee:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error en getTotalWorkedHoursByEmployee:", error.response?.data || error.message);
+      return thunkAPI.rejectWithValue(
+        error.response?.data || { error: "Error al obtener total de horas trabajadas" }
+      );
+    }
+  }
+);
+
+
+
+
+
+
+
+
+////////////////
+
 const datEventsSlice = createSlice({
   name: "datEvents",
   initialState: {
     processedResult: null,
     workedHours: [],
+    totalWorkedHours: null, // <--- nueva propiedad
     page: 1,
     limit: 10,
     status: "idle",
@@ -161,7 +192,23 @@ const datEventsSlice = createSlice({
         console.log("getWorkedHoursByDepartment rejected:", action.payload);
         state.status = "failed";
         state.error = action.payload?.error || "Error desconocido";
-      });
+      }).addCase(getTotalWorkedHoursByEmployee.pending, (state) => {
+  console.log("getTotalWorkedHoursByEmployee pending");
+  state.status = "loading";
+  state.error = null;
+})
+.addCase(getTotalWorkedHoursByEmployee.fulfilled, (state, action) => {
+  console.log("getTotalWorkedHoursByEmployee fulfilled:", action.payload);
+  state.status = "succeeded";
+  // Puedes guardarlo en un nuevo campo si lo necesitas, por ejemplo:
+  state.totalWorkedHours = action.payload;
+})
+.addCase(getTotalWorkedHoursByEmployee.rejected, (state, action) => {
+  console.log("getTotalWorkedHoursByEmployee rejected:", action.payload);
+  state.status = "failed";
+  state.error = action.payload?.error || "Error desconocido";
+});
+;
   },
 });
 
