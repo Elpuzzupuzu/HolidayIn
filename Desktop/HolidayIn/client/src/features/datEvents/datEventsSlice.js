@@ -76,7 +76,7 @@ export const getWorkedHoursByDepartment = createAsyncThunk(
 
 // Thunk para obtener el total de horas trabajadas por un empleado
 
-/// ESTE FUE PARA EL TEXT FUNCIONO PERFECTO 
+/// ESTE FUE PARA EL TEST FUNCIONO PERFECTO 
 export const getTotalWorkedHoursByEmployee = createAsyncThunk(
   "datEvents/getTotalWorkedHoursByEmployee",
   async ({ employee_number, from, to }, thunkAPI) => {
@@ -103,6 +103,9 @@ export const getTotalWorkedHoursByEmployee = createAsyncThunk(
     }
   }
 );
+
+//// TEST 
+
 
 
 

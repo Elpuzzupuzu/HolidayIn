@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getWorkedHoursByDepartment, clearWorkedHours,getTotalWorkedHoursByEmployee } from "../../features/datEvents/datEventsSlice";
+import { getWorkedHoursByDepartment, clearWorkedHours, getTotalWorkedHoursByEmployee } from "../../features/datEvents/datEventsSlice";
 import "./styles/LogDetail.css";
 import EmployeeResume from "./EmployeeResume";
-
 
 const ResumenPorDepartamento = () => {
   const dispatch = useDispatch();
@@ -16,13 +15,9 @@ const ResumenPorDepartamento = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showResume, setShowResume] = useState(false);
 
-
   // Global state
-  const { workedHours, status, error } = useSelector((state) => state.datEvents);
-  const { totalWorkedHours } = useSelector((state) => state.datEvents);
+  const { workedHours, status, error, totalWorkedHours } = useSelector((state) => state.datEvents);
 
-
-  // Calcular total de horas
   useEffect(() => {
     if (workedHours && workedHours.length > 0) {
       const sum = workedHours.reduce((acc, curr) => acc + parseFloat(curr.total_hours || 0), 0);
@@ -32,7 +27,6 @@ const ResumenPorDepartamento = () => {
     }
   }, [workedHours]);
 
-  // Limpiar al montar
   useEffect(() => {
     dispatch(clearWorkedHours());
   }, []);
@@ -54,30 +48,21 @@ const ResumenPorDepartamento = () => {
     setTo(today.toISOString().split("T")[0]);
   };
 
+  const handleRowClick = (employeeNumber) => {
+    if (!from || !to) {
+      alert("Por favor selecciona un rango de fechas antes de ver el resumen del empleado.");
+      return;
+    }
 
+    setSelectedEmployee(employeeNumber);
+    setShowResume(true);
 
-const handleRowClick = (employeeNumber) => {
-  if (!from || !to) {
-    alert("Por favor selecciona un rango de fechas antes de ver el resumen del empleado.");
-    return;
-  }
-
-  setSelectedEmployee(employeeNumber);
-  setShowResume(true); // Mostrar la pantalla lateral
-
-  const empleado = workedHours.find(emp => emp.employee_number === employeeNumber);
-  console.log("Empleado seleccionado testing:", empleado);
-
-  dispatch(getTotalWorkedHoursByEmployee({
-    employee_number: employeeNumber,
-    from,
-    to
-  }));
-};
-
-
-
-
+    dispatch(getTotalWorkedHoursByEmployee({
+      employee_number: employeeNumber,
+      from,
+      to
+    }));
+  };
 
   return (
     <div className="resumen-container">
@@ -199,13 +184,17 @@ const handleRowClick = (employeeNumber) => {
           </tbody>
         </table>
       </div>
-      <EmployeeResume
-  resumen={totalWorkedHours}
-  onClose={() => setSelectedEmployee(null)}
-/>
 
+      {showResume && (
+        <EmployeeResume
+          resumen={totalWorkedHours}
+          onClose={() => {
+            setSelectedEmployee(null);
+            setShowResume(false);
+          }}
+        />
+      )}
     </div>
-    
   );
 };
 

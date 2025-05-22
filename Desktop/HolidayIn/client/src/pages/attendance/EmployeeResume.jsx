@@ -1,5 +1,5 @@
 import React from "react";
-import { X, Clock, User, Calendar } from "lucide-react";
+import { X, Clock, User, Calendar, List } from "lucide-react";
 import "./styles/EmployeeResume.css";
 
 const EmployeeResume = ({ resumen, onClose }) => {
@@ -7,11 +7,11 @@ const EmployeeResume = ({ resumen, onClose }) => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("es-ES", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -24,11 +24,9 @@ const EmployeeResume = ({ resumen, onClose }) => {
   };
 
   const calculateAverageHours = () => {
-    const fromDate = new Date(resumen.from);
-    const toDate = new Date(resumen.to);
-    const diffTime = Math.abs(toDate - fromDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    const avgHours = parseFloat(resumen.total_hours || 0) / diffDays;
+    const numDays = parseInt(resumen.total_days || 0);
+    if (numDays === 0) return "0.00";
+    const avgHours = parseFloat(resumen.total_hours || 0) / numDays;
     return avgHours.toFixed(2);
   };
 
@@ -39,7 +37,7 @@ const EmployeeResume = ({ resumen, onClose }) => {
         <div className="employee-resume-header">
           <div className="header-decoration-1"></div>
           <div className="header-decoration-2"></div>
-          
+
           <div className="header-content">
             <div className="header-info">
               <div className="header-icon">
@@ -97,11 +95,22 @@ const EmployeeResume = ({ resumen, onClose }) => {
             </div>
           </div>
 
+          {/* Days Worked Section */}
+          <div className="days-worked-section">
+            <div className="section-header">
+              <List size={18} />
+              <h4 className="section-title">Días con Registros</h4>
+            </div>
+            <div className="days-info">
+              <p className="days-number">{resumen.total_days || 0} días</p>
+            </div>
+          </div>
+
           {/* Average Section */}
           <div className="average-section">
             <div className="average-content">
               <div className="average-label">Promedio Diario</div>
-              <div className="average-value">{calculateAverageHours()}h/día</div>
+              <div className="average-value">{calculateAverageHours()} h/día</div>
             </div>
           </div>
         </div>
