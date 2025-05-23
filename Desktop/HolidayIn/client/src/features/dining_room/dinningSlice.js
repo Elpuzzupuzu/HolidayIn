@@ -9,7 +9,7 @@ export const fetchAllEvents = createAsyncThunk(
   'dinning/fetchAllEvents',
   async (_, thunkAPI) => {
     try {
-      const response = await axios.get(`${BASE_URL}/`);
+      const response = await axios.get(`${BASE_URL}/attendance-events/`);
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.error || error.message);
@@ -35,7 +35,7 @@ export const registerAutoEvent = createAsyncThunk(
   'dinning/registerAutoEvent',
   async (employee_number, thunkAPI) => {
     try {
-      const response = await axios.post(`${BASE_URL}attendance-events/register-event`, { employee_number });
+      const response = await axios.post(`${BASE_URL}/attendance-events/register-event`, { employee_number });
       return response.data.event;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response?.data?.error || error.message);
