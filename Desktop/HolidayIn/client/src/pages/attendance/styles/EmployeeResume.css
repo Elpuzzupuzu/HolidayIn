@@ -18,11 +18,17 @@
   background: white;
   border-radius: 1rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  max-width: 28rem;
-  width: 100%;
+  max-width: 900px; 
+  width: 90%;
+
+  max-height: 80vh;       /* Máximo 80% de la altura de la ventana */
+  overflow-y: auto;       /* Scroll vertical si el contenido supera max-height */
+
   transform: scale(0.95);
   animation: slideIn 0.3s ease-out forwards;
+  position: relative;     /* Asegura que los botones se posicionen bien */
 }
+
 
 /* Animations */
 @keyframes fadeIn {
@@ -118,23 +124,32 @@
   margin-top: 0.125rem;
 }
 
-.header-close-btn {
+.employee-resume-modal .close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  cursor: pointer;
+  
   background-color: rgba(255, 255, 255, 0.2);
   border: none;
   padding: 0.5rem;
   border-radius: 0.5rem;
   color: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  font-size: 1.5rem;
+  
   display: flex;
   align-items: center;
   justify-content: center;
+  
+  transition: all 0.2s ease;
 }
 
-.header-close-btn:hover {
+.employee-resume-modal .close-button:hover {
   background-color: rgba(255, 255, 255, 0.3);
   transform: scale(1.1);
 }
+
 
 /* Body Styles */
 .employee-resume-body {
@@ -309,6 +324,8 @@
 .footer-close-btn:active {
   transform: translateY(0);
 }
+
+
 
 /* Responsive Design */
 @media (max-width: 640px) {

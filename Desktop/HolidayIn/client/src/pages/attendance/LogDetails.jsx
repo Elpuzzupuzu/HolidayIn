@@ -4,7 +4,6 @@ import { getWorkedHoursByDepartment, clearWorkedHours, getTotalWorkedHoursByEmpl
 import "./styles/LogDetail.css";
 import EmployeeResume from "./EmployeeResume";
 
-
 const ResumenPorDepartamento = () => {
   const dispatch = useDispatch();
 
@@ -65,138 +64,311 @@ const ResumenPorDepartamento = () => {
     }));
   };
 
-  return (
-    <div className="resumen-container">
-      <h2 className="resumen-title">Resumen por Departamento</h2>
+  // Enhanced UI Components
+  const SearchForm = () => (
+    <div className="input-container">
+      <div className="form-header">
+        <h3 className="form-title">
+          <span className="form-icon">🔍</span>
+          Parámetros de Búsqueda
+        </h3>
+        <p className="form-subtitle">Ingresa los datos para consultar las horas trabajadas por departamento</p>
+      </div>
+      
+      <div className="input-grid">
+        <div className="input-group">
+          <label className="input-label">
+            <span className="label-icon">🏢</span>
+            ID Departamento
+            <span className="required-indicator">*</span>
+          </label>
+          <input
+            type="text"
+            value={departmentId}
+            onChange={(e) => setDepartmentId(e.target.value)}
+            className="input-field"
+            placeholder="Ej: DEPT01, VENTAS, IT..."
+            maxLength={20}
+          />
+          {departmentId && (
+            <span className="input-helper">
+              Departamento: {departmentId}
+            </span>
+          )}
+        </div>
 
-      <div className="input-container">
-        <div className="input-grid">
-          <div className="input-group">
-            <label className="input-label">ID Departamento:</label>
-            <input
-              type="text"
-              value={departmentId}
-              onChange={(e) => setDepartmentId(e.target.value)}
-              className="input-field"
-              placeholder="Ej: DEPT01"
-            />
-          </div>
-          <div className="input-group">
-            <label className="input-label">Desde:</label>
-            <input
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="input-field"
-            />
-          </div>
-          <div className="input-group">
-            <label className="input-label">Hasta:</label>
-            <input
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="input-field"
-            />
-          </div>
-          <div className="button-group">
-            <button onClick={handleBuscar} className="btn btn-primary">
-              {status === "loading" ? "Buscando..." : "Buscar"}
-            </button>
-            <button onClick={setDefaultDates} className="btn btn-secondary">
-              Hoy
-            </button>
-          </div>
+        <div className="input-group">
+          <label className="input-label">
+            <span className="label-icon">📅</span>
+            Fecha Desde
+            <span className="required-indicator">*</span>
+          </label>
+          <input
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="input-field"
+            max={new Date().toISOString().split("T")[0]}
+          />
+        </div>
+
+        <div className="input-group">
+          <label className="input-label">
+            <span className="label-icon">📅</span>
+            Fecha Hasta
+            <span className="required-indicator">*</span>
+          </label>
+          <input
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="input-field"
+            max={new Date().toISOString().split("T")[0]}
+            min={from}
+          />
+        </div>
+
+        <div className="button-group">
+          <button 
+            onClick={handleBuscar} 
+            className="btn btn-primary"
+            disabled={status === "loading" || !departmentId || !from || !to}
+          >
+            {status === "loading" ? (
+              <>
+                <span className="btn-spinner"></span>
+                Buscando...
+              </>
+            ) : (
+              <>
+                <span className="btn-icon">🔍</span>
+                Buscar
+              </>
+            )}
+          </button>
+          
+          <button 
+            onClick={setDefaultDates} 
+            className="btn btn-secondary"
+            title="Establecer rango de fechas: ayer a hoy"
+          >
+            <span className="btn-icon">📊</span>
+            Hoy
+          </button>
         </div>
       </div>
 
-      <div className="table-container">
-        <table className="results-table">
-          <thead>
-            <tr>
-              <th colSpan="2" className="table-header">
-                <div className="header-content">
-                  <h3 className="results-title">Resultados</h3>
-                  {status === "succeeded" && workedHours.length > 0 && (
-                    <div className="results-summary">
-                      <p className="total-records">Total registros: {workedHours.length}</p>
-                      <p className="total-hours">Total horas: {totalHours}</p>
-                    </div>
-                  )}
-                </div>
-              </th>
-            </tr>
+      {(from && to) && (
+        <div className="date-range-info">
+          <span className="info-icon">ℹ️</span>
+          Consultando desde <strong>{new Date(from).toLocaleDateString('es-ES')}</strong> hasta <strong>{new Date(to).toLocaleDateString('es-ES')}</strong>
+        </div>
+      )}
+    </div>
+  );
+
+  const TableHeader = () => (
+    <thead>
+      <tr>
+        <th colSpan="2" className="table-header">
+          <div className="header-content">
+            <div className="header-left">
+              <h3 className="results-title">
+                <span className="results-icon">📊</span>
+                Resultados de Búsqueda
+              </h3>
+              {departmentId && (
+                <p className="department-info">Departamento: <strong>{departmentId}</strong></p>
+              )}
+            </div>
+            
             {status === "succeeded" && workedHours.length > 0 && (
-              <tr>
-                <th className="column-header">Número de Empleado</th>
-                <th className="column-header">Horas Trabajadas</th>
-              </tr>
+              <div className="results-summary">
+                <div className="summary-item">
+                  <span className="summary-icon">👥</span>
+                  <span className="summary-label">Empleados:</span>
+                  <span className="summary-value">{workedHours.length}</span>
+                </div>
+                <div className="summary-item">
+                  <span className="summary-icon">⏰</span>
+                  <span className="summary-label">Total Horas:</span>
+                  <span className="summary-value">{totalHours}h</span>
+                </div>
+              </div>
             )}
-          </thead>
-          <tbody>
-            {status === "loading" && (
-              <tr>
-                <td colSpan="2" className="status-cell">
-                  <div className="loading-indicator">
-                    <div className="spinner"></div>
-                    <p className="loading-text">Cargando datos...</p>
-                  </div>
-                </td>
-              </tr>
-            )}
+          </div>
+        </th>
+      </tr>
+      
+      {status === "succeeded" && workedHours.length > 0 && (
+        <tr>
+          <th className="column-header">
+            <span className="column-icon">👤</span>
+            Número de Empleado
+          </th>
+          <th className="column-header">
+            <span className="column-icon">⏱️</span>
+            Horas Trabajadas
+          </th>
+        </tr>
+      )}
+    </thead>
+  );
 
-            {status === "failed" && (
-              <tr>
-                <td colSpan="2" className="status-cell">
-                  <div className="error-message">
-                    <div className="error-icon">!</div>
-                    <div className="error-text">{error}</div>
-                  </div>
-                </td>
-              </tr>
-            )}
+  const LoadingState = () => (
+    <tr>
+      <td colSpan="2" className="status-cell">
+        <div className="loading-indicator">
+          <div className="spinner"></div>
+          <p className="loading-text">
+            <span className="loading-icon">⏳</span>
+            Cargando datos del departamento...
+          </p>
+          <p className="loading-subtext">Esto puede tomar unos segundos</p>
+        </div>
+      </td>
+    </tr>
+  );
 
-            {status === "succeeded" && workedHours.length === 0 && (
-              <tr>
-                <td colSpan="2" className="status-cell">
-                  <div className="warning-message">
-                    <div className="warning-icon">⚠</div>
-                    <div className="warning-text">
-                      No se encontraron resultados para los parámetros de búsqueda indicados.
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            )}
+  const ErrorState = () => (
+    <tr>
+      <td colSpan="2" className="status-cell">
+        <div className="error-message">
+          <div className="error-icon">❌</div>
+          <div className="error-content">
+            <h4 className="error-title">Error al cargar los datos</h4>
+            <div className="error-text">{error}</div>
+            <button 
+              onClick={handleBuscar} 
+              className="btn btn-primary btn-small"
+              style={{ marginTop: '12px' }}
+            >
+              <span className="btn-icon">🔄</span>
+              Intentar de nuevo
+            </button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  );
 
-            {status === "succeeded" && workedHours.length > 0 &&
-              workedHours.map((item, idx) => (
-                <tr
-                  key={idx}
-                  className={`${idx % 2 === 0 ? 'row-even' : 'row-odd'} ${selectedEmployee === item.employee_number ? 'row-selected' : ''}`}
-                  onClick={() => handleRowClick(item.employee_number)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <td className="data-cell">{item.employee_number}</td>
-                  <td className="data-cell">{parseFloat(item.total_hours).toFixed(2)}</td>
-                </tr>
-              ))
-            }
-          </tbody>
-        </table>
+  const EmptyState = () => (
+    <tr>
+      <td colSpan="2" className="status-cell">
+        <div className="warning-message">
+          <div className="warning-icon">📋</div>
+          <div className="warning-content">
+            <h4 className="warning-title">Sin resultados</h4>
+            <div className="warning-text">
+              No se encontraron horas trabajadas para el departamento <strong>{departmentId}</strong> 
+              en el período seleccionado.
+            </div>
+            <div className="warning-suggestions">
+              <p>Sugerencias:</p>
+              <ul>
+                <li>Verifica el ID del departamento</li>
+                <li>Amplía el rango de fechas</li>
+                <li>Contacta al administrador si el problema persiste</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>
+  );
+
+  const DataRow = ({ item, idx }) => (
+    <tr
+      key={idx}
+      className={`
+        ${idx % 2 === 0 ? 'row-even' : 'row-odd'} 
+        ${selectedEmployee === item.employee_number ? 'row-selected' : ''}
+        data-row
+      `}
+      onClick={() => handleRowClick(item.employee_number)}
+      title={`Click para ver detalles del empleado ${item.employee_number}`}
+    >
+      <td className="data-cell employee-cell">
+        <div className="employee-info">
+          <span className="employee-icon">👤</span>
+          <span className="employee-number">{item.employee_number}</span>
+          {selectedEmployee === item.employee_number && (
+            <span className="selected-badge">Seleccionado</span>
+          )}
+        </div>
+      </td>
+      <td className="data-cell hours-cell">
+        <div className="hours-info">
+          <span className="hours-value">{parseFloat(item.total_hours).toFixed(2)}</span>
+          <span className="hours-unit">horas</span>
+        </div>
+      </td>
+    </tr>
+  );
+
+  const ResultsTable = () => (
+    <div className="table-container">
+      <table className="results-table">
+        <TableHeader />
+        <tbody>
+          {status === "loading" && <LoadingState />}
+          {status === "failed" && <ErrorState />}
+          {status === "succeeded" && workedHours.length === 0 && <EmptyState />}
+          {status === "succeeded" && workedHours.length > 0 && 
+            workedHours.map((item, idx) => (
+              <DataRow key={idx} item={item} idx={idx} />
+            ))
+          }
+        </tbody>
+      </table>
+      
+      {status === "succeeded" && workedHours.length > 0 && (
+        <div className="table-footer">
+          <div className="table-info">
+            <span className="info-text">
+              💡 Haz clic en cualquier fila para ver el resumen detallado del empleado
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div className="resumen-container">
+      {/* Enhanced Header */}
+      <div className="page-header">
+        <h1 className="resumen-title">
+          <span className="title-icon">📊</span>
+          Resumen por Departamento
+        </h1>
+        <p className="page-subtitle">
+          Consulta y analiza las horas trabajadas por empleado en cada departamento
+        </p>
       </div>
 
+      {/* Enhanced Search Form */}
+      <SearchForm />
+
+      {/* Enhanced Results Table */}
+      <ResultsTable />
+
+      {/* Employee Resume Modal */}
       {showResume && (
-        <EmployeeResume
-          resumen={totalWorkedHours}
-          onClose={() => {
+        <div className="modal-overlay">
+          <div className="modal-backdrop" onClick={() => {
             setSelectedEmployee(null);
             setShowResume(false);
-          }}
-        />
+          }} />
+          <EmployeeResume
+            resumen={totalWorkedHours}
+            onClose={() => {
+              setSelectedEmployee(null);
+              setShowResume(false);
+            }}
+          />
+        </div>
       )}
-      {/* Nuevo componente de resumen por fechas y/o empleado */}
-     
     </div>
   );
 };

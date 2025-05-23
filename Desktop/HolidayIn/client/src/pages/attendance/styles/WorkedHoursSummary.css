@@ -13,12 +13,22 @@
   color: #333;
 }
 
+/* Contenedor con scroll vertical */
+.results-wrapper {
+  max-height: 400px; /* Ajusta esta altura según lo que quieras mostrar */
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+/* scroll horizontal para la tabla */
 .results {
   overflow-x: auto;
 }
 
 .results table {
-  width: 100%;
+  min-width: 700px; /* Ajusta según el contenido */
   border-collapse: collapse;
   margin-top: 1rem;
   background-color: #fafafa;
