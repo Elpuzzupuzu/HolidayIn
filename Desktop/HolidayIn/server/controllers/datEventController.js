@@ -1,5 +1,7 @@
 const DatEvent = require("../models/datEvent");
 const path = require("path");
+const { Parser } = require('json2csv');
+
 
 class DatEventController {
 
@@ -96,8 +98,7 @@ static async getTotalWorkedHoursByEmployee(req, res) {
   }
 }
 
-//test//
-
+/// esto filtra por departamento y fechas
 
 static async getWorkedHoursBetweenDates(req, res) {
   try {
@@ -135,6 +136,49 @@ static async getWorkedHoursBetweenDates(req, res) {
     return res.status(500).json({ error: "Error al obtener las horas trabajadas." });
   }
 }
+
+
+///
+
+
+static async getWorkedHoursBetweenDatesCSV(req, res) {
+  try {
+    const { startDate, endDate, employeeNumber } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: "Se requieren las fechas startDate y endDate." });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start) || isNaN(end)) {
+      return res.status(400).json({ error: "Las fechas proporcionadas no tienen un formato válido." });
+    }
+
+    if (start > end) {
+      return res.status(400).json({ error: "La fecha de inicio no puede ser mayor que la fecha final." });
+    }
+
+    const empNumber = employeeNumber ? String(employeeNumber).trim() : null;
+
+    const result = await DatEvent.getWorkedHoursBetweenDates(startDate, endDate, empNumber);
+
+    // Convertir los datos a formato CSV
+    const json2csvParser = new Parser();
+    const csv = json2csvParser.parse(result);
+
+    // Enviar el archivo CSV como descarga
+    res.header('Content-Type', 'text/csv');
+    res.attachment('horas_trabajadas.csv');
+    return res.send(csv);
+
+  } catch (error) {
+    console.error("Error en getWorkedHoursBetweenDates:", error.message);
+    return res.status(500).json({ error: "Error al obtener las horas trabajadas." });
+  }
+}
+
+
 
 
 

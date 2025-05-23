@@ -133,6 +133,59 @@ export const getWorkedHoursBetweenDates = createAsyncThunk(
   }
 );
 
+//// test
+
+// NUEVO THUNK: descarga CSV de horas trabajadas entre fechas
+export const downloadWorkedHoursCSV = createAsyncThunk(
+  "datEvents/downloadWorkedHoursCSV",
+  async ({ startDate, endDate, employeeNumber = null }, thunkAPI) => {
+    try {
+      if (!startDate || !endDate) {
+        return thunkAPI.rejectWithValue({ error: "Los parámetros startDate y endDate son obligatorios." });
+      }
+
+      const response = await axios.get(`${API_URL}/datEvents/worked-hours/csv`, {
+        params: {
+          startDate,
+          endDate,
+          employeeNumber,
+        },
+        responseType: 'blob', // Necesario para recibir archivos
+      });
+
+      // Crear enlace para descarga
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "horas_trabajadas.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      return true; // o null si no necesitas payload
+
+    } catch (error) {
+      console.error("Error en downloadWorkedHoursCSV:", error.response?.data || error.message);
+      return thunkAPI.rejectWithValue(
+        error.response?.data || { error: "Error al descargar el archivo CSV" }
+      );
+    }
+  }
+);
+
+
+
+
+
+
+
+
+
+
+
+
+/////------------fin thunks-----------------
+
 const datEventsSlice = createSlice({
   name: "datEvents",
   initialState: {
@@ -266,6 +319,19 @@ const datEventsSlice = createSlice({
     (action.payload && (typeof action.payload === "string" ? action.payload : action.payload.error)) ||
     action.error?.message ||
     "Error desconocido";
+}).addCase(downloadWorkedHoursCSV.pending, (state) => {
+  console.log("downloadWorkedHoursCSV pending");
+  state.status = "loading";
+  state.error = null;
+})
+.addCase(downloadWorkedHoursCSV.fulfilled, (state) => {
+  console.log("downloadWorkedHoursCSV fulfilled");
+  state.status = "succeeded";
+})
+.addCase(downloadWorkedHoursCSV.rejected, (state, action) => {
+  console.log("downloadWorkedHoursCSV rejected:", action.payload);
+  state.status = "failed";
+  state.error = action.payload?.error || "Error desconocido";
 });
 
   },

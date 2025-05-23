@@ -18,6 +18,10 @@ const ResumenPorDepartamento = () => {
 
   // Global state
   const { workedHours, status, error, totalWorkedHours } = useSelector((state) => state.datEvents);
+  useEffect(() => {
+  // console.log("PRUEBAAAA ", workedHours);
+}, [workedHours]);
+
 
   // Calculate total hours with better number handling
   const totalHours = workedHours?.length > 0 
@@ -37,6 +41,8 @@ const ResumenPorDepartamento = () => {
       alert("Por favor completa todos los campos requeridos");
       return;
     }
+   
+    
     dispatch(getWorkedHoursByDepartment({ department_id: departmentId, from, to }));
   };
 
@@ -90,7 +96,7 @@ const closeModal = () => {
           Resumen por Departamento
         </h1>
         <p className="page-subtitle">
-          Consulta y analiza las horas trabajadas por empleado en cada departamento
+          Consulta las horas trabajadas por empleado en cada departamento
         </p>
       </div>
 

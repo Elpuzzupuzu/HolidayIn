@@ -1,9 +1,14 @@
 import React from "react";
+import { useDispatch } from "react-redux";
+
 import { X, Clock, User, Calendar, List } from "lucide-react";
 import "./styles/EmployeeResume.css";
 import WorkedHoursSummary from "./WorkedHoursSummary";
+import { downloadWorkedHoursCSV } from "../../features/datEvents/datEventsSlice"; // Ajusta esta ruta
+
 
 const EmployeeResume = ({ resumen, workedHours = [], onClose }) => {
+  const dispatch = useDispatch();
   if (!resumen) return null;
 
   const formatDate = (dateString) => {
@@ -15,6 +20,8 @@ const EmployeeResume = ({ resumen, workedHours = [], onClose }) => {
       day: "numeric",
     });
   };
+    console.log("📋 RESUMEN DEL EMPLEADO:", resumen);
+
 
   const formatHours = (hours) => {
     if (!hours) return "0h 0m";
@@ -31,6 +38,18 @@ const EmployeeResume = ({ resumen, workedHours = [], onClose }) => {
     if (totalDays === 0) return "0.00";
     const avgHours = parseFloat(resumen.total_hours || 0) / totalDays;
     return avgHours.toFixed(2);
+  };
+
+  ///
+
+    const csv = () => {
+    dispatch(
+      downloadWorkedHoursCSV({
+        startDate: resumen.from,
+        endDate: resumen.to,
+        employeeNumber: resumen.employee_number,
+      })
+    );
   };
 
   return (
@@ -129,6 +148,9 @@ const EmployeeResume = ({ resumen, workedHours = [], onClose }) => {
 
         {/* Footer */}
         <div className="employee-resume-footer">
+           <button onClick={csv} className="footer-espera-btn">
+            Descargar CSV
+          </button>
           <button onClick={onClose} className="footer-close-btn">
             Cerrar
           </button>
