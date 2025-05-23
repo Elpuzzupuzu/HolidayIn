@@ -218,6 +218,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+ 
 }
 
 .hours-icon {
@@ -228,6 +229,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  
 }
 
 .hours-icon svg {
@@ -236,6 +238,7 @@
 
 .hours-info {
   flex: 1;
+  
 }
 
 .hours-title {
