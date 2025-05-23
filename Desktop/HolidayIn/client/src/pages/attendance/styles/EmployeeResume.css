@@ -17,7 +17,7 @@
 .employee-resume-modal {
   background: white;
   border-radius: 1rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 25px 50px -12px rgba(9, 9, 0, 0.25);
   max-width: 900px; 
   width: 90%;
   max-height: 80vh;       /* Máximo 80% de la altura de la ventana */
@@ -55,8 +55,10 @@
   border-top-left-radius: 1rem;
   border-top-right-radius: 1rem;
   color: white;
-  position: relative;
+  position: sticky;   /* Cambiado de relative a sticky */
+  top: 0;             /* Define que se quede pegado al top de la ventana */
   overflow: hidden;
+  z-index: 10;        /* Para que quede por encima de otros elementos si es necesario */
 }
 
 .header-decoration-1 {
@@ -206,10 +208,10 @@
 
 /* Hours Section */
 .hours-section {
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  background: rgb(171, 233, 155);
   border-radius: 0.75rem;
   padding: 1rem;
-  border: 1px solid #bbf7d0;
+  border: 1px solid #232925;
 }
 
 .hours-content {
@@ -300,7 +302,7 @@
 
 .footer-close-btn {
   width: 100%;
-  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  background: rgb(212, 65, 65);
   color: white;
   font-weight: 500;
   padding: 0.75rem 1rem;

@@ -110,12 +110,12 @@ const EmployeeResume = ({ resumen, workedHours = [], onClose }) => {
           </div>
 
           {/* Average Section */}
-          <div className="average-section">
+          {/* <div className="average-section">
             <div className="average-content">
               <div className="average-label">Promedio Diario</div>
               <div className="average-value">{calculateAverageHours()} h/día</div>
             </div>
-          </div>
+          </div> */}
 
           {/* Aquí envolvemos WorkedHoursSummary con el div para scroll */}
           <div className="results-wrapper">
