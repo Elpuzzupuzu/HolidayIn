@@ -254,6 +254,7 @@ const closeModal = () => {
           <div className="modal-backdrop" onClick={closeModal} />
           <EmployeeResume
             resumen={totalWorkedHours}
+            workedHours={workedHours} // este es el array con los días trabajados
             onClose={closeModal}
           />
         </div>
