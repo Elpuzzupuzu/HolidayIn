@@ -104,19 +104,28 @@ const closeModal = () => {
         </div>
         
         <form onSubmit={handleSearch} className="input-grid">
-          <div className="input-group">
-            <label className="input-label">
-              🏢 ID Departamento *
-            </label>
-            <input
-              type="text"
-              value={departmentId}
-              onChange={(e) => setDepartmentId(e.target.value)}
-              className="input-field"
-              placeholder="Ej: DEPT01, VENTAS, IT..."
-              required
-            />
-          </div>
+            <div className="input-group">
+              <label className="input-label">
+                🏢 ID Departamento *
+              </label>
+              <select
+                value={departmentId}
+                onChange={(e) => setDepartmentId(e.target.value)}
+                className="input-field"
+                required
+              >
+                <option value="">Seleccione un departamento</option>
+                <option value="1">Administración</option>
+                <option value="2">Recepción</option>
+                <option value="3">Ama de llaves</option>
+                <option value="4">Alimentos y Bebidas</option>
+                <option value="5">Mantenimiento</option>
+                <option value="6">Seguridad</option>
+                <option value="7">RRHH</option>
+                <option value="8">Ventas</option>
+              </select>
+            </div>
+
 
           <div className="input-group">
             <label className="input-label">
