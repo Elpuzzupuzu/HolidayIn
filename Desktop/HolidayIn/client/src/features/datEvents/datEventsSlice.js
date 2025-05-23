@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+
 const API_URL = "http://localhost:3000/api"; // Asegúrate que el puerto es el correcto
 
 // Thunk para procesar archivo .dat
@@ -150,7 +151,11 @@ const datEventsSlice = createSlice({
       state.limit = 10;
       state.status = "idle";
       state.error = null;
-    }
+    },
+    clearTotalWorkedHours: (state) => {
+    state.totalWorkedHours = null;
+}
+
   },
   extraReducers: (builder) => {
     builder
@@ -266,6 +271,6 @@ const datEventsSlice = createSlice({
   },
 });
 
-export const { clearWorkedHours } = datEventsSlice.actions;
+export const { clearWorkedHours, clearTotalWorkedHours } = datEventsSlice.actions;
 
 export default datEventsSlice.reducer;
