@@ -123,7 +123,7 @@
 .input-label {
   margin-bottom: 8px;
   font-weight: 600;
-  color: #495057;
+  color: #131313;
   font-size: 0.95rem;
   letter-spacing: 0.5px;
 }
@@ -134,20 +134,20 @@
   border-radius: 10px;
   font-size: 1rem;
   transition: all 0.3s ease;
-  background: #f8f9fa;
-  color: #495057;
+  background: #5494d4;
+  color: #0c0c0c;
 }
 
 .input-field:focus {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-  background: white;
+  background: rgb(232, 20, 179);
   transform: translateY(-1px);
 }
 
 .input-field::placeholder {
-  color: #adb5bd;
+  color: #bdb2ad;
   font-style: italic;
 }
 
