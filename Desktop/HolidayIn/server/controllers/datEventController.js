@@ -161,10 +161,19 @@ static async getWorkedHoursBetweenDatesCSV(req, res) {
 
     const empNumber = employeeNumber ? String(employeeNumber).trim() : null;
 
-    const result = await DatEvent.getWorkedHoursBetweenDates(startDate, endDate, empNumber);
+    const result = await DatEvent.getWorkedHoursBetweenDatesCSV(startDate, endDate, empNumber);
 
-    // Convertir los datos a formato CSV
-    const json2csvParser = new Parser();
+    // Definir campos con los nombres en español (deben coincidir con las propiedades del objeto)
+    const fields = [
+      { label: 'Numero de empleado', value: 'numero_empleado' },
+      { label: 'Fecha de entrada', value: 'fecha_entrada' },
+      { label: 'Hora de entrada', value: 'hora_entrada' },
+      { label: 'Fecha de salida', value: 'fecha_salida' },
+      { label: 'Hora de salida', value: 'hora_salida' },
+      { label: 'Horas trabajadas', value: 'horas_trabajadas' },
+    ];
+
+    const json2csvParser = new Parser({ fields });
     const csv = json2csvParser.parse(result);
 
     // Enviar el archivo CSV como descarga
@@ -173,7 +182,7 @@ static async getWorkedHoursBetweenDatesCSV(req, res) {
     return res.send(csv);
 
   } catch (error) {
-    console.error("Error en getWorkedHoursBetweenDates:", error.message);
+    console.error("Error en getWorkedHoursBetweenDatesCSV:", error.message);
     return res.status(500).json({ error: "Error al obtener las horas trabajadas." });
   }
 }

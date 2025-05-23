@@ -22,23 +22,7 @@ class AttendanceEventController {
   }
 
 
-  // static async registerAutoEvent(req, res) {
-  //   try {
-  //     const { employee_number } = req.body;
-  //     if (!employee_number) {
-  //       return res.status(400).json({ error: "Número de empleado requerido" });
-  //     }
-
-  //     const newEvent = await AttendanceEvent.registerAutoEvent(employee_number);
-
-  //     res.status(201).json({
-  //       message: `Empleado ${employee_number}: evento '${newEvent.event_type}' registrado.`,
-  //       event: newEvent
-  //     });
-  //   } catch (error) {
-  //     res.status(500).json({ error: error.message });
-  //   }
-  // }
+  
 
   static async registerAutoEvent(req, res) {
     try {

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getWorkedHoursByDepartment, clearWorkedHours, getTotalWorkedHoursByEmployee } from "../../features/datEvents/datEventsSlice";
 import { clearTotalWorkedHours } from "../../features/datEvents/datEventsSlice";
 
+
 import "./styles/LogDetail.css";
 import EmployeeResume from "./EmployeeResume";
 
@@ -31,20 +32,32 @@ const ResumenPorDepartamento = () => {
       }, 0).toFixed(2)
     : 0;
 
-  useEffect(() => {
-    dispatch(clearWorkedHours());
-  }, [dispatch]);
+      useEffect(() => {
+  dispatch(clearWorkedHours());
+}, [dispatch]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (!departmentId || !from || !to) {
-      alert("Por favor completa todos los campos requeridos");
-      return;
-    }
-   
-    
-    dispatch(getWorkedHoursByDepartment({ department_id: departmentId, from, to }));
-  };
+
+///// HANDLE
+const handleSearch = (e) => {
+  e.preventDefault();
+  
+  // Validate required fields
+  if (!departmentId || !from || !to) {
+    alert("⚠️ Por favor completa todos los campos requeridos:\n" +
+          `${!departmentId ? "• Departamento\n" : ""}` +
+          `${!from ? "• Fecha de inicio\n" : ""}` +
+          `${!to ? "• Fecha de fin" : ""}`);
+    return;
+  }
+
+  // Validate date range
+  if (new Date(from) > new Date(to)) {
+    alert("📅 Error en las fechas:\nLa fecha de inicio debe ser anterior o igual a la fecha de fin");
+    return;
+  }
+  
+  dispatch(getWorkedHoursByDepartment({ department_id: departmentId, from, to }));
+};
 
   const setDefaultDates = () => {
     const today = new Date();

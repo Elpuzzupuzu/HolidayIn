@@ -11,6 +11,7 @@ import LogsList from "./pages/attendance/LogList";
 import LogDetail from "./pages/attendance/LogDetails";
 
 import NotFound from "./pages/NotFound";
+import RegisterAutoEvent from "./components/dinning/scan";
 
 function App() {
   // Dummy de autenticación para pruebas
@@ -40,6 +41,7 @@ function App() {
         <Route path="dashboard" element={<Home />} />
         <Route path="logs" element={<LogsList />} />
         <Route path="logs/FindByID" element={<LogDetail />} />
+        <Route path="logs/dinning" element={< RegisterAutoEvent/>} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

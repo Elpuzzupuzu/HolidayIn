@@ -37,8 +37,8 @@ app.get("/", (req, res) => {
 app.use("/api/departments", departmentRoutes);
 app.use("/api/roles", roleRoutes);
 app.use("/api/employees", employeeRoutes);
-app.use("/api/attendance", attendanceLogRoutes);
-app.use("/attendance-events", attendanceEventRoutes);
+app.use("/api/attendance", attendanceLogRoutes);  /// posible elimincion 
+app.use("/api/attendance-events", attendanceEventRoutes);
 app.use("/api/datEvents", datEventRoutes)
 
 // 🔹 Iniciar servidor
