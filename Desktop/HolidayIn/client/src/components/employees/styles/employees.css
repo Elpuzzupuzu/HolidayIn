@@ -1,0 +1,272 @@
+/* Contenedor principal */
+.employees-management-container {
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+.employees-management-container h1,
+.employees-management-container h2 {
+    color: #343a40;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Mensajes de estado (carga, error) */
+.loading-message,
+.error-message {
+    text-align: center;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.loading-message {
+    background-color: #e0f7fa;
+    color: #007bff;
+}
+
+.error-message {
+    background-color: #ffe0e0;
+    color: #dc3545;
+}
+
+/* Botón para agregar empleado */
+.add-employee-button {
+    display: block;
+    width: fit-content;
+    padding: 10px 20px;
+    margin: 0 auto 30px auto;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.add-employee-button:hover {
+    background-color: #0056b3;
+}
+
+/* Estilos para formularios (agregar/editar) */
+.employee-form-card {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.employee-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #495057;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group input[type="date"],
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Asegura que el padding no aumente el ancho total */
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group input[type="date"]:focus,
+.form-group select:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-group input[disabled] {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.form-actions {
+    grid-column: 1 / -1; /* Ocupa ambas columnas */
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.submit-button,
+.cancel-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.submit-button {
+    background-color: #28a745;
+    color: white;
+}
+
+.submit-button:hover {
+    background-color: #218838;
+}
+
+.cancel-button {
+    background-color: #6c757d;
+    color: white;
+}
+
+.cancel-button:hover {
+    background-color: #5a6268;
+}
+
+/* Estilos para detalles del empleado (tarjeta) */
+.employee-details-card {
+    background-color: #e9f7ef; /* Un color ligeramente diferente */
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    border-left: 5px solid #28a745; /* Barra lateral para distinguirlo */
+}
+
+.employee-details-card h2 {
+    color: #28a745;
+    margin-bottom: 15px;
+}
+
+.employee-details-card p {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.employee-details-card strong {
+    color: #343a40;
+}
+
+.close-details-button {
+    padding: 8px 15px;
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background-color 0.3s ease;
+}
+
+.close-details-button:hover {
+    background-color: #138496;
+}
+
+
+/* Estilos para la tabla de empleados */
+.employee-list table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden; /* Para que los bordes redondeados se apliquen */
+}
+
+.employee-list th,
+.employee-list td {
+    text-align: left;
+    padding: 12px 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.employee-list th {
+    background-color: #e9ecef;
+    color: #495057;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+.employee-list tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.employee-list tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Estilos para las celdas de acciones */
+.actions-cell {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap; /* Permite que los botones salten de línea si no caben */
+}
+
+.action-button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.action-button:hover {
+    transform: translateY(-1px);
+}
+
+.action-button.view {
+    background-color: #007bff;
+    color: white;
+}
+
+.action-button.view:hover {
+    background-color: #0056b3;
+}
+
+.action-button.edit {
+    background-color: #ffc107;
+    color: #343a40; /* Texto oscuro para contraste */
+}
+
+.action-button.edit:hover {
+    background-color: #e0a800;
+}
+
+.action-button.delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.action-button.delete:hover {
+    background-color: #c82333;
+}
+
+/* Mensaje si no hay empleados */
+.employee-list p {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    padding: 20px;
+}

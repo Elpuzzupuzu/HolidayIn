@@ -1,62 +1,12 @@
-import { NavLink, Outlet } from "react-router-dom";
-import "./styles/CheckAuth.css";
-import AsideResumen from "../../components/common/AsideResumen";
+import React from "react"; // No necesitamos NavLink ni Outlet aquí
+import "./styles/CheckAuth.css"; // Solo para el estilo de "unauthorized"
 
-export default function CheckAuth({ isAuthenticated, user }) {
+// CheckAuth solo recibe 'isAuthenticated', 'user', y 'children'
+export default function CheckAuth({ isAuthenticated, user, children }) {
   if (!isAuthenticated) {
     return <div className="unauthorized">No autorizado</div>;
   }
 
-  return (
-    <div className="admin-layout">
-      <aside className="sidebar">
-        <div className="sidebar-header">
-          <h2>Admin Panel</h2>
-          <p className="user-name">{user?.name}</p>
-        </div>
-
-        <nav className="sidebar-nav">
-          <NavLink
-            to="/admin/dashboard"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
-            Dashboard
-          </NavLink>
-          <NavLink
-            to="/admin/logs/findbyID"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
-            buscar por Departamento
-          </NavLink>
-              <NavLink
-            to="/admin/logs"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
-            Todos los Registros
-          </NavLink>
-        </nav>
-
-        <div className="sidebar-footer">
-          <button className="logout-button">Cerrar sesión</button>
-        </div>
-      </aside>
-
-      <main className="main-content">
-        <div className="content-wrapper">
-          <section className="main-section">
-            <Outlet />
-          </section>
-          {/* <aside className="right-aside">
-            <AsideResumen />
-          </aside> */}
-        </div>
-      </main>
-    </div>
-  );
+  // Si está autenticado, simplemente renderiza el contenido hijo (que será AdminLayout)
+  return <>{children}</>;
 }

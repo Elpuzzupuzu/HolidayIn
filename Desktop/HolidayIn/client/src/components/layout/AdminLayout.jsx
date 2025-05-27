@@ -19,7 +19,7 @@ export default function AdminLayout() {
       )
     },
     {
-      name: "Logs",
+      name: "Logs", // Este es "Todos los Registros"
       href: "/admin/logs",
       icon: (
         <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,14 +28,32 @@ export default function AdminLayout() {
       )
     },
     {
-      name: "Users",
-      href: "/admin/users",
+      name: "Buscar por Departamento", // <-- Agregada o ajustada aquí
+      href: "/admin/logs/findbyID", // <-- Asegúrate de que esta ruta coincida con App.jsx
+      icon: (
+        <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
+        </svg>
+      )
+    },
+    {
+      name: "Empleados",
+      href: "/admin/employees",
       icon: (
         <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
         </svg>
       )
     },
+    // {
+    //   name: "Users", // Si esta ruta es para otros usuarios del sistema, no empleados
+    //   href: "/admin/users",
+    //   icon: (
+    //     <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    //       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+    //     </svg>
+    //   )
+    // },
     {
       name: "Settings",
       href: "/admin/settings",
@@ -57,6 +75,8 @@ export default function AdminLayout() {
   };
 
   const getCurrentPageTitle = () => {
+    // Es posible que necesites una lógica más robusta aquí si tus URLs no coinciden exactamente
+    // con los href de navigationItems (ej. para /admin/logs/findbyID)
     const currentItem = navigationItems.find(item => item.href === location.pathname);
     return currentItem ? currentItem.name : "Admin Panel";
   };
@@ -65,7 +85,7 @@ export default function AdminLayout() {
     <div className="admin-layout">
       {/* Mobile menu backdrop */}
       {mobileMenuOpen && (
-        <div 
+        <div
           className="mobile-backdrop"
           onClick={() => setMobileMenuOpen(false)}
         />
@@ -82,8 +102,8 @@ export default function AdminLayout() {
             </div>
             {!sidebarCollapsed && <span className="logo-text">Admin Panel</span>}
           </div>
-          
-          <button 
+
+          <button
             className="sidebar-toggle desktop-only"
             onClick={toggleSidebar}
             aria-label="Toggle sidebar"
@@ -100,7 +120,7 @@ export default function AdminLayout() {
               <li key={item.name} className="nav-item">
                 <NavLink
                   to={item.href}
-                  className={({ isActive }) => 
+                  className={({ isActive }) =>
                     `nav-link ${isActive ? 'active' : ''}`
                   }
                   onClick={() => setMobileMenuOpen(false)}
@@ -135,7 +155,7 @@ export default function AdminLayout() {
         {/* Top header */}
         <header className="main-header">
           <div className="header-left">
-            <button 
+            <button
               className="mobile-menu-toggle mobile-only"
               onClick={toggleMobileMenu}
               aria-label="Toggle mobile menu"
@@ -146,7 +166,7 @@ export default function AdminLayout() {
             </button>
             <h1 className="page-title">{getCurrentPageTitle()}</h1>
           </div>
-          
+
           <div className="header-right">
             <button className="notification-btn">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
