@@ -52,6 +52,7 @@ const getDiaConLetraIcono = (fechaStr) => {
                 <th>Nº Empleado</th>
                 <th>Fecha</th>
                 <th>Entrada</th>
+                <th>Fecha de salida</th>
                 <th>Salida</th>
                 <th>Horas Trabajadas</th>
               </tr>
@@ -62,6 +63,7 @@ const getDiaConLetraIcono = (fechaStr) => {
                   <td>{item.employee_number}</td>
                   <td>{getDiaConLetraIcono(item.entry_date)}</td>
                   <td>{item.entry_time}</td>
+                  <td>{item.exit_date}</td>
                   <td>{item.exit_time}</td>
                   <td>{item.hours_worked ? item.hours_worked.toFixed(2) : "-"}</td>
                 </tr>

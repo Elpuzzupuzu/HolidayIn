@@ -11,15 +11,29 @@ const EmployeeResume = ({ resumen, workedHours = [], onClose }) => {
   const dispatch = useDispatch();
   if (!resumen) return null;
 
+  // const formatDate = (dateString) => {
+  //   if (!dateString) return "N/A";
+  //   return new Date(dateString).toLocaleDateString("es-ES", {
+  //     weekday: "long",
+  //     year: "numeric",
+  //     month: "long",
+  //     day: "numeric",
+  //   });
+  // };
+
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  if (!dateString) return "N/A";
+  // Añade una hora para asegurar que la fecha se interprete correctamente en la zona horaria local
+  // al mediodía del día especificado, evitando desbordamientos por zonas horarias.
+  return new Date(`${dateString}T12:00:00`).toLocaleDateString("es-ES", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+
+
     console.log("📋 RESUMEN DEL EMPLEADO:", resumen);
 
 

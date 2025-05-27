@@ -318,56 +318,59 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
 
 
 
-//// este calcula las horas para cada empleado en un intervalo dado 
+
 // static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
 //   if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
 
-//   let query = supabase
-//     .from("dat_events")
-//     .select("*")
-//     .eq("employee_number", employee_number)
-//     .gte("event_date", from)
-//     .lte("event_date", to)
-//     .order("event_date", { ascending: true })
-//     .order("event_time", { ascending: true });
+//   try {
+//     const [rows] = await supabase.query(
+//       `
+//       SELECT *
+//       FROM dat_events
+//       WHERE employee_number = ?
+//         AND event_date BETWEEN ? AND ?
+//       ORDER BY event_date ASC, event_time ASC
+//       `,
+//       [employee_number, from, to]
+//     );
 
-//   const { data: events, error } = await query;
-
-//   if (error) throw new Error(error.message);
-//   if (!events.length) return { employee_number, from, to, total_hours: 0 };
-
-//   let totalHours = 0;
-
-//   for (let i = 0; i < events.length - 1; i++) {
-//     const curr = events[i];
-//     const next = events[i + 1];
-
-//     if (curr.event_type === "0" && next.event_type === "1") {
-//       // Emparejar entrada-salida consecutiva
-//       const start = new Date(`${curr.event_date}T${curr.event_time}`);
-//       const end = new Date(`${next.event_date}T${next.event_time}`);
-//       const diffHours = (end - start) / 3600000; // diferencia en horas
-
-//       totalHours += diffHours;
-//       i++; // saltar el siguiente evento (ya emparejado)
+//     if (!rows.length) {
+//       return { employee_number, from, to, total_hours: 0 };
 //     }
+
+//     let totalHours = 0;
+
+//     for (let i = 0; i < rows.length - 1; i++) {
+//       const curr = rows[i];
+//       const next = rows[i + 1];
+
+//       if (curr.event_type === "0" && next.event_type === "1") {
+//         const start = new Date(`${curr.event_date}T${curr.event_time}`);
+//         const end = new Date(`${next.event_date}T${next.event_time}`);
+//         const diffHours = (end - start) / 3600000;
+
+//         totalHours += diffHours;
+//         i++; // Saltar el siguiente evento, ya emparejado
+//       }
+//     }
+
+//     return {
+//       employee_number,
+//       from,
+//       to,
+//       total_hours: Math.round(totalHours * 100) / 100,
+//     };
+//   } catch (error) {
+//     throw new Error(`Error al obtener eventos del empleado: ${error.message}`);
 //   }
-
-//   return {
-//     employee_number,
-//     from,
-//     to,
-//     total_hours: Math.round(totalHours * 100) / 100, // redondeo a 2 decimales
-//   };
 // }
-
-
 
 
 static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
   if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
 
   try {
+    console.log(`[MONITOR] Buscando eventos para el empleado: ${employee_number} desde: ${from} hasta: ${to}`);
     const [rows] = await supabase.query(
       `
       SELECT *
@@ -379,187 +382,65 @@ static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
       [employee_number, from, to]
     );
 
+    console.log(`[MONITOR] Eventos encontrados: ${rows.length}`);
+
     if (!rows.length) {
+      console.log(`[MONITOR] No se encontraron eventos para el empleado ${employee_number} en el rango de fechas. Total de horas: 0`);
       return { employee_number, from, to, total_hours: 0 };
     }
 
     let totalHours = 0;
+    console.log("[MONITOR] Iniciando cálculo de horas...");
 
     for (let i = 0; i < rows.length - 1; i++) {
       const curr = rows[i];
       const next = rows[i + 1];
 
+      console.log(`[MONITOR] Procesando evento actual (curr):`, curr);
+      console.log(`[MONITOR] Procesando siguiente evento (next):`, next);
+
       if (curr.event_type === "0" && next.event_type === "1") {
-        const start = new Date(`${curr.event_date}T${curr.event_time}`);
-        const end = new Date(`${next.event_date}T${next.event_time}`);
-        const diffHours = (end - start) / 3600000;
+        // --- CAMBIO CLAVE AQUÍ ---
+        // Asegúrate de que event_date sea un string en formato YYYY-MM-DD
+        // Si curr.event_date ya es un objeto Date, usa .toISOString().split('T')[0]
+        const currDateStr = curr.event_date instanceof Date ? curr.event_date.toISOString().split('T')[0] : curr.event_date;
+        const nextDateStr = next.event_date instanceof Date ? next.event_date.toISOString().split('T')[0] : next.event_date;
+
+        const start = new Date(`${currDateStr}T${curr.event_time}`);
+        const end = new Date(`${nextDateStr}T${next.event_time}`);
+        // --- FIN DEL CAMBIO CLAVE ---
+
+        const diffHours = (end - start) / 3600000; // 3600000 milisegundos en una hora
+
+        console.log(`[MONITOR] Par de entrada/salida encontrado:`);
+        console.log(`[MONITOR]   Entrada: ${start.toLocaleString()}`);
+        console.log(`[MONITOR]   Salida: ${end.toLocaleString()}`);
+        console.log(`[MONITOR]   Horas calculadas para este par: ${diffHours.toFixed(2)}`);
 
         totalHours += diffHours;
+        console.log(`[MONITOR]   Total de horas acumuladas hasta ahora: ${totalHours.toFixed(2)}`);
         i++; // Saltar el siguiente evento, ya emparejado
+      } else {
+        console.log(`[MONITOR] Saltando par de eventos no válido (curr.event_type: ${curr.event_type}, next.event_type: ${next.event_type})`);
       }
     }
+
+    const roundedTotalHours = Math.round(totalHours * 100) / 100;
+    console.log(`[MONITOR] Cálculo de horas finalizado. Total de horas brutas: ${totalHours.toFixed(2)}`);
+    console.log(`[MONITOR] Total de horas redondeadas: ${roundedTotalHours}`);
+
 
     return {
       employee_number,
       from,
       to,
-      total_hours: Math.round(totalHours * 100) / 100,
+      total_hours: roundedTotalHours,
     };
   } catch (error) {
+    console.error(`[ERROR] Error al obtener eventos del empleado ${employee_number}: ${error.message}`);
     throw new Error(`Error al obtener eventos del empleado: ${error.message}`);
   }
 }
-
-///// listo 
-
-
-
-
-
-
-
-
-
-
-
-
-////ESPERA/
-// static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = null) {
-//   if (!startDate || !endDate) {
-//     throw new Error("Debe proporcionar ambas fechas: startDate y endDate");
-//   }
-
-//   // Construir consulta base
-//   let query = supabase
-//     .from("dat_events")
-//     .select("*")
-//     .gte("event_date", startDate)
-//     .lte("event_date", endDate)
-//     .order("employee_number", { ascending: true })
-//     .order("event_date", { ascending: true })
-//     .order("event_time", { ascending: true });
-
-//   // Aplicar filtro por empleado si se proporciona
-//   if (employeeNumber) {
-//     query = query.eq("employee_number", employeeNumber);
-//   }
-
-//   const { data: events, error } = await query;
-
-//   if (error) throw new Error(`Error fetching events: ${error.message}`);
-
-//   const workedHours = [];
-
-//   // Agrupar eventos por empleado
-//   const eventsByEmployee = {};
-//   for (const event of events) {
-//     if (!eventsByEmployee[event.employee_number]) {
-//       eventsByEmployee[event.employee_number] = [];
-//     }
-//     eventsByEmployee[event.employee_number].push(event);
-//   }
-
-//   // Emparejar entrada y salida para cada empleado
-//   for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
-//     for (let i = 0; i < empEvents.length - 1; i++) {
-//       const current = empEvents[i];
-//       const next = empEvents[i + 1];
-
-//       if (current.event_type === "0" && next.event_type === "1") {
-//         const entryDate = current.event_date;
-//         const entryTime = current.event_time;
-//         const exitDate = next.event_date;
-//         const exitTime = next.event_time;
-
-//         const entryTimestamp = new Date(`${entryDate}T${entryTime}`);
-//         const exitTimestamp = new Date(`${exitDate}T${exitTime}`);
-
-//         const diffMs = exitTimestamp - entryTimestamp;
-//         const hoursWorked = diffMs / (1000 * 60 * 60); // horas
-
-//         workedHours.push({
-//           employee_number: employee,
-//           entry_date: entryDate,
-//           entry_time: entryTime,
-//           exit_date: exitDate,
-//           exit_time: exitTime,
-//           hours_worked: Math.round(hoursWorked * 100) / 100,
-//         });
-
-//         i++; // saltar siguiente evento ya emparejado
-//       }
-//     }
-//   }
-
-//   return workedHours;
-// }
-
-
-
-
-
-
-
-// static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = null) {
-//   let sql = `
-//     SELECT *
-//     FROM dat_events
-//     WHERE event_date BETWEEN ? AND ?
-//   `;
-//   const params = [startDate, endDate];
-
-//   if (employeeNumber) {
-//     sql += ` AND employee_number = ?`;
-//     params.push(employeeNumber);
-//   }
-
-//   sql += ` ORDER BY employee_number, event_date, event_time`;
-
-//   const [events] = await supabase.execute(sql, params);
-
-//   const workedHours = [];
-
-//   const eventsByEmployee = {};
-//   for (const event of events) {
-//     if (!eventsByEmployee[event.employee_number]) {
-//       eventsByEmployee[event.employee_number] = [];
-//     }
-//     eventsByEmployee[event.employee_number].push(event);
-//   }
-
-//   for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
-//     for (let i = 0; i < empEvents.length - 1; i++) {
-//       const current = empEvents[i];
-//       const next = empEvents[i + 1];
-
-//       if (current.event_type === "0" && next.event_type === "1") {
-//         const entryDate = current.event_date;
-//         const entryTime = current.event_time;
-//         const exitDate = next.event_date;
-//         const exitTime = next.event_time;
-
-//         const entryTimestamp = new Date(`${entryDate}T${entryTime}`);
-//         const exitTimestamp = new Date(`${exitDate}T${exitTime}`);
-
-//         const diffMs = exitTimestamp - entryTimestamp;
-//         const hoursWorked = diffMs / (1000 * 60 * 60);
-
-//         workedHours.push({
-//           employee_number: employee,
-//           entry_date: entryDate,
-//           entry_time: entryTime,
-//           exit_date: exitDate,
-//           exit_time: exitTime,
-//           hours_worked: Math.round(hoursWorked * 100) / 100,
-//         });
-
-//         i++; // saltar el siguiente evento ya emparejado
-//       }
-//     }
-//   }
-
-//   return workedHours;
-// }
 
 
 
@@ -635,105 +516,6 @@ static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = nul
 
   return workedHours;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = null) {
-//   if (!startDate || !endDate) {
-//     throw new Error("Debe proporcionar ambas fechas: startDate y endDate");
-//   }
-
-//   // Construir consulta base con Supabase
-//   let query = supabase
-//     .from("dat_events")
-//     .select("*")
-//     .gte("event_date", startDate)
-//     .lte("event_date", endDate)
-//     .order("employee_number", { ascending: true })
-//     .order("event_date", { ascending: true })
-//     .order("event_time", { ascending: true });
-
-//   if (employeeNumber) {
-//     query = query.eq("employee_number", employeeNumber);
-//   }
-
-//   const { data: events, error } = await query;
-
-//   if (error) throw new Error(`Error fetching events: ${error.message}`);
-//   if (!events.length) return [];
-
-//   // Agrupar eventos por empleado
-//   const eventsByEmployee = {};
-//   for (const event of events) {
-//     if (!eventsByEmployee[event.employee_number]) {
-//       eventsByEmployee[event.employee_number] = [];
-//     }
-//     eventsByEmployee[event.employee_number].push(event);
-//   }
-
-//   const workedHours = [];
-
-//   // Emparejar entradas y salidas para cada empleado
-//   for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
-//     let i = 0;
-//     while (i < empEvents.length) {
-//       const entry = empEvents[i];
-
-//       if (entry.event_type === "0") { // entrada
-//         // Buscar salida correspondiente
-//         let j = i + 1;
-//         while (j < empEvents.length) {
-//           const exit = empEvents[j];
-//           if (exit.event_type === "1") {
-//             // Crear objetos Date para entrada y salida
-//             const entryDateTime = new Date(`${entry.event_date}T${entry.event_time}`);
-//             const exitDateTime = new Date(`${exit.event_date}T${exit.event_time}`);
-
-//             // Calcular diferencia en horas
-//             const diffHours = (exitDateTime - entryDateTime) / (1000 * 60 * 60);
-
-//             if (diffHours > 0 && diffHours < 24) {
-//               workedHours.push({
-//                 employee_number: employee,
-//                 entry_date: entry.event_date,
-//                 entry_time: entry.event_time,
-//                 exit_date: exit.event_date,
-//                 exit_time: exit.event_time,
-//                 hours_worked: Math.round(diffHours * 100) / 100,
-//               });
-//             }
-
-//             i = j; // saltar evento salida emparejado
-//             break;
-//           }
-//           j++;
-//         }
-//       }
-//       i++;
-//     }
-//   }
-
-//   return workedHours;
-// }
-
-
-
-
-
-
 
 
 
