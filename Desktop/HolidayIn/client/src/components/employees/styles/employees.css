@@ -219,8 +219,9 @@
 /* Estilos para las celdas de acciones */
 .actions-cell {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap; /* Permite que los botones salten de línea si no caben */
+    gap: 8px; /* Espacio entre los botones */
+    justify-content: flex-start; /* Alinea los botones al inicio */
+    /* Removido flex-wrap para mantener los botones en una línea si es posible */
 }
 
 .action-button {
@@ -230,6 +231,7 @@
     cursor: pointer;
     font-size: 0.85rem;
     transition: background-color 0.3s ease, transform 0.2s ease;
+    white-space: nowrap; /* Evita que el texto del botón se rompa */
 }
 
 .action-button:hover {
@@ -254,14 +256,36 @@
     background-color: #e0a800;
 }
 
-.action-button.delete {
-    background-color: #dc3545;
+/* --- Estilos para las insignias de estado en la tabla y detalles --- */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px; /* Más redondeado para un look de "badge" */
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
     color: white;
+    display: inline-block; /* Para que tome el padding */
+    min-width: 70px; /* Asegura un ancho mínimo para todos */
+    text-align: center;
 }
 
-.action-button.delete:hover {
-    background-color: #c82333;
+.status-activo {
+    background-color: #28a745; /* Verde */
 }
+
+.status-inactivo {
+    background-color: #dc3545; /* Rojo */
+}
+
+.status-licencia {
+    background-color: #ffc107; /* Amarillo/Naranja */
+    color: #343a40; /* Texto oscuro para contraste */
+}
+
+.status-terminado {
+    background-color: #6c757d; /* Gris oscuro */
+}
+
 
 /* Mensaje si no hay empleados */
 .employee-list p {

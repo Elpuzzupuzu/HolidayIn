@@ -1,14 +1,15 @@
+// EmployeesManagement.jsx
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   fetchEmployees,
   createEmployee,
   updateEmployee,
-  deleteEmployee,
   fetchEmployeeByNumber,
-  clearSelectedEmployee // Si la tienes definida en el slice
+  clearSelectedEmployee
 } from '../../features/employees/employeesSlice';
-import './styles/employees.css'; // Opcional: para estilos específicos del componente
+import EmployeeModal from './EmployeeModal';
+import './styles/employees.css';
 
 function EmployeesManagement() {
   const dispatch = useDispatch();
@@ -17,8 +18,8 @@ function EmployeesManagement() {
   const status = useSelector((state) => state.employees.status);
   const error = useSelector((state) => state.employees.error);
 
-  const [isAdding, setIsAdding] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditingInModal, setIsEditingInModal] = useState(false);
   const [formData, setFormData] = useState({
     employee_number: '',
     name: '',
@@ -29,88 +30,109 @@ function EmployeesManagement() {
     status: 'activo'
   });
 
-  // Efecto para cargar los empleados cuando el componente se monta o el estado cambia a 'idle'
   useEffect(() => {
     if (status === 'idle') {
       dispatch(fetchEmployees());
     }
   }, [status, dispatch]);
 
-  // Manejador para el cambio de los inputs del formulario
+  // AJUSTE CLAVE AQUÍ:
+  useEffect(() => {
+    // Este bloque se encarga de abrir el modal y precargar datos cuando un empleado es seleccionado
+    if (selectedEmployee) {
+      setIsModalOpen(true);
+      if (isEditingInModal) { // Si ya estamos en modo edición (ej. desde el botón "Agregar" previamente)
+        setFormData({
+          employee_number: selectedEmployee.employee_number,
+          name: selectedEmployee.name,
+          role_id: selectedEmployee.role_id,
+          department_id: selectedEmployee.department_id,
+          puesto: selectedEmployee.puesto,
+          hire_date: selectedEmployee.hire_date ? selectedEmployee.hire_date.split('T')[0] : '',
+          status: selectedEmployee.status
+        });
+      }
+    }
+    // ESTE ES EL CAMBIO: Solo cierra el modal si selectedEmployee es null Y NO estamos en modo de "Agregar Nuevo Empleado"
+    // (es decir, si isEditingInModal es false, lo que implica que es un cierre normal o un "ver detalles" sin selección).
+    else if (!isEditingInModal) {
+      setIsModalOpen(false);
+      setIsEditingInModal(false); // Reset editing state
+      setFormData({ // Clear form data
+        employee_number: '', name: '', role_id: '', department_id: '', puesto: '', hire_date: '', status: 'activo'
+      });
+    }
+  }, [selectedEmployee, isEditingInModal]); // Las dependencias son correctas
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Manejador para enviar el formulario de creación/actualización
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isAdding) {
-      await dispatch(createEmployee(formData));
-    } else if (isEditing) {
+    const dataToSend = {
+      ...formData,
+      role_id: parseInt(formData.role_id),
+      department_id: parseInt(formData.department_id)
+    };
+
+    if (!formData.employee_number) {
+      await dispatch(createEmployee(dataToSend));
+    } else {
       await dispatch(updateEmployee({
-        employeeNumber: formData.employee_number,
-        employeeData: {
-          name: formData.name,
-          role_id: parseInt(formData.role_id), // Asegúrate de convertir a número si es necesario
-          department_id: parseInt(formData.department_id), // Asegúrate de convertir a número si es necesario
-          puesto: formData.puesto,
-          hire_date: formData.hire_date,
-          status: formData.status
-        }
+        employeeNumber: dataToSend.employee_number,
+        employeeData: dataToSend
       }));
     }
-    // Después de crear/actualizar, reinicia el estado del formulario y recarga la lista
-    setFormData({
-      employee_number: '', name: '', role_id: '', department_id: '', puesto: '', hire_date: '', status: 'activo'
-    });
-    setIsAdding(false);
-    setIsEditing(false);
-    dispatch(fetchEmployees()); // Para asegurarse de que la lista se actualice
+    handleCloseModal();
+    dispatch(fetchEmployees());
   };
 
-  // Manejador para el botón de editar
-  const handleEditClick = (employee) => {
-    setIsEditing(true);
-    setIsAdding(false); // Asegúrate de que no estemos en modo "añadir"
-    setFormData({
-      employee_number: employee.employee_number,
-      name: employee.name,
-      role_id: employee.role_id,
-      department_id: employee.department_id,
-      puesto: employee.puesto,
-      hire_date: employee.hire_date.split('T')[0], // Ajusta para el input type="date" si viene de la DB con timestamp
-      status: employee.status
+  const handleRowClick = (employeeNumber) => {
+    setIsEditingInModal(false); // Abre el modal en modo "ver"
+    dispatch(fetchEmployeeByNumber(employeeNumber)); // Carga el empleado seleccionado
+  };
+
+  const handleAddNewEmployeeClick = () => {
+    dispatch(clearSelectedEmployee()); // Limpia el empleado seleccionado en Redux (selectedEmployee = null)
+    setIsEditingInModal(true); // Establece el modo a edición/creación
+    setFormData({ // Resetea el formulario para una nueva entrada
+      employee_number: '', name: '', role_id: '', department_id: '', puesto: '', hire_date: '', status: 'activo'
     });
-    // Limpiar el empleado seleccionado en el estado de Redux si existe
-    if (selectedEmployee) {
-        dispatch(clearSelectedEmployee());
+    setIsModalOpen(true); // Abre el modal explícitamente
+  };
+
+  const handleEditFromModal = () => {
+    setIsEditingInModal(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingInModal(false);
+    if (selectedEmployee) { // Si hay un empleado seleccionado, vuelve a la vista de detalles
+      setFormData({
+        employee_number: selectedEmployee.employee_number,
+        name: selectedEmployee.name,
+        role_id: selectedEmployee.role_id,
+        department_id: selectedEmployee.department_id,
+        puesto: selectedEmployee.puesto,
+        hire_date: selectedEmployee.hire_date ? selectedEmployee.hire_date.split('T')[0] : '',
+        status: selectedEmployee.status
+      });
+    } else { // Si no hay selectedEmployee (estábamos añadiendo uno nuevo), cierra el modal completamente
+      handleCloseModal();
     }
   };
 
-  // Manejador para el botón de eliminar
-  const handleDeleteClick = async (employeeNumber) => {
-    if (window.confirm(`¿Estás seguro de que quieres eliminar al empleado ${employeeNumber}?`)) {
-      await dispatch(deleteEmployee(employeeNumber));
-      dispatch(fetchEmployees()); // Recargar la lista después de eliminar
-    }
-  };
-
-  // Manejador para el botón de ver detalles
-  const handleViewDetails = (employeeNumber) => {
-    dispatch(fetchEmployeeByNumber(employeeNumber));
-  };
-
-  const handleCancelForm = () => {
-    setIsAdding(false);
-    setIsEditing(false);
-    setFormData({
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setIsEditingInModal(false);
+    dispatch(clearSelectedEmployee()); // Limpia el estado de Redux al cerrar
+    setFormData({ // Limpia el formulario
       employee_number: '', name: '', role_id: '', department_id: '', puesto: '', hire_date: '', status: 'activo'
     });
-    dispatch(clearSelectedEmployee());
   };
 
-  // Renderizado condicional basado en el estado de la petición
   if (status === 'loading' && employees.length === 0) {
     return <div className="loading-message">Cargando empleados...</div>;
   }
@@ -123,127 +145,27 @@ function EmployeesManagement() {
     <div className="employees-management-container">
       <h1>Gestión de Empleados</h1>
 
-      <button onClick={() => { setIsAdding(true); setIsEditing(false); handleCancelForm(); }} className="add-employee-button">
+      <button onClick={handleAddNewEmployeeClick} className="add-employee-button">
         Agregar Nuevo Empleado
       </button>
 
-      {(isAdding || isEditing) && (
-        <div className="employee-form-card">
-          <h2>{isAdding ? 'Agregar Empleado' : `Editar Empleado: ${formData.employee_number}`}</h2>
-          <form onSubmit={handleSubmit} className="employee-form">
-            <div className="form-group">
-              <label htmlFor="employee_number">Número de Empleado:</label>
-              <input
-                type="text"
-                id="employee_number"
-                name="employee_number"
-                value={formData.employee_number}
-                onChange={handleInputChange}
-                required
-                disabled={isEditing} // No permitir cambiar el número de empleado al editar
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="name">Nombre:</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="role_id">ID de Rol:</label>
-              <input
-                type="number"
-                id="role_id"
-                name="role_id"
-                value={formData.role_id}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="department_id">ID de Departamento:</label>
-              <input
-                type="number"
-                id="department_id"
-                name="department_id"
-                value={formData.department_id}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="puesto">Puesto:</label>
-              <input
-                type="text"
-                id="puesto"
-                name="puesto"
-                value={formData.puesto}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="hire_date">Fecha de Contratación:</label>
-              <input
-                type="date"
-                id="hire_date"
-                name="hire_date"
-                value={formData.hire_date}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="status">Estado:</label>
-              <select
-                id="status"
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="activo">Activo</option>
-                <option value="inactivo">Inactivo</option>
-                <option value="licencia">Licencia</option>
-                <option value="terminado">Terminado</option>
-              </select>
-            </div>
-            <div className="form-actions">
-              <button type="submit" className="submit-button">
-                {isAdding ? 'Crear Empleado' : 'Guardar Cambios'}
-              </button>
-              <button type="button" onClick={handleCancelForm} className="cancel-button">
-                Cancelar
-              </button>
-            </div>
-          </form>
-        </div>
+      {isModalOpen && (
+        <EmployeeModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          employee={selectedEmployee}
+          isEditing={isEditingInModal}
+          onEditToggle={handleEditFromModal}
+          onCancelEdit={handleCancelEdit}
+          formData={formData}
+          onInputChange={handleInputChange}
+          onSubmit={handleSubmit}
+          // isNewEmployee será true si selectedEmployee es null Y estamos en modo edición
+          isNewEmployee={!selectedEmployee && isEditingInModal}
+        />
       )}
 
-      {selectedEmployee && (
-        <div className="employee-details-card">
-          <h2>Detalles del Empleado</h2>
-          <p><strong>Número:</strong> {selectedEmployee.employee_number}</p>
-          <p><strong>Nombre:</strong> {selectedEmployee.name}</p>
-          <p><strong>Rol ID:</strong> {selectedEmployee.role_id}</p>
-          <p><strong>Departamento ID:</strong> {selectedEmployee.department_id}</p>
-          <p><strong>Puesto:</strong> {selectedEmployee.puesto}</p>
-          <p><strong>Contratación:</strong> {new Date(selectedEmployee.hire_date).toLocaleDateString()}</p>
-          <p><strong>Estado:</strong> {selectedEmployee.status}</p>
-          <p><strong>Activo:</strong> {selectedEmployee.activo}</p>
-          <p><strong>Fecha de Creación:</strong> {new Date(selectedEmployee.fh_cre).toLocaleString()}</p>
-          {selectedEmployee.fh_act && <p><strong>Última Actualización:</strong> {new Date(selectedEmployee.fh_act).toLocaleString()}</p>}
-          {selectedEmployee.fechaBaja && <p><strong>Fecha de Baja:</strong> {new Date(selectedEmployee.fechaBaja).toLocaleString()}</p>}
-          <button onClick={() => dispatch(clearSelectedEmployee())} className="close-details-button">Cerrar Detalles</button>
-        </div>
-      )}
-
-      <div classNameame="employee-list">
+      <div className="employee-list">
         <h2>Lista de Empleados</h2>
         {employees.length === 0 ? (
           <p>No hay empleados registrados.</p>
@@ -256,22 +178,16 @@ function EmployeesManagement() {
                 <th>Puesto</th>
                 <th>Departamento ID</th>
                 <th>Estado</th>
-                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               {employees.map((employee) => (
-                <tr key={employee.employee_number}>
+                <tr key={employee.employee_number} onClick={() => handleRowClick(employee.employee_number)} className="clickable-row">
                   <td>{employee.employee_number}</td>
                   <td>{employee.name}</td>
                   <td>{employee.puesto}</td>
                   <td>{employee.department_id}</td>
-                  <td>{employee.status}</td>
-                  <td className="actions-cell">
-                    <button onClick={() => handleViewDetails(employee.employee_number)} className="action-button view">Ver</button>
-                    <button onClick={() => handleEditClick(employee)} className="action-button edit">Editar</button>
-                    <button onClick={() => handleDeleteClick(employee.employee_number)} className="action-button delete">Eliminar</button>
-                  </td>
+                  <td><span className={`status-badge status-${employee.status}`}>{employee.status}</span></td>
                 </tr>
               ))}
             </tbody>

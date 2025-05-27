@@ -1,0 +1,115 @@
+/* Estilos del Overlay del Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6); /* Fondo semi-transparente oscuro */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Asegura que esté por encima de otros elementos */
+}
+
+/* Contenido del Modal */
+.modal-content {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 90%; /* Ancho responsivo */
+    max-width: 600px; /* Ancho máximo */
+    position: relative;
+    max-height: 90vh; /* Altura máxima para evitar desbordamiento */
+    overflow-y: auto; /* Permite scroll si el contenido es muy largo */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Encabezado del Modal */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #343a40;
+    font-size: 1.5rem;
+}
+
+.close-button {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #6c757d;
+    line-height: 1; /* Alinea el 'x' verticalmente */
+    padding: 0;
+}
+
+.close-button:hover {
+    color: #dc3545;
+}
+
+/* Cuerpo del Modal */
+.modal-body {
+    flex-grow: 1; /* Permite que el cuerpo crezca y ocupe espacio */
+}
+
+/* Estilos para la vista de detalles dentro del modal */
+.employee-details-content p {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+.employee-details-content strong {
+    color: #343a40;
+}
+
+/* Estilos específicos para el formulario dentro del modal (similar a employees.css) */
+.employee-modal-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px; /* Espacio más compacto para el modal */
+}
+
+.employee-modal-form .form-group {
+    margin-bottom: 0; /* Ya tenemos gap */
+}
+
+/* Ajustes para el botón "Agregar Nuevo Empleado" si se usa en el modal */
+.modal-actions {
+    margin-top: 25px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Los estilos de .form-group, input, select, .submit-button, .cancel-button,
+   .action-button.edit (para el botón Editar en la vista de detalles del modal),
+   .status-badge, .status-activo, etc. se reutilizan de `employees.css`.
+   Asegúrate de que `employees.css` esté correctamente importado y aplicado en el entorno global o en el componente.
+*/
+
+/* Media Queries para responsividad del modal */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+    .employee-modal-form {
+        grid-template-columns: 1fr; /* Una columna en pantallas pequeñas */
+    }
+    .modal-header h2 {
+        font-size: 1.2rem;
+    }
+    .close-button {
+        font-size: 1.8rem;
+    }
+}
