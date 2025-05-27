@@ -35,12 +35,19 @@
     color: #dc3545;
 }
 
+/* --- Estilos para la fila de controles (botón y filtro) --- */
+.controls-row {
+    display: flex;
+    justify-content: space-between; /* Espacio entre el botón y el grupo de filtro */
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
 /* Botón para agregar empleado */
 .add-employee-button {
-    display: block;
-    width: fit-content;
     padding: 10px 20px;
-    margin: 0 auto 30px auto;
     background-color: #007bff;
     color: white;
     border: none;
@@ -53,6 +60,53 @@
 .add-employee-button:hover {
     background-color: #0056b3;
 }
+
+/* Grupo de filtro */
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-group label {
+    font-weight: bold;
+    color: #495057;
+    white-space: nowrap;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    min-width: 180px;
+    appearance: none;
+    background-color: #ffffff; /* Asegura un fondo blanco para el select */
+    color: #343a40; /* Asegura un color de texto oscuro para contraste */
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20fill%3D%22%23495057%22%2F%3E%3C%2Fsvg%3E');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+    cursor: pointer;
+}
+
+.filter-select:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Estilos para las opciones del dropdown (si es necesario) */
+/* Nota: Estilizar las opciones de un <select> es muy limitado y varía entre navegadores.
+   Si el problema persiste, considera usar una librería de componentes de UI que provea un Select con más control de estilos,
+   o una combinación de <div>s y <ul>s para simular un dropdown.
+   Sin embargo, estos estilos básicos a menudo ayudan: */
+.filter-select option {
+    background-color: #ffffff; /* Fondo blanco para las opciones */
+    color: #343a40; /* Texto oscuro para las opciones */
+}
+
 
 /* Estilos para formularios (agregar/editar) */
 .employee-form-card {
@@ -181,7 +235,6 @@
     background-color: #138496;
 }
 
-
 /* Estilos para la tabla de empleados */
 .employee-list table {
     width: 100%;
@@ -221,7 +274,6 @@
     display: flex;
     gap: 8px; /* Espacio entre los botones */
     justify-content: flex-start; /* Alinea los botones al inicio */
-    /* Removido flex-wrap para mantener los botones en una línea si es posible */
 }
 
 .action-button {
@@ -285,7 +337,6 @@
 .status-terminado {
     background-color: #6c757d; /* Gris oscuro */
 }
-
 
 /* Mensaje si no hay empleados */
 .employee-list p {

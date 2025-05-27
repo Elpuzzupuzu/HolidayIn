@@ -1,4 +1,6 @@
-const supabase = require("../config/supabase"); // Ahora 'supabase' es tu pool de conexiones MySQL
+// server/models/Employee.js
+
+const supabase = require("../config/supabase"); // 'supabase' es tu pool de conexiones MySQL
 
 class Employee {
   /**
@@ -24,8 +26,6 @@ class Employee {
       const values = [employee_number, name, role_id, department_id, puesto, hire_date, status || 'activo'];
 
       const [result] = await supabase.execute(query, values);
-      // 'result' contendrá información como 'insertId', 'affectedRows', etc.
-      // Puedes devolver result o un objeto más específico si lo necesitas.
       return { id: result.insertId, affectedRows: result.affectedRows };
     } catch (error) {
       console.error("Error al crear empleado:", error.message);
@@ -34,17 +34,28 @@ class Employee {
   }
 
   /**
-   * Obtiene todos los registros de empleados.
+   * Obtiene todos los registros de empleados, con opción de filtro por department_id.
+   * @param {number | string} [departmentId='all'] - ID del departamento para filtrar. Si es 'all' o no se proporciona, devuelve todos.
    * @returns {Promise<object[]>} Un arreglo de objetos de empleados.
    * @throws {Error} Si ocurre un error al obtener los empleados.
    */
-  static async getAll() {
+  static async getAll(departmentId = 'all') { // <-- Aquí el cambio, aceptamos un departmentId opcional
     try {
-      const query = "SELECT * FROM employees";
-      const [rows] = await supabase.execute(query);
+      let query = "SELECT * FROM employees";
+      const values = [];
+
+      // Si se proporciona un departmentId válido (que no sea 'all'), añadimos la cláusula WHERE
+      if (departmentId && departmentId !== 'all') {
+        query += " WHERE department_id = ?";
+        values.push(departmentId);
+      }
+      // Opcional: ordenar los resultados (buena práctica para la UI)
+      query += " ORDER BY name ASC";
+
+      const [rows] = await supabase.execute(query, values);
       return rows;
     } catch (error) {
-      console.error("Error al obtener todos los empleados:", error.message);
+      console.error("Error al obtener todos los empleados (filtrado):", error.message);
       throw new Error(`Error al obtener todos los empleados: ${error.message}`);
     }
   }
@@ -59,7 +70,6 @@ class Employee {
     try {
       const query = "SELECT * FROM employees WHERE employee_number = ?";
       const [rows] = await supabase.execute(query, [employeeNumber]);
-      // Si no hay filas, el empleado no existe, devolvemos null.
       return rows.length > 0 ? rows[0] : null;
     } catch (error) {
       console.error(`Error al obtener empleado ${employeeNumber}:`, error.message);
@@ -76,7 +86,6 @@ class Employee {
    */
   static async update(employeeNumber, updateFields) {
     try {
-      // Construye dinámicamente la parte SET de la consulta SQL
       const fields = Object.keys(updateFields);
       const values = Object.values(updateFields);
 
@@ -89,7 +98,6 @@ class Employee {
       const finalValues = [...values, employeeNumber];
 
       const [result] = await supabase.execute(query, finalValues);
-      // 'result.affectedRows' indica cuántas filas fueron actualizadas.
       return { affectedRows: result.affectedRows };
     } catch (error) {
       console.error(`Error al actualizar empleado ${employeeNumber}:`, error.message);
@@ -107,7 +115,6 @@ class Employee {
     try {
       const query = "DELETE FROM employees WHERE employee_number = ?";
       const [result] = await supabase.execute(query, [employeeNumber]);
-      // 'result.affectedRows' indica cuántas filas fueron eliminadas.
       return { affectedRows: result.affectedRows };
     } catch (error) {
       console.error(`Error al eliminar empleado ${employeeNumber}:`, error.message);

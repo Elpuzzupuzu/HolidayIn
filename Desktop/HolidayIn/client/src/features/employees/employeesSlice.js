@@ -1,3 +1,5 @@
+// client/src/features/employees/employeesSlice.js
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
@@ -8,12 +10,27 @@ const API_URL = "http://localhost:3000/api";
 
 /**
  * Thunk para obtener todos los empleados.
+ * Ahora acepta un objeto 'filter' para permitir filtros como departmentId.
+ * @param {object} filter - Objeto con los parámetros de filtro (ej: { departmentId: '1' }).
  */
 export const fetchEmployees = createAsyncThunk(
   'employees/fetchEmployees',
-  async (_, { rejectWithValue }) => {
+  async (filter = {}, { rejectWithValue }) => { // Modificado para aceptar 'filter'
     try {
-      const response = await axios.get(`${API_URL}/employees/getall`);
+      let url = `${API_URL}/employees/getall`; // Ruta base
+      const params = new URLSearchParams(); // Para construir los query parameters
+
+      // Si hay un departmentId en el filtro y no es 'all', lo añadimos a los parámetros
+      if (filter.departmentId && filter.departmentId !== 'all') {
+        params.append('departmentId', filter.departmentId);
+      }
+
+      // Si hay parámetros, los adjuntamos a la URL
+      if (params.toString()) {
+        url = `${url}?${params.toString()}`;
+      }
+
+      const response = await axios.get(url);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -81,17 +98,6 @@ export const deleteEmployee = createAsyncThunk(
   }
 );
 
-
-
-
-
-
-
-
-
-
-
-
 // --- Slice de Empleados ---
 const employeesSlice = createSlice({
   name: 'employees',
@@ -126,7 +132,10 @@ const employeesSlice = createSlice({
       })
       .addCase(createEmployee.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.employees.push(action.payload);
+        // Redux Toolkit recomienda no mutar directamente el estado fuera del reducer
+        // y que el extraReducer solo maneje el estado de carga y error.
+        // La lista principal se refrescará con un nuevo `WorkspaceEmployees`
+        // después de la creación/actualización en el componente.
       })
       .addCase(createEmployee.rejected, (state, action) => {
         state.status = 'failed';
@@ -152,10 +161,10 @@ const employeesSlice = createSlice({
       })
       .addCase(updateEmployee.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        const index = state.employees.findIndex(emp => emp.employee_number === action.meta.arg.employeeNumber);
-        if (index !== -1) {
-          state.employees[index] = { ...state.employees[index], ...action.meta.arg.employeeData };
-        }
+        // En una aplicación real, probablemente harías un nuevo fetchEmployees()
+        // en el componente después de una actualización exitosa para asegurar
+        // que la lista esté completamente sincronizada y filtrada.
+        // Por ahora, solo limpiamos el empleado seleccionado si lo estamos actualizando.
         if (state.selectedEmployee && state.selectedEmployee.employee_number === action.meta.arg.employeeNumber) {
             state.selectedEmployee = { ...state.selectedEmployee, ...action.meta.arg.employeeData };
         }

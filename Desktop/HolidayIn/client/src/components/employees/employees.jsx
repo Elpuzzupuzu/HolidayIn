@@ -6,7 +6,8 @@ import {
   createEmployee,
   updateEmployee,
   fetchEmployeeByNumber,
-  clearSelectedEmployee
+  clearSelectedEmployee,
+  deleteEmployee
 } from '../../features/employees/employeesSlice';
 import EmployeeModal from './EmployeeModal';
 import './styles/employees.css';
@@ -30,18 +31,30 @@ function EmployeesManagement() {
     status: 'activo'
   });
 
-  useEffect(() => {
-    if (status === 'idle') {
-      dispatch(fetchEmployees());
-    }
-  }, [status, dispatch]);
+  const [filterDepartmentId, setFilterDepartmentId] = useState('all');
 
-  // AJUSTE CLAVE AQUÍ:
+  const departments = [
+    { id: 1, name: 'Ama de llaves' },
+    { id: 2, name: 'Mantenimiento' },
+    { id: 3, name: 'Alimentos y Bebidas' },
+    { id: 4, name: 'Recepcion' },
+    { id: 5, name: 'Administracion' },
+    { id: 6, name: 'Ventas' },
+    { id: 7, name: 'Recursos Humanos' },
+    { id: 8, name: 'Seguridad' },
+    { id: 9, name: 'Configuracion' },
+    
+
+  ];
+
   useEffect(() => {
-    // Este bloque se encarga de abrir el modal y precargar datos cuando un empleado es seleccionado
+    dispatch(fetchEmployees({ departmentId: filterDepartmentId }));
+  }, [dispatch, filterDepartmentId]);
+
+  useEffect(() => {
     if (selectedEmployee) {
       setIsModalOpen(true);
-      if (isEditingInModal) { // Si ya estamos en modo edición (ej. desde el botón "Agregar" previamente)
+      if (isEditingInModal) {
         setFormData({
           employee_number: selectedEmployee.employee_number,
           name: selectedEmployee.name,
@@ -52,17 +65,14 @@ function EmployeesManagement() {
           status: selectedEmployee.status
         });
       }
-    }
-    // ESTE ES EL CAMBIO: Solo cierra el modal si selectedEmployee es null Y NO estamos en modo de "Agregar Nuevo Empleado"
-    // (es decir, si isEditingInModal es false, lo que implica que es un cierre normal o un "ver detalles" sin selección).
-    else if (!isEditingInModal) {
+    } else if (!isEditingInModal) {
       setIsModalOpen(false);
-      setIsEditingInModal(false); // Reset editing state
-      setFormData({ // Clear form data
+      setIsEditingInModal(false);
+      setFormData({
         employee_number: '', name: '', role_id: '', department_id: '', puesto: '', hire_date: '', status: 'activo'
       });
     }
-  }, [selectedEmployee, isEditingInModal]); // Las dependencias son correctas
+  }, [selectedEmployee, isEditingInModal]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -73,8 +83,8 @@ function EmployeesManagement() {
     e.preventDefault();
     const dataToSend = {
       ...formData,
-      role_id: parseInt(formData.role_id),
-      department_id: parseInt(formData.department_id)
+      role_id: parseInt(formData.role_id, 10),
+      department_id: parseInt(formData.department_id, 10)
     };
 
     if (!formData.employee_number) {
@@ -86,21 +96,21 @@ function EmployeesManagement() {
       }));
     }
     handleCloseModal();
-    dispatch(fetchEmployees());
+    dispatch(fetchEmployees({ departmentId: filterDepartmentId }));
   };
 
   const handleRowClick = (employeeNumber) => {
-    setIsEditingInModal(false); // Abre el modal en modo "ver"
-    dispatch(fetchEmployeeByNumber(employeeNumber)); // Carga el empleado seleccionado
+    setIsEditingInModal(false);
+    dispatch(fetchEmployeeByNumber(employeeNumber));
   };
 
   const handleAddNewEmployeeClick = () => {
-    dispatch(clearSelectedEmployee()); // Limpia el empleado seleccionado en Redux (selectedEmployee = null)
-    setIsEditingInModal(true); // Establece el modo a edición/creación
-    setFormData({ // Resetea el formulario para una nueva entrada
+    dispatch(clearSelectedEmployee());
+    setIsEditingInModal(true);
+    setFormData({
       employee_number: '', name: '', role_id: '', department_id: '', puesto: '', hire_date: '', status: 'activo'
     });
-    setIsModalOpen(true); // Abre el modal explícitamente
+    setIsModalOpen(true);
   };
 
   const handleEditFromModal = () => {
@@ -109,7 +119,7 @@ function EmployeesManagement() {
 
   const handleCancelEdit = () => {
     setIsEditingInModal(false);
-    if (selectedEmployee) { // Si hay un empleado seleccionado, vuelve a la vista de detalles
+    if (selectedEmployee) {
       setFormData({
         employee_number: selectedEmployee.employee_number,
         name: selectedEmployee.name,
@@ -119,7 +129,7 @@ function EmployeesManagement() {
         hire_date: selectedEmployee.hire_date ? selectedEmployee.hire_date.split('T')[0] : '',
         status: selectedEmployee.status
       });
-    } else { // Si no hay selectedEmployee (estábamos añadiendo uno nuevo), cierra el modal completamente
+    } else {
       handleCloseModal();
     }
   };
@@ -127,10 +137,14 @@ function EmployeesManagement() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setIsEditingInModal(false);
-    dispatch(clearSelectedEmployee()); // Limpia el estado de Redux al cerrar
-    setFormData({ // Limpia el formulario
+    dispatch(clearSelectedEmployee());
+    setFormData({
       employee_number: '', name: '', role_id: '', department_id: '', puesto: '', hire_date: '', status: 'activo'
     });
+  };
+
+  const handleFilterChange = (e) => {
+    setFilterDepartmentId(e.target.value);
   };
 
   if (status === 'loading' && employees.length === 0) {
@@ -145,9 +159,28 @@ function EmployeesManagement() {
     <div className="employees-management-container">
       <h1>Gestión de Empleados</h1>
 
-      <button onClick={handleAddNewEmployeeClick} className="add-employee-button">
-        Agregar Nuevo Empleado
-      </button>
+      <div className="controls-row">
+        {/* FILTRO DE DEPARTAMENTO AHORA VA PRIMERO */}
+        <div className="filter-group">
+          <label htmlFor="departmentFilter">Filtrar por Departamento:</label>
+          <select
+            id="departmentFilter"
+            value={filterDepartmentId}
+            onChange={handleFilterChange}
+            className="filter-select"
+          >
+            <option value="all">Todos</option>
+            {departments.map((dept) => (
+              <option key={dept.id} value={dept.id}>{dept.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* BOTÓN AGREGAR EMPLEADO AHORA VA SEGUNDO */}
+        <button onClick={handleAddNewEmployeeClick} className="add-employee-button">
+          Agregar Nuevo Empleado
+        </button>
+      </div>
 
       {isModalOpen && (
         <EmployeeModal
@@ -160,15 +193,14 @@ function EmployeesManagement() {
           formData={formData}
           onInputChange={handleInputChange}
           onSubmit={handleSubmit}
-          // isNewEmployee será true si selectedEmployee es null Y estamos en modo edición
           isNewEmployee={!selectedEmployee && isEditingInModal}
         />
       )}
 
       <div className="employee-list">
         <h2>Lista de Empleados</h2>
-        {employees.length === 0 ? (
-          <p>No hay empleados registrados.</p>
+        {employees.length === 0 && status !== 'loading' ? (
+          <p>No hay empleados registrados para este filtro.</p>
         ) : (
           <table>
             <thead>
