@@ -72,6 +72,18 @@ static async getTotalWorkedHoursByDepartment(req, res) {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 //// este calcula las horas del empleado dado un intervalo  por cada empleado 
 static async getTotalWorkedHoursByEmployee(req, res) {
   try {
@@ -94,9 +106,31 @@ static async getTotalWorkedHoursByEmployee(req, res) {
     console.error("Error al obtener las horas trabajadas del empleado:", error.message);
     res
       .status(500)
-      .json({ error: "No se pudo obtener la información de horas trabajadas del empleado." });
+      .json({ error: "No se pudo obtener la información de horas trabajadas del empleado AAAAA." });
   }
 }
+
+/////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /// esto filtra por departamento y fechas
 

@@ -281,7 +281,7 @@ const closeModal = () => {
         <div className="modal-overlay">
           <div className="modal-backdrop" onClick={closeModal} />
           <EmployeeResume
-            resumen={totalWorkedHours}
+            resumen={totalWorkedHours}  /// esto es lo que llega al componente hijo EmployeeResume,jsx
             workedHours={workedHours} // este es el array con los días trabajados
             onClose={closeModal}
           />
