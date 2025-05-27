@@ -479,6 +479,8 @@ static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = nul
 ///testing
 
 
+
+
 // static async getWorkedHoursBetweenDatesCSV(startDate, endDate, employeeNumber = null) {
 //   if (!startDate || !endDate) {
 //     throw new Error("Debe proporcionar ambas fechas: startDate y endDate");
@@ -521,22 +523,27 @@ static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = nul
 //       const next = empEvents[i + 1];
 
 //       if (current.event_type === "0" && next.event_type === "1") {
-//         const entryDate = current.event_date;
+//         // --- CAMBIO CLAVE AQUÍ ---
+//         // Asegúrate de que event_date sea un string en formato YYYY-MM-DD
+//         // Si ya es un objeto Date, usa .toISOString().split('T')[0]
+//         const entryDateStr = current.event_date instanceof Date ? current.event_date.toISOString().split('T')[0] : current.event_date;
+//         const exitDateStr = next.event_date instanceof Date ? next.event_date.toISOString().split('T')[0] : next.event_date;
+
 //         const entryTime = current.event_time;
-//         const exitDate = next.event_date;
 //         const exitTime = next.event_time;
 
-//         const entryTimestamp = new Date(`${entryDate}T${entryTime}`);
-//         const exitTimestamp = new Date(`${exitDate}T${exitTime}`);
+//         const entryTimestamp = new Date(`${entryDateStr}T${entryTime}`);
+//         const exitTimestamp = new Date(`${exitDateStr}T${exitTime}`);
+//         // --- FIN DEL CAMBIO CLAVE ---
 
 //         const diffMs = exitTimestamp - entryTimestamp;
 //         const hoursWorked = diffMs / (1000 * 60 * 60); // horas
 
 //         workedHours.push({
 //           numero_empleado: employee,
-//           fecha_entrada: entryDate,
+//           fecha_entrada: entryDateStr, // Usar el string formateado si es necesario
 //           hora_entrada: entryTime,
-//           fecha_salida: exitDate,
+//           fecha_salida: exitDateStr, // Usar el string formateado si es necesario
 //           hora_salida: exitTime,
 //           horas_trabajadas: Math.round(hoursWorked * 100) / 100,
 //         });
@@ -549,86 +556,99 @@ static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = nul
 //   return workedHours;
 // }
 
+
+
+
+
+
+
 static async getWorkedHoursBetweenDatesCSV(startDate, endDate, employeeNumber = null) {
   if (!startDate || !endDate) {
-    throw new Error("Debe proporcionar ambas fechas: startDate y endDate");
+    throw new Error("Debe proporcionar ambas fechas: startDate y endDate.");
   }
 
-  // Construir consulta base
-  let query = supabase
-    .from("dat_events")
-    .select("*")
-    .gte("event_date", startDate)
-    .lte("event_date", endDate)
-    .order("employee_number", { ascending: true })
-    .order("event_date", { ascending: true })
-    .order("event_time", { ascending: true });
+  try {
+    let query = `
+      SELECT *
+      FROM dat_events
+      WHERE event_date BETWEEN ? AND ?
+    `;
+    const params = [startDate, endDate];
 
-  // Aplicar filtro por empleado si se proporciona
-  if (employeeNumber) {
-    query = query.eq("employee_number", employeeNumber);
-  }
-
-  const { data: events, error } = await query;
-
-  if (error) throw new Error(`Error fetching events: ${error.message}`);
-
-  const workedHours = [];
-
-  // Agrupar eventos por empleado
-  const eventsByEmployee = {};
-  for (const event of events) {
-    if (!eventsByEmployee[event.employee_number]) {
-      eventsByEmployee[event.employee_number] = [];
+    // Aplicar filtro por empleado si se proporciona
+    if (employeeNumber) {
+      query += ` AND employee_number = ?`;
+      params.push(employeeNumber);
     }
-    eventsByEmployee[event.employee_number].push(event);
-  }
 
-  // Emparejar entrada y salida para cada empleado
-  for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
-    for (let i = 0; i < empEvents.length - 1; i++) {
-      const current = empEvents[i];
-      const next = empEvents[i + 1];
+    query += `
+      ORDER BY employee_number ASC, event_date ASC, event_time ASC;
+    `;
 
-      if (current.event_type === "0" && next.event_type === "1") {
-        // --- CAMBIO CLAVE AQUÍ ---
-        // Asegúrate de que event_date sea un string en formato YYYY-MM-DD
-        // Si ya es un objeto Date, usa .toISOString().split('T')[0]
-        const entryDateStr = current.event_date instanceof Date ? current.event_date.toISOString().split('T')[0] : current.event_date;
-        const exitDateStr = next.event_date instanceof Date ? next.event_date.toISOString().split('T')[0] : next.event_date;
+    // Ejecutar la consulta. Asumimos que 'supabase' es tu pool de conexión MySQL
+    // y que su método 'query' devuelve un array de filas (o similar) y maneja errores.
+    const [events] = await supabase.query(query, params);
 
-        const entryTime = current.event_time;
-        const exitTime = next.event_time;
+    // console.log("Eventos obtenidos de MySQL:", events); // Para depuración
 
-        const entryTimestamp = new Date(`${entryDateStr}T${entryTime}`);
-        const exitTimestamp = new Date(`${exitDateStr}T${exitTime}`);
-        // --- FIN DEL CAMBIO CLAVE ---
+    if (!events.length) {
+      return []; // No se encontraron eventos, devuelve un array vacío
+    }
 
-        const diffMs = exitTimestamp - entryTimestamp;
-        const hoursWorked = diffMs / (1000 * 60 * 60); // horas
+    const workedHours = [];
 
-        workedHours.push({
-          numero_empleado: employee,
-          fecha_entrada: entryDateStr, // Usar el string formateado si es necesario
-          hora_entrada: entryTime,
-          fecha_salida: exitDateStr, // Usar el string formateado si es necesario
-          hora_salida: exitTime,
-          horas_trabajadas: Math.round(hoursWorked * 100) / 100,
-        });
+    // Agrupar eventos por empleado
+    const eventsByEmployee = {};
+    for (const event of events) {
+      if (!eventsByEmployee[event.employee_number]) {
+        eventsByEmployee[event.employee_number] = [];
+      }
+      eventsByEmployee[event.employee_number].push(event);
+    }
 
-        i++; // saltar siguiente evento ya emparejado
+    // Emparejar entrada y salida para cada empleado
+    for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
+      for (let i = 0; i < empEvents.length - 1; i++) {
+        const current = empEvents[i];
+        const next = empEvents[i + 1];
+
+        if (current.event_type === "0" && next.event_type === "1") {
+          // MySQL debería devolver event_date como una cadena 'YYYY-MM-DD'
+          // o un objeto Date. La lógica actual maneja ambos casos.
+          const entryDateStr = current.event_date instanceof Date ? current.event_date.toISOString().split('T')[0] : current.event_date;
+          const exitDateStr = next.event_date instanceof Date ? next.event_date.toISOString().split('T')[0] : next.event_date;
+
+          const entryTime = current.event_time;
+          const exitTime = next.event_time;
+
+          const entryTimestamp = new Date(`${entryDateStr}T${entryTime}`);
+          const exitTimestamp = new Date(`${exitDateStr}T${exitTime}`);
+
+          const diffMs = exitTimestamp - entryTimestamp;
+          const hoursWorked = diffMs / (1000 * 60 * 60); // horas
+
+          workedHours.push({
+            numero_empleado: employee,
+            fecha_entrada: entryDateStr,
+            hora_entrada: entryTime,
+            fecha_salida: exitDateStr,
+            hora_salida: exitTime,
+            horas_trabajadas: Math.round(hoursWorked * 100) / 100,
+          });
+
+          i++; // saltar siguiente evento ya emparejado
+        }
       }
     }
+
+    return workedHours;
+
+  } catch (error) {
+    // Es crucial registrar el error para depuración en el servidor
+    console.error(`Error en getWorkedHoursBetweenDatesCSV (MySQL): ${error.message}`);
+    throw new Error(`Error al obtener datos para CSV: ${error.message}`);
   }
-
-  return workedHours;
 }
-
-
-
-
-
-
 
 
 }
