@@ -18,19 +18,24 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
   }, [employeeNumber, from, to, dispatch]);
 
   // Función para obtener el icono de día con fecha
-const getDiaConLetraIcono = (fechaStr) => {
-  const letras = ["D", "L", "M", "Mi", "J", "V", "S"];
-  const clases = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
-  const fecha = new Date(fechaStr);
-  const letraDia = letras[fecha.getDay()];
-  const claseDia = clases[fecha.getDay()];
-  return (
-    <span>
-      <strong className={`icono-dia ${claseDia}`}>{letraDia}</strong> {fechaStr}
-    </span>
-  );
-};
+  const getDiaConLetraIcono = (fechaStr) => {
+    const letras = ["D", "L", "M", "Mi", "J", "V", "S"];
+    const clases = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
+    
+    // --- CAMBIO CLAVE AQUÍ ---
+    // Añade una hora para asegurar que la fecha se interprete correctamente
+    // al mediodía del día especificado, evitando desbordamientos por zonas horarias.
+    const fecha = new Date(`${fechaStr}T12:00:00`); 
+    // --- FIN DEL CAMBIO CLAVE ---
 
+    const letraDia = letras[fecha.getDay()];
+    const claseDia = clases[fecha.getDay()];
+    return (
+      <span>
+        <strong className={`icono-dia ${claseDia}`}>{letraDia}</strong> {fechaStr}
+      </span>
+    );
+  };
 
   return (
     <div className="worked-hours-summary">
@@ -61,7 +66,7 @@ const getDiaConLetraIcono = (fechaStr) => {
               {workedHours.map((item, index) => (
                 <tr key={index}>
                   <td>{item.employee_number}</td>
-                  <td>{getDiaConLetraIcono(item.entry_date)}</td>
+                  <td>{getDiaConLetraIcono(item.entry_date)}</td> {/* Se usa aquí */}
                   <td>{item.entry_time}</td>
                   <td>{item.exit_date}</td>
                   <td>{item.exit_time}</td>
