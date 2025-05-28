@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getWorkedHoursByDepartment, clearWorkedHours, getTotalWorkedHoursByEmployee } from "../../features/datEvents/datEventsSlice";
-import { clearTotalWorkedHours } from "../../features/datEvents/datEventsSlice";
-
+import { getWorkedHoursByDepartment, clearWorkedHours, getTotalWorkedHoursByEmployee, clearTotalWorkedHours } from "../../features/datEvents/datEventsSlice"; 
 
 import "./styles/LogDetail.css";
 import EmployeeResume from "./EmployeeResume";
+// Importa tu nuevo Hook personalizado
+import useDateValidation from "../../components/hooks/useDateValidation"; 
 
 const ResumenPorDepartamento = () => {
   const dispatch = useDispatch();
@@ -19,9 +19,11 @@ const ResumenPorDepartamento = () => {
 
   // Global state
   const { workedHours, status, error, totalWorkedHours } = useSelector((state) => state.datEvents);
+  
+  // Este useEffect no es estrictamente necesario para la funcionalidad, pero puede ser útil para depuración.
   useEffect(() => {
-  // console.log("PRUEBAAAA ", workedHours);
-}, [workedHours]);
+    console.log("PRUEBAAAA ", workedHours);
+  }, [workedHours]);
 
 
   // Calculate total hours with better number handling
@@ -32,32 +34,38 @@ const ResumenPorDepartamento = () => {
       }, 0).toFixed(2)
     : 0;
 
-      useEffect(() => {
-  dispatch(clearWorkedHours());
-}, [dispatch]);
+  // Limpiar workedHours al montar el componente.
+  useEffect(() => {
+    dispatch(clearWorkedHours());
+  }, [dispatch]);
+
+  // --- Usando el Hook personalizado ---
+  // Llama al hook y obtén la función de validación.
+  // Pasa 'from' y 'to' como argumentos, y opcionalmente tu fecha mínima.
+  const validateSearchDates = useDateValidation(from, to, '2020-01-01');
 
 
-///// HANDLE
-const handleSearch = (e) => {
-  e.preventDefault();
-  
-  // Validate required fields
-  if (!departmentId || !from || !to) {
-    alert("⚠️ Por favor completa todos los campos requeridos:\n" +
-          `${!departmentId ? "• Departamento\n" : ""}` +
-          `${!from ? "• Fecha de inicio\n" : ""}` +
-          `${!to ? "• Fecha de fin" : ""}`);
-    return;
-  }
+  ///// HANDLE
+  const handleSearch = (e) => {
+    e.preventDefault();
+    
+    // 1. Validar campos requeridos (sigue aquí porque no es solo de fechas)
+    if (!departmentId || !from || !to) {
+      alert("⚠️ Por favor completa todos los campos requeridos:\n" +
+            `${!departmentId ? "• Departamento\n" : ""}` +
+            `${!from ? "• Fecha de inicio\n" : ""}` +
+            `${!to ? "• Fecha de fin" : ""}`);
+      return;
+    }
 
-  // Validate date range
-  if (new Date(from) > new Date(to)) {
-    alert("📅 Error en las fechas:\nLa fecha de inicio debe ser anterior o igual a la fecha de fin");
-    return;
-  }
-  
-  dispatch(getWorkedHoursByDepartment({ department_id: departmentId, from, to }));
-};
+    // 2. ¡Llama a la función de validación del Hook!
+    if (!validateSearchDates()) {
+      return; // Si el hook reporta un error, detén la ejecución
+    }
+    
+    // Si todas las validaciones pasan, procede con el dispatch
+    dispatch(getWorkedHoursByDepartment({ department_id: departmentId, from, to }));
+  };
 
   const setDefaultDates = () => {
     const today = new Date();
@@ -69,6 +77,8 @@ const handleSearch = (e) => {
   };
 
   const handleRowClick = (employeeNumber) => {
+    // Aquí puedes decidir si quieres usar también validateSearchDates
+    // o si la validación en handleSearch es suficiente antes de entrar a esta lógica
     if (!from || !to) {
       alert("Por favor selecciona un rango de fechas antes de ver el resumen del empleado.");
       return;
@@ -83,26 +93,42 @@ const handleSearch = (e) => {
     }));
   };
 
-const closeModal = () => {
-  if (selectedEmployee && departmentId && from && to) {
-    dispatch(getWorkedHoursByDepartment({
-      department_id: departmentId,
-      from,
-      to,
-    }));
-  }
+  const closeModal = () => {
+    if (selectedEmployee && departmentId && from && to) {
+      dispatch(getWorkedHoursByDepartment({
+        department_id: departmentId,
+        from,
+        to,
+      }));
+    }
 
-  dispatch(clearTotalWorkedHours()); // 🔄 Limpiar datos antiguos
+    dispatch(clearTotalWorkedHours()); // 🔄 Limpiar datos antiguos
 
-  setSelectedEmployee(null);
-  setShowResume(false);
-};
+    setSelectedEmployee(null);
+    setShowResume(false);
+  };
 
+  // --- Lógica de ordenamiento aquí ---
+  const sortedWorkedHours = workedHours ? [...workedHours].sort((a, b) => {
+    const hoursA = parseFloat(a.total_hours);
+    const hoursB = parseFloat(b.total_hours);
+
+    // Si 'a' tiene horas y 'b' no, 'a' va antes (-1)
+    if (hoursA > 0 && hoursB === 0) {
+      return -1;
+    }
+    // Si 'b' tiene horas y 'a' no, 'b' va antes (1, es decir, 'a' va después)
+    if (hoursA === 0 && hoursB > 0) {
+      return 1;
+    }
+    // Si ambos tienen horas > 0 o ambos tienen horas === 0, mantén el orden relativo o añade otro criterio (ej. por nombre)
+    return 0; // Si no hay una diferencia relevante para el orden, no cambies la posición
+  }) : [];
 
 
   return (
     <div className="resumen-container">
-      {/* Header */}
+      {/* Resto de tu JSX permanece igual */}
       <div className="page-header">
         <h1 className="resumen-title">
           <span className="title-icon">📊</span>
@@ -113,7 +139,6 @@ const closeModal = () => {
         </p>
       </div>
 
-      {/* Simplified Search Form */}
       <div className="input-container">
         <div className="form-header">
           <h3 className="form-title">
@@ -192,7 +217,6 @@ const closeModal = () => {
         </form>
       </div>
 
-      {/* Results Table */}
       <div className="table-container">
         <table className="results-table">
           <thead>
@@ -251,8 +275,8 @@ const closeModal = () => {
               </tr>
             )}
             
-            {status === "succeeded" && workedHours?.length > 0 && 
-              workedHours.map((item, idx) => (
+            {status === "succeeded" && sortedWorkedHours?.length > 0 && 
+              sortedWorkedHours.map((item, idx) => (
                 <tr
                   key={`${item.employee_number}-${idx}`}
                   className={`data-row ${selectedEmployee === item.employee_number ? 'row-selected' : ''}`}
@@ -260,7 +284,7 @@ const closeModal = () => {
                   style={{ cursor: 'pointer' }}
                 >
                   <td className="data-cell">
-                    👤 {item.employee_number}
+                    👤 {item.employee_number} - {item.name} 
                     {selectedEmployee === item.employee_number && <span className="selected-badge"> ✓</span>}
                   </td>
                   <td className="data-cell">
@@ -276,13 +300,12 @@ const closeModal = () => {
         </table>
       </div>
 
-      {/* Employee Resume Modal */}
       {showResume && (
         <div className="modal-overlay">
           <div className="modal-backdrop" onClick={closeModal} />
           <EmployeeResume
-            resumen={totalWorkedHours}  /// esto es lo que llega al componente hijo EmployeeResume,jsx
-            workedHours={workedHours} // este es el array con los días trabajados
+            resumen={totalWorkedHours}  
+            workedHours={workedHours} 
             onClose={closeModal}
           />
         </div>

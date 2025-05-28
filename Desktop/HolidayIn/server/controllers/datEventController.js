@@ -74,16 +74,6 @@ static async getTotalWorkedHoursByDepartment(req, res) {
 
 
 
-
-
-
-
-
-
-
-
-
-
 //// este calcula las horas del empleado dado un intervalo  por cada empleado 
 static async getTotalWorkedHoursByEmployee(req, res) {
   try {
@@ -111,22 +101,6 @@ static async getTotalWorkedHoursByEmployee(req, res) {
 }
 
 /////
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
