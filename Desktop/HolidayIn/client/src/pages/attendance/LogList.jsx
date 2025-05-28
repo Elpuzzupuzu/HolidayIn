@@ -110,7 +110,7 @@ const LogList = () => {
         <div className="table-container">
           {/* CAMBIO AQUI: class="log-table-header" */}
           <div className="log-table-header"> 
-            <h3 className="table-title">Registros de Asistencia</h3>
+            <h3 className="table-title" style={{ color:'white' }}>Registros de Asistencia</h3>
           </div>
           
           <div className="table-wrapper">

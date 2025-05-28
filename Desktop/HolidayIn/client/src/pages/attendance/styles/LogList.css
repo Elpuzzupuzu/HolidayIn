@@ -3,8 +3,8 @@
 /* Variables for easier theme management */
 :root {
   /* Tonos verdes para el hotel (ejemplos) */
-  --primary-color: #4CAF50;    /* Verde medio (similar al Green-500/600 de Material Design) */
-  --primary-dark: #59c45e;     /* Verde oscuro (similar al Green-800/900) */
+  --primary-color: #3c4a7c;    /* Verde medio (similar al Green-500/600 de Material Design) */
+  --primary-dark: #6c5bb4;     /* Verde oscuro (similar al Green-800/900) */
   --primary-light: #C8E6C9;    /* Verde muy claro (similar al Green-100) */
   --primary-lighter: #E8F5E9;  /* Verde casi blanco (similar al Green-50) */
 
@@ -264,7 +264,7 @@
 /* REEMPLAZO Y RENOMBRADO: Estilo único para el encabezado de la tabla de logs */
 .log-table-header {
   padding: 1rem;
-  background-color: var(--primary-dark); /* Usando el verde oscuro del hotel */
+  background-color: var(--primary-dark); 
   color: var(--text-color-light); /* Texto blanco para contraste */
 }
 
