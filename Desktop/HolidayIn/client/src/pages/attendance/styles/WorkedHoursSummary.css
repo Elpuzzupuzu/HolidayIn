@@ -1,129 +1,314 @@
+/* Estilos generales del componente */
+.worked-hours-summary {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+    color: #333;
+    margin-bottom: 30px; /* Espacio al final del componente */
+}
 
+h2 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 1.8em;
+}
 
-/* Contenedor con scroll vertical */
+h3 {
+    color: #34495e;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Mensajes de estado */
+.loading-message,
+.no-results-message {
+    text-align: center;
+    font-style: italic;
+    color: #555;
+    padding: 15px;
+}
+
+.error-message { /* Cambié 'error' a 'error-message' para consistencia */
+    text-align: center;
+    color: #d9534f;
+    font-weight: bold;
+    margin-top: 1rem;
+    padding: 15px;
+    background-color: #fcecec;
+    border: 1px solid #d9534f;
+    border-radius: 4px;
+}
+
+/* Contenedor con scroll vertical para la tabla */
 .results-wrapper {
-  max-height: 500px; /* Altura límite del contenedor */
-  overflow-y: auto;
-  overflow-x: auto;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+    max-height: 500px; /* Altura límite del contenedor */
+    overflow-y: auto; /* Scroll vertical */
+    overflow-x: auto; /* Scroll horizontal si es necesario */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra para destacarlo */
 }
 
 /* Tabla */
-.results table {
-  min-width: 700px; /* Asegura ancho mínimo */
-  border-collapse: collapse;
-  width: 100%;
-  background-color: #fafafa;
+.results-section table { /* Usé .results-section para mantener el alcance */
+    min-width: 700px; /* Asegura ancho mínimo */
+    border-collapse: collapse;
+    width: 100%;
+    background-color: #fafafa;
 }
 
 /* Encabezados sticky */
-.results th {
-  position: sticky;
-  top: 0;
-  background-color: #007bff;
-  color: white;
-  font-weight: 600;
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-  z-index: 2;
+.results-section th {
+    position: sticky;
+    top: 0;
+    background-color: #007bff; /* Color azul para encabezados */
+    color: white;
+    font-weight: 600;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    z-index: 2; /* Asegura que se mantenga por encima del contenido */
 }
 
-.results td {
-  padding: 12px 16px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
+.results-section td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
 }
 
-.results tr:nth-child(even) {
-  background-color: #f2f2f2;
+.results-section tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
 }
 
-.results tr:hover {
-  background-color: #e9f5ff;
+.results-section tbody tr:hover {
+    background-color: #e9f5ff; /* Color al pasar el mouse */
 }
 
-.error {
-  color: #d9534f;
-  font-weight: bold;
-  text-align: center;
-  margin-top: 1rem;
+/* Estilos para las filas anómalas en la tabla */
+.results-section .row-anomaly {
+    background-color: #fef1e8; /* Un fondo más suave para filas con anomalías */
+    border-left: 5px solid #f39c12; /* Borde de énfasis naranja */
 }
 
+.results-section .text-warning {
+    color: #e67e22; /* Naranja para indicar advertencia */
+    font-weight: bold;
+}
+
+
+/* Estilos para los iconos de día (getDiaConLetraIcono) */
 .icono-dia {
-  display: inline-block;
-  min-width: 22px;
-  padding: 2px 6px;
-  height: 22px;
-  line-height: 18px;
-  text-align: center;
-  border-radius: 50px;
-  color: white;
-  font-weight: bold;
-  margin-right: 6px;
-  font-size: 13px;
+    display: inline-block;
+    min-width: 22px;
+    padding: 2px 6px;
+    height: 22px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 50px; /* Hace el borde más redondeado/pill-shaped */
+    color: white;
+    font-weight: bold;
+    margin-right: 6px;
+    font-size: 13px;
 }
 
 /* Colores por día */
-
-/* Días laborales: lunes a viernes (azul) */
+/* Días laborales: lunes a viernes (azul fuerte) */
 .lunes,
 .martes,
 .miercoles,
 .jueves,
 .viernes {
-  background-color: #ea2785; /* Azul fuerte */
-  color: white;
+    background-color: #ea2785; /* Azul fuerte */
+    color: white;
 }
 
-/* Fines de semana: sábado y domingo (naranja) */
+/* Fines de semana: sábado y domingo (naranja intenso) */
 .sabado,
 .domingo {
-  background-color: #f97316; /* Naranja intenso */
-  color: white;
+    background-color: #f97316; /* Naranja intenso */
+    color: white;
 }
 
+
+/* --- Estilos para la sección de Anomalías --- */
+.anomalies-section {
+    margin-top: 40px;
+    padding: 25px;
+    background-color: #fff3e0; /* Fondo más suave para anomalías */
+    border: 1px solid #ffcc80;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+.anomalies-section h3 {
+    color: #e67e22; /* Color naranja para el título de anomalías */
+    font-size: 1.6em;
+    border-bottom: 2px solid #f9d8b1;
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.anomalies-section h3 .fas { /* Ícono de Font Awesome */
+    margin-right: 10px;
+    color: #e67e22;
+}
+
+.anomalies-intro {
+    font-style: italic;
+    color: #7f8c8d;
+    margin-bottom: 20px;
+}
+
+.anomaly-list {
+    list-style: none; /* Eliminar viñetas por defecto */
+    padding: 0;
+}
+
+.anomaly-item {
+    background-color: #fff;
+    border: 1px solid #ffe0b2; /* Borde más sutil */
+    border-left: 5px solid #ff9800; /* Borde de énfasis naranja */
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+    transition: all 0.2s ease-in-out;
+}
+
+.anomaly-item:hover {
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.anomaly-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px; /* Espacio entre los elementos del encabezado */
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #f0f0f0; /* Línea separadora */
+}
+
+.anomaly-header strong {
+    color: #34495e;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.anomaly-type {
+    font-weight: bold;
+    color: #c0392b; /* Color para el tipo de anomalía */
+    margin-right: 20px;
+}
+
+.anomaly-employee {
+    font-weight: bold;
+    color: #2980b9; /* Color para el número de empleado */
+}
+
+.anomaly-message {
+    font-size: 0.95em;
+    color: #555;
+    margin-bottom: 15px;
+    line-height: 1.4;
+}
+
+.anomaly-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Espacio entre los detalles del evento */
+    font-size: 0.9em;
+    color: #666;
+}
+
+.anomaly-event-detail .event-label,
+.anomaly-hours-detail .event-label {
+    font-weight: bold;
+    color: #444;
+    margin-right: 5px;
+}
+
+.anomaly-hours-detail {
+    font-weight: bold;
+    color: #d35400; /* Color para horas anómalas */
+}
+
+.anomalies-note {
+    text-align: center;
+    margin-top: 30px;
+    font-style: italic;
+    color: #888;
+    padding-top: 15px;
+    border-top: 1px dashed #e0e0e0;
+}
 
 /* Modo responsivo para móviles */
 @media screen and (max-width: 768px) {
-  .worked-hours-summary {
-    padding: 1rem;
-  }
+    .worked-hours-summary {
+        padding: 1rem;
+    }
 
-  .results table,
-  .results thead,
-  .results tbody,
-  .results th,
-  .results td,
-  .results tr {
-    display: block;
-  }
+    /* Ocultar encabezados en móvil para hacer la tabla más "card-like" */
+    .results-section table,
+    .results-section thead,
+    .results-section tbody,
+    .results-section th,
+    .results-section td,
+    .results-section tr {
+        display: block;
+    }
 
-  .results th {
-    display: none;
-  }
+    .results-section th {
+        display: none; /* Oculta los th originales */
+    }
 
-  .results td {
-    position: relative;
-    padding-left: 50%;
-    border: none;
-    border-bottom: 1px solid #ddd;
-  }
+    .results-section td {
+        position: relative;
+        padding-left: 50%; /* Espacio para la pseudo-etiqueta */
+        border: none;
+        border-bottom: 1px solid #ddd;
+    }
 
-  .results td::before {
-    position: absolute;
-    top: 12px;
-    left: 16px;
-    width: 45%;
-    padding-right: 10px;
-    white-space: nowrap;
-    font-weight: bold;
-    color: #666;
-  }
+    /* Pseudo-elementos para mostrar los nombres de las columnas en cada celda */
+    .results-section td::before {
+        position: absolute;
+        top: 12px;
+        left: 16px;
+        width: 45%; /* Ancho de la etiqueta */
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+        color: #666;
+    }
 
-  .results td:nth-child(1)::before { content: "Nº Empleado"; }
-  .results td:nth-child(2)::before { content: "Nombre"; }
-  .results td:nth-child(3)::before { content: "Fecha"; }
-  .results td:nth-child(4)::before { content: "Horas Trabajadas"; }
+    /* Asignar contenido a las pseudo-etiquetas */
+    .results-section td:nth-child(1)::before { content: "Nº Empleado:"; }
+    .results-section td:nth-child(2)::before { content: "Fecha Entrada:"; } /* Corregido según tu tabla HTML */
+    .results-section td:nth-child(3)::before { content: "Entrada:"; }
+    .results-section td:nth-child(4)::before { content: "Fecha Salida:"; }
+    .results-section td:nth-child(5)::before { content: "Salida:"; }
+    .results-section td:nth-child(6)::before { content: "Horas Trabajadas:"; }
+    .results-section td:nth-child(7)::before { content: "Estado:"; }
+
+    /* Ajustes para la sección de anomalías en móviles */
+    .anomaly-header {
+        flex-direction: column; /* Apila los elementos del encabezado */
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .anomaly-event-detail,
+    .anomaly-hours-detail {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+    }
 }

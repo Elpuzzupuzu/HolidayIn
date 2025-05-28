@@ -134,14 +134,14 @@ const closeModal = () => {
                 required
               >
                 <option value="">Seleccione un departamento</option>
-                <option value="1">Administración</option>
-                <option value="2">Recepción</option>
-                <option value="3">Ama de llaves</option>
-                <option value="4">Alimentos y Bebidas</option>
-                <option value="5">Mantenimiento</option>
-                <option value="6">Seguridad</option>
+                <option value="1">Ama de llaves</option>
+                <option value="2">Mantenimiento</option>
+                <option value="3">Aliementos y Bebidas</option>
+                <option value="4">Recepcion</option>
+                <option value="5">Administracion</option>
+                <option value="6">Ventas</option>
                 <option value="7">RRHH</option>
-                <option value="8">Ventas</option>
+                <option value="8">Seguridad</option>
               </select>
             </div>
 

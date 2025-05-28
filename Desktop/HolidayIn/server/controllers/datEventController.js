@@ -134,36 +134,43 @@ static async getTotalWorkedHoursByEmployee(req, res) {
 
 /// esto filtra por departamento y fechas
 
+
+
+
+
 static async getWorkedHoursBetweenDates(req, res) {
   try {
-    // Extraer parámetros de la query
+    // Extract query parameters
     const { startDate, endDate, employeeNumber } = req.query;
 
-    // Validar fechas requeridas
+    // Validate required dates
     if (!startDate || !endDate) {
       return res.status(400).json({ error: "Se requieren las fechas startDate y endDate." });
     }
 
-    // Validar formato de fechas (opcional, pero recomendable)
+    // Validate date format (optional, but recommended)
     const start = new Date(startDate);
     const end = new Date(endDate);
     if (isNaN(start) || isNaN(end)) {
       return res.status(400).json({ error: "Las fechas proporcionadas no tienen un formato válido." });
     }
 
-    // Validar que la fecha de inicio no sea mayor a la final
+    // Validate that the start date is not greater than the end date
     if (start > end) {
       return res.status(400).json({ error: "La fecha de inicio no puede ser mayor que la fecha final." });
     }
 
-    // Validar que employeeNumber, si viene, sea numérico
+    // Validate that employeeNumber, if provided, is numeric
     const empNumber = employeeNumber ? String(employeeNumber).trim() : null;
 
-    // Llamar al método principal
-    const result = await DatEvent.getWorkedHoursBetweenDates(startDate, endDate, empNumber);
+    // Call the main method which now returns { workedHours, anomalies }
+    const { workedHours, anomalies } = await DatEvent.getWorkedHoursBetweenDates(startDate, endDate, empNumber);
 
-    // Enviar la respuesta con los datos
-    return res.status(200).json({ data: result });
+    // Send the response with both workedHours and anomalies
+    return res.status(200).json({
+      data: workedHours, // This corresponds to the 'workedHours' state in Redux
+      anomalies: anomalies // This corresponds to the 'anomalies' state in Redux
+    });
 
   } catch (error) {
     console.error("Error en getWorkedHoursBetweenDates:", error.message);

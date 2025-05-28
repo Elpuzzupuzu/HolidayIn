@@ -404,106 +404,22 @@ static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
 
 
 
-static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = null) {
-  let sql = `
-    SELECT *
-    FROM dat_events
-    WHERE event_date BETWEEN ? AND ?
-  `;
-  const params = [startDate, endDate];
+// static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = null) {
+//   let sql = `
+//     SELECT *
+//     FROM dat_events
+//     WHERE event_date BETWEEN ? AND ?
+//   `;
+//   const params = [startDate, endDate];
 
-  if (employeeNumber) {
-    sql += ` AND employee_number = ?`;
-    params.push(employeeNumber);
-  }
-
-  sql += ` ORDER BY employee_number, event_date, event_time`;
-
-  const [events] = await supabase.execute(sql, params);
-
-  const workedHours = [];
-
-  // Agrupar eventos por empleado
-  const eventsByEmployee = {};
-  for (const event of events) {
-    if (!eventsByEmployee[event.employee_number]) {
-      eventsByEmployee[event.employee_number] = [];
-    }
-    eventsByEmployee[event.employee_number].push(event);
-  }
-
-  // Emparejar entrada y salida para cada empleado
-  for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
-    for (let i = 0; i < empEvents.length - 1; i++) {
-      const current = empEvents[i];
-      const next = empEvents[i + 1];
-
-      if (current.event_type === "0" && next.event_type === "1") {
-        const entryDate = current.event_date instanceof Date 
-          ? current.event_date.toISOString().substring(0, 10) 
-          : current.event_date.toString().substring(0, 10);
-
-        const exitDate = next.event_date instanceof Date 
-          ? next.event_date.toISOString().substring(0, 10) 
-          : next.event_date.toString().substring(0, 10);
-
-        const entryTimestamp = new Date(`${entryDate}T${current.event_time}`);
-        const exitTimestamp = new Date(`${exitDate}T${next.event_time}`);
-
-        if (!isNaN(entryTimestamp) && !isNaN(exitTimestamp) && exitTimestamp > entryTimestamp) {
-          const diffMs = exitTimestamp - entryTimestamp;
-          const hoursWorked = diffMs / (1000 * 60 * 60);
-
-          workedHours.push({
-            employee_number: employee,
-            entry_date: entryDate,
-            entry_time: current.event_time,
-            exit_date: exitDate,
-            exit_time: next.event_time,
-            hours_worked: Math.round(hoursWorked * 100) / 100,
-          });
-
-          i++; // saltar siguiente evento ya emparejado
-        } else {
-          console.warn(`Fechas inválidas o fuera de orden: ${entryTimestamp} -> ${exitTimestamp}`);
-        }
-      }
-    }
-  }
-
-  return workedHours;
-}
-
-
-
-///testing
-
-
-
-
-// static async getWorkedHoursBetweenDatesCSV(startDate, endDate, employeeNumber = null) {
-//   if (!startDate || !endDate) {
-//     throw new Error("Debe proporcionar ambas fechas: startDate y endDate");
-//   }
-
-//   // Construir consulta base
-//   let query = supabase
-//     .from("dat_events")
-//     .select("*")
-//     .gte("event_date", startDate)
-//     .lte("event_date", endDate)
-//     .order("employee_number", { ascending: true })
-//     .order("event_date", { ascending: true })
-//     .order("event_time", { ascending: true });
-
-//   // Aplicar filtro por empleado si se proporciona
 //   if (employeeNumber) {
-//     query = query.eq("employee_number", employeeNumber);
+//     sql += ` AND employee_number = ?`;
+//     params.push(employeeNumber);
 //   }
 
-//   const { data: events, error } = await query;
+//   sql += ` ORDER BY employee_number, event_date, event_time`;
 
-//   if (error) throw new Error(`Error fetching events: ${error.message}`);
+//   const [events] = await supabase.execute(sql, params);
 
 //   const workedHours = [];
 
@@ -523,32 +439,34 @@ static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = nul
 //       const next = empEvents[i + 1];
 
 //       if (current.event_type === "0" && next.event_type === "1") {
-//         // --- CAMBIO CLAVE AQUÍ ---
-//         // Asegúrate de que event_date sea un string en formato YYYY-MM-DD
-//         // Si ya es un objeto Date, usa .toISOString().split('T')[0]
-//         const entryDateStr = current.event_date instanceof Date ? current.event_date.toISOString().split('T')[0] : current.event_date;
-//         const exitDateStr = next.event_date instanceof Date ? next.event_date.toISOString().split('T')[0] : next.event_date;
+//         const entryDate = current.event_date instanceof Date 
+//           ? current.event_date.toISOString().substring(0, 10) 
+//           : current.event_date.toString().substring(0, 10);
 
-//         const entryTime = current.event_time;
-//         const exitTime = next.event_time;
+//         const exitDate = next.event_date instanceof Date 
+//           ? next.event_date.toISOString().substring(0, 10) 
+//           : next.event_date.toString().substring(0, 10);
 
-//         const entryTimestamp = new Date(`${entryDateStr}T${entryTime}`);
-//         const exitTimestamp = new Date(`${exitDateStr}T${exitTime}`);
-//         // --- FIN DEL CAMBIO CLAVE ---
+//         const entryTimestamp = new Date(`${entryDate}T${current.event_time}`);
+//         const exitTimestamp = new Date(`${exitDate}T${next.event_time}`);
 
-//         const diffMs = exitTimestamp - entryTimestamp;
-//         const hoursWorked = diffMs / (1000 * 60 * 60); // horas
+//         if (!isNaN(entryTimestamp) && !isNaN(exitTimestamp) && exitTimestamp > entryTimestamp) {
+//           const diffMs = exitTimestamp - entryTimestamp;
+//           const hoursWorked = diffMs / (1000 * 60 * 60);
 
-//         workedHours.push({
-//           numero_empleado: employee,
-//           fecha_entrada: entryDateStr, // Usar el string formateado si es necesario
-//           hora_entrada: entryTime,
-//           fecha_salida: exitDateStr, // Usar el string formateado si es necesario
-//           hora_salida: exitTime,
-//           horas_trabajadas: Math.round(hoursWorked * 100) / 100,
-//         });
+//           workedHours.push({
+//             employee_number: employee,
+//             entry_date: entryDate,
+//             entry_time: current.event_time,
+//             exit_date: exitDate,
+//             exit_time: next.event_time,
+//             hours_worked: Math.round(hoursWorked * 100) / 100,
+//           });
 
-//         i++; // saltar siguiente evento ya emparejado
+//           i++; // saltar siguiente evento ya emparejado
+//         } else {
+//           console.warn(`Fechas inválidas o fuera de orden: ${entryTimestamp} -> ${exitTimestamp}`);
+//         }
 //       }
 //     }
 //   }
@@ -560,7 +478,380 @@ static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = nul
 
 
 
+///testing
 
+
+// static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = null) {
+//   let sql = `
+//     SELECT *
+//     FROM dat_events
+//     WHERE event_date BETWEEN ? AND ?
+//   `;
+//   const params = [startDate, endDate];
+
+//   if (employeeNumber) {
+//     sql += ` AND employee_number = ?`;
+//     params.push(employeeNumber);
+//   }
+
+//   // Es CRUCIAL que los eventos estén ordenados por empleado, fecha y hora
+//   sql += ` ORDER BY employee_number, event_date, event_time`;
+
+//   const [events] = await supabase.execute(sql, params);
+
+//   const workedHours = [];
+//   const anomalies = []; // Aquí almacenaremos los eventos anómalos
+
+//   // Función auxiliar para formatear cadenas de fecha para mensajes de anomalías
+//   // Esto extraerá la parte 'YYYY-MM-DD' de event.event_date
+//   const formatEventDateForMessage = (event) => {
+//     if (!event || !event.event_date) return 'Fecha desconocida';
+//     // Asegurarse de que se trate como cadena, luego tomar los primeros 10 caracteres (YYYY-MM-DD)
+//     // O, si event.event_date es un objeto Date, usar toISOString()
+//     if (event.event_date instanceof Date) {
+//         return event.event_date.toISOString().substring(0, 10);
+//     }
+//     return String(event.event_date).substring(0, 10);
+//   };
+
+//   // Agrupar eventos por empleado
+//   const eventsByEmployee = {};
+//   for (const event of events) {
+//     if (!eventsByEmployee[event.employee_number]) {
+//       eventsByEmployee[event.employee_number] = [];
+//     }
+//     eventsByEmployee[event.employee_number].push(event);
+//   }
+
+//   // Emparejar entradas y salidas para cada empleado de manera robusta
+//   for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
+//     let lastEntry = null; // Variable para almacenar la última entrada sin emparejar
+
+//     for (let i = 0; i < empEvents.length; i++) {
+//       const currentEvent = empEvents[i];
+
+//       if (currentEvent.event_type === "0") { // Es un evento de ENTRADA
+//         if (lastEntry !== null) {
+//           // Caso: Entrada duplicada sin una salida previa.
+//           // Esto significa que la 'lastEntry' previa quedó sin salida.
+//           anomalies.push({
+//             type: "Entrada sin Salida",
+//             employee_number: employee,
+//             // Aquí está el CAMBIO: Formatear event_date antes de añadirlo
+//             entry_event: {
+//                 ...lastEntry,
+//                 event_date: formatEventDateForMessage(lastEntry) // <--- ¡CAMBIO APLICADO AQUÍ!
+//             },
+//             message: `La entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} no tuvo una salida.`,
+//           });
+//         }
+//         // Guardar esta entrada como la última entrada abierta
+//         lastEntry = currentEvent;
+//       } else if (currentEvent.event_type === "1") { // Es un evento de SALIDA
+//         if (lastEntry !== null) {
+//           // Tenemos una entrada previa para intentar emparejar
+//           const entryDate = formatEventDateForMessage(lastEntry); // Ya es la cadena YYYY-MM-DD
+//           const exitDate = formatEventDateForMessage(currentEvent); // Ya es la cadena YYYY-MM-DD
+
+//           const entryTimestamp = new Date(`${entryDate}T${lastEntry.event_time}`);
+//           const exitTimestamp = new Date(`${exitDate}T${currentEvent.event_time}`);
+
+//           // Validación crucial: La salida debe ser posterior a la entrada y ambas fechas deben ser válidas
+//           if (!isNaN(entryTimestamp) && !isNaN(exitTimestamp) && exitTimestamp > entryTimestamp) {
+//             const diffMs = exitTimestamp - entryTimestamp;
+//             const hoursWorked = diffMs / (1000 * 60 * 60);
+
+//             // Definir un umbral para horas "excesivas", ej. 16 horas
+//             const EXCESSIVE_HOURS_THRESHOLD = 16;
+//             const isAnomaly = hoursWorked > EXCESSIVE_HOURS_THRESHOLD;
+
+//             workedHours.push({
+//               employee_number: employee,
+//               entry_date: entryDate,
+//               entry_time: lastEntry.event_time,
+//               exit_date: exitDate,
+//               exit_time: currentEvent.event_time,
+//               hours_worked: Math.round(hoursWorked * 100) / 100, // Redondear a 2 decimales
+//               is_anomaly: isAnomaly, // Marcar esta entrada como anómala si excede el umbral
+//             });
+
+//             if (isAnomaly) {
+//                 anomalies.push({
+//                     type: "Turno Excesivo",
+//                     employee_number: employee,
+//                     // Aquí está el CAMBIO: Formatear event_date antes de añadirlo
+//                     entry_event: {
+//                         ...lastEntry,
+//                         event_date: formatEventDateForMessage(lastEntry) // <--- ¡CAMBIO APLICADO AQUÍ!
+//                     },
+//                     exit_event: {
+//                         ...currentEvent,
+//                         event_date: formatEventDateForMessage(currentEvent) // <--- ¡CAMBIO APLICADO AQUÍ!
+//                     },
+//                     hours_worked: Math.round(hoursWorked * 100) / 100,
+//                     // Usar la función auxiliar aquí
+//                     message: `Turno de ${Math.round(hoursWorked * 100) / 100} horas (${formatEventDateForMessage(lastEntry)} a ${formatEventDateForMessage(currentEvent)}) excede el límite.`,
+//                 });
+//             }
+
+//             // Reiniciar lastEntry ya que esta entrada ha sido emparejada
+//             lastEntry = null;
+//           } else {
+//             // Caso: Fechas inválidas o salida antes/igual a la entrada.
+//             anomalies.push({
+//               type: "Emparejamiento Inválido (Tiempo)",
+//               employee_number: employee,
+//               // Aquí está el CAMBIO: Formatear event_date antes de añadirlo
+//               entry_event: {
+//                   ...lastEntry,
+//                   event_date: formatEventDateForMessage(lastEntry) // <--- ¡CAMBIO APLICADO AQUÍ!
+//               },
+//               exit_event: {
+//                   ...currentEvent,
+//                   event_date: formatEventDateForMessage(currentEvent) // <--- ¡CAMBIO APLICADO AQUÍ!
+//               },
+//               // Usar la función auxiliar aquí
+//               message: `Salida en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} es anterior o igual a la entrada en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time}.`,
+//             });
+//             // Decide qué hacer con la entrada. Aquí la descartamos para evitar problemas futuros.
+//             lastEntry = null;
+//           }
+//         } else {
+//           // Caso: Salida sin una entrada previa.
+//           anomalies.push({
+//             type: "Salida sin Entrada",
+//             employee_number: employee,
+//             // Aquí está el CAMBIO: Formatear event_date antes de añadirlo
+//             exit_event: {
+//                 ...currentEvent,
+//                 event_date: formatEventDateForMessage(currentEvent) // <--- ¡CAMBIO APLICADO AQUÍ!
+//             }, // Incluir el evento de salida anómalo
+//             // Usar la función auxiliar aquí
+//             message: `Salida en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} no tiene una entrada previa emparejable.`,
+//           });
+//         }
+//       }
+//     }
+
+//     // Después de procesar todos los eventos para un empleado, verificar si hay una entrada pendiente
+//     if (lastEntry !== null) {
+//       anomalies.push({
+//         type: "Entrada Final sin Salida",
+//         employee_number: employee,
+//         // Aquí está el CAMBIO: Formatear event_date antes de añadirlo
+//         entry_event: {
+//             ...lastEntry,
+//             event_date: formatEventDateForMessage(lastEntry) // <--- ¡CAMBIO APLICADO AQUÍ!
+//         }, // Incluir el evento de entrada anómalo
+//         // Usar la función auxiliar aquí
+//         message: `La última entrada para ${employee} en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} no tuvo una salida.`,
+//       });
+//     }
+//   }
+
+//   // Para depuración o un informe de errores:
+//   if (anomalies.length > 0) {
+//     console.warn("Se encontraron anomalías en el registro de eventos:");
+//     anomalies.forEach(anomaly => console.warn(anomaly));
+//   }
+
+//   return { workedHours, anomalies }; // Devolver tanto las horas trabajadas como las anomalías
+// }
+
+
+
+static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = null) {
+  let sql = `
+    SELECT *
+    FROM dat_events
+    WHERE event_date BETWEEN ? AND ?
+  `;
+  const params = [startDate, endDate];
+
+  if (employeeNumber) {
+    sql += ` AND employee_number = ?`;
+    params.push(employeeNumber);
+  }
+
+  // Es CRUCIAL que los eventos estén ordenados por empleado, fecha y hora
+  sql += ` ORDER BY employee_number, event_date, event_time`;
+
+  // Asumiendo que 'mysqlClient.execute' es tu método de cliente MySQL
+  const [events] = await supabase.execute(sql, params); // Asegúrate de que 'mysqlClient' esté definido y sea tu pool/conexión a MySQL
+
+  // --- AQUI ESTA EL LOG PARA DEPURAR event_date ---
+  if (events && events.length > 0) {
+    console.log("🐛 DEBUG - event_date desde MySQL:", events[0]?.event_date, "Tipo:", typeof events[0]?.event_date);
+  } else {
+    console.log("🐛 DEBUG - No se encontraron eventos para depurar event_date.");
+  }
+  // --- FIN DEL LOG ---
+
+  const workedHours = [];
+  const anomalies = []; // Aquí almacenaremos los eventos anómalos
+
+  // Función auxiliar para formatear cadenas de fecha para mensajes y objetos de anomalías
+  const formatEventDateForMessage = (event) => {
+    if (!event || !event.event_date) return 'Fecha desconocida';
+
+    // Si event.event_date es un objeto Date (común con clientes MySQL)
+    if (event.event_date instanceof Date) {
+        // Asegúrate de que sea una fecha válida antes de intentar toISOString
+        if (isNaN(event.event_date.getTime())) {
+            return 'Fecha inválida';
+        }
+        return event.event_date.toISOString().substring(0, 10);
+    }
+    // Si ya es una cadena, toma la parte YYYY-MM-DD
+    return String(event.event_date).substring(0, 10);
+  };
+
+  // Agrupar eventos por empleado
+  const eventsByEmployee = {};
+  for (const event of events) {
+    if (!eventsByEmployee[event.employee_number]) {
+      eventsByEmployee[event.employee_number] = [];
+    }
+    eventsByEmployee[event.employee_number].push(event);
+  }
+
+  // Emparejar entradas y salidas para cada empleado de manera robusta
+  for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
+    let lastEntry = null; // Variable para almacenar la última entrada sin emparejar
+
+    for (let i = 0; i < empEvents.length; i++) {
+      const currentEvent = empEvents[i];
+
+      if (currentEvent.event_type === "0") { // Es un evento de ENTRADA
+        if (lastEntry !== null) {
+          // Caso: Entrada duplicada sin una salida previa.
+          anomalies.push({
+            type: "Entrada sin Salida",
+            employee_number: employee,
+            // Aseguramos que event_date sea una cadena formateada aquí
+            entry_event: {
+                ...lastEntry,
+                event_date: formatEventDateForMessage(lastEntry)
+            },
+            message: `La entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} no tuvo una salida.`,
+          });
+        }
+        // Guardar esta entrada como la última entrada abierta (el objeto original de la DB)
+        lastEntry = currentEvent;
+      } else if (currentEvent.event_type === "1") { // Es un evento de SALIDA
+        if (lastEntry !== null) {
+          // Tenemos una entrada previa para intentar emparejar
+          const entryDate = formatEventDateForMessage(lastEntry);
+          const exitDate = formatEventDateForMessage(currentEvent);
+
+          const entryTimestamp = new Date(`${entryDate}T${lastEntry.event_time}`);
+          const exitTimestamp = new Date(`${exitDate}T${currentEvent.event_time}`);
+
+          // Validación crucial: La salida debe ser posterior a la entrada y ambas fechas deben ser válidas
+          if (!isNaN(entryTimestamp.getTime()) && !isNaN(exitTimestamp.getTime()) && exitTimestamp > entryTimestamp) {
+            const diffMs = exitTimestamp - entryTimestamp;
+            const hoursWorked = diffMs / (1000 * 60 * 60);
+
+            // Definir un umbral para horas "excesivas", ej. 16 horas
+            const EXCESSIVE_HOURS_THRESHOLD = 16;
+            const isAnomaly = hoursWorked > EXCESSIVE_HOURS_THRESHOLD;
+
+            workedHours.push({
+              employee_number: employee,
+              entry_date: entryDate,
+              entry_time: lastEntry.event_time,
+              exit_date: exitDate,
+              exit_time: currentEvent.event_time,
+              hours_worked: Math.round(hoursWorked * 100) / 100, // Redondear a 2 decimales
+              is_anomaly: isAnomaly, // Marcar esta entrada como anómala si excede el umbral
+            });
+
+            if (isAnomaly) {
+                anomalies.push({
+                    type: "Turno Excesivo",
+                    employee_number: employee,
+                    // Aseguramos que event_date sea una cadena formateada aquí
+                    entry_event: {
+                        ...lastEntry,
+                        event_date: formatEventDateForMessage(lastEntry)
+                    },
+                    exit_event: {
+                        ...currentEvent,
+                        event_date: formatEventDateForMessage(currentEvent)
+                    },
+                    hours_worked: Math.round(hoursWorked * 100) / 100,
+                    message: `Turno de ${Math.round(hoursWorked * 100) / 100} horas (${formatEventDateForMessage(lastEntry)} a ${formatEventDateForMessage(currentEvent)}) excede el límite.`,
+                });
+            }
+
+            // Reiniciar lastEntry ya que esta entrada ha sido emparejada
+            lastEntry = null;
+          } else {
+            // Caso: Fechas inválidas o salida antes/igual a la entrada.
+            anomalies.push({
+              type: "Emparejamiento Inválido (Tiempo)",
+              employee_number: employee,
+              // Aseguramos que event_date sea una cadena formateada aquí
+              entry_event: {
+                  ...lastEntry,
+                  event_date: formatEventDateForMessage(lastEntry)
+              },
+              exit_event: {
+                  ...currentEvent,
+                  event_date: formatEventDateForMessage(currentEvent)
+              },
+              message: `Salida en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} es anterior o igual a la entrada en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time}.`,
+            });
+            // Descartamos la entrada para evitar problemas futuros.
+            lastEntry = null;
+          }
+        } else {
+          // Caso: Salida sin una entrada previa.
+          anomalies.push({
+            type: "Salida sin Entrada",
+            employee_number: employee,
+            // Aseguramos que event_date sea una cadena formateada aquí
+            exit_event: {
+                ...currentEvent,
+                event_date: formatEventDateForMessage(currentEvent)
+            },
+            message: `Salida en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} no tiene una entrada previa emparejable.`,
+          });
+        }
+      }
+    }
+
+    // Después de procesar todos los eventos para un empleado, verificar si hay una entrada pendiente
+    if (lastEntry !== null) {
+      anomalies.push({
+        type: "Entrada Final sin Salida",
+        employee_number: employee,
+        // Aseguramos que event_date sea una cadena formateada aquí
+        entry_event: {
+            ...lastEntry,
+            event_date: formatEventDateForMessage(lastEntry)
+        },
+        message: `La última entrada para ${employee} en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} no tuvo una salida.`,
+      });
+    }
+  }
+
+  // Para depuración o un informe de errores:
+  if (anomalies.length > 0) {
+    console.warn("Se encontraron anomalías en el registro de eventos:");
+    anomalies.forEach(anomaly => console.warn(anomaly));
+  }
+
+  // Esto es lo que se envía de vuelta a tu thunk de Redux
+  return { workedHours, anomalies };
+}
+
+
+
+
+
+
+//////
 
 static async getWorkedHoursBetweenDatesCSV(startDate, endDate, employeeNumber = null) {
   if (!startDate || !endDate) {

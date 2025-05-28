@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-
 const API_URL = "http://localhost:3000/api"; // Asegúrate que el puerto es el correcto
 
 // Thunk para procesar archivo .dat
@@ -104,7 +103,7 @@ export const getTotalWorkedHoursByEmployee = createAsyncThunk(
   }
 );
 
-// NUEVO THUNK - obtener horas trabajadas entre fechas con opción a filtrar por empleado
+// - obtener horas trabajadas entre fechas con opción a filtrar por empleado
 export const getWorkedHoursBetweenDates = createAsyncThunk(
   "datEvents/getWorkedHoursBetweenDates",
   async ({ startDate, endDate, employeeNumber = null }, thunkAPI) => {
@@ -122,7 +121,8 @@ export const getWorkedHoursBetweenDates = createAsyncThunk(
       });
 
       console.log("Respuesta getWorkedHoursBetweenDates:", response.data);
-      return response.data.data; // asumiendo que en tu backend devuelves { data: [...] }
+      // Backend now returns { data: workedHours, anomalies: anomalies }
+      return response.data;
     } catch (error) {
       console.error("Error en getWorkedHoursBetweenDates:", error.response?.data || error.message);
 
@@ -132,8 +132,6 @@ export const getWorkedHoursBetweenDates = createAsyncThunk(
     }
   }
 );
-
-//// test
 
 // NUEVO THUNK: descarga CSV de horas trabajadas entre fechas
 export const downloadWorkedHoursCSV = createAsyncThunk(
@@ -157,7 +155,7 @@ export const downloadWorkedHoursCSV = createAsyncThunk(
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", "horas_trabajadas.csv");
+      link.setAttribute("download", `horas_trabajadas_${employeeNumber || 'general'}_${startDate}_${endDate}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -176,22 +174,13 @@ export const downloadWorkedHoursCSV = createAsyncThunk(
 
 
 
-
-
-
-
-
-
-
-
-/////------------fin thunks-----------------
-
 const datEventsSlice = createSlice({
   name: "datEvents",
   initialState: {
     processedResult: null,
     workedHours: [],
-    totalWorkedHours: null, // <--- nueva propiedad
+    anomalies: [], // <--- NUEVA PROPIEDAD para almacenar las anomalías
+    totalWorkedHours: null,
     page: 1,
     limit: 10,
     status: "idle",
@@ -200,15 +189,19 @@ const datEventsSlice = createSlice({
   reducers: {
     clearWorkedHours(state) {
       state.workedHours = [];
+      state.anomalies = []; // <--- Limpiar anomalías también
       state.page = 1;
       state.limit = 10;
       state.status = "idle";
       state.error = null;
     },
     clearTotalWorkedHours: (state) => {
-    state.totalWorkedHours = null;
-}
-
+      state.totalWorkedHours = null;
+    },
+    // You might want a specific action to clear anomalies if needed independently
+    clearAnomalies: (state) => {
+        state.anomalies = [];
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -306,37 +299,43 @@ const datEventsSlice = createSlice({
         console.log("getWorkedHoursBetweenDates pending");
         state.status = "loading";
         state.error = null;
+        state.anomalies = []; // Clear previous anomalies when starting a new fetch
       })
       .addCase(getWorkedHoursBetweenDates.fulfilled, (state, action) => {
         console.log("getWorkedHoursBetweenDates fulfilled:", action.payload);
         state.status = "succeeded";
-        state.workedHours = action.payload || [];
+        // Now, action.payload will be { data: workedHours, anomalies: anomalies }
+        // Access them correctly
+        state.workedHours = action.payload.data || [];
+        state.anomalies = action.payload.anomalies || []; // Store the anomalies
       })
       .addCase(getWorkedHoursBetweenDates.rejected, (state, action) => {
-  console.log("getWorkedHoursBetweenDates rejected, action:", action);
-  state.status = "failed";
-  state.error =
-    (action.payload && (typeof action.payload === "string" ? action.payload : action.payload.error)) ||
-    action.error?.message ||
-    "Error desconocido";
-}).addCase(downloadWorkedHoursCSV.pending, (state) => {
-  console.log("downloadWorkedHoursCSV pending");
-  state.status = "loading";
-  state.error = null;
-})
-.addCase(downloadWorkedHoursCSV.fulfilled, (state) => {
-  console.log("downloadWorkedHoursCSV fulfilled");
-  state.status = "succeeded";
-})
-.addCase(downloadWorkedHoursCSV.rejected, (state, action) => {
-  console.log("downloadWorkedHoursCSV rejected:", action.payload);
-  state.status = "failed";
-  state.error = action.payload?.error || "Error desconocido";
-});
-
+        console.log("getWorkedHoursBetweenDates rejected, action:", action);
+        state.status = "failed";
+        state.error =
+          (action.payload && (typeof action.payload === "string" ? action.payload : action.payload.error)) ||
+          action.error?.message ||
+          "Error desconocido";
+        state.anomalies = []; // Clear anomalies on rejection too
+      })
+      // downloadWorkedHoursCSV
+      .addCase(downloadWorkedHoursCSV.pending, (state) => {
+        console.log("downloadWorkedHoursCSV pending");
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(downloadWorkedHoursCSV.fulfilled, (state) => {
+        console.log("downloadWorkedHoursCSV fulfilled");
+        state.status = "succeeded";
+      })
+      .addCase(downloadWorkedHoursCSV.rejected, (state, action) => {
+        console.log("downloadWorkedHoursCSV rejected:", action.payload);
+        state.status = "failed";
+        state.error = action.payload?.error || "Error desconocido";
+      });
   },
 });
 
-export const { clearWorkedHours, clearTotalWorkedHours } = datEventsSlice.actions;
+export const { clearWorkedHours, clearTotalWorkedHours, clearAnomalies } = datEventsSlice.actions;
 
 export default datEventsSlice.reducer;

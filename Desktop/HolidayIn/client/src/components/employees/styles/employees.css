@@ -1,347 +1,572 @@
-/* Contenedor principal */
+/* employees.css */
+
+/* Base Container */
 .employees-management-container {
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    max-width: 1200px;
-    margin: 20px auto;
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.employees-management-container h1,
-.employees-management-container h2 {
-    color: #343a40;
-    margin-bottom: 20px;
-    text-align: center;
+/* Page Header */
+.page-header {
+  margin-bottom: 32px;
 }
 
-/* Mensajes de estado (carga, error) */
-.loading-message,
-.error-message {
-    text-align: center;
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    font-weight: bold;
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 32px;
+  border-radius: 16px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
 }
 
-.loading-message {
-    background-color: #e0f7fa;
-    color: #007bff;
+.header-content h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.error-message {
-    background-color: #ffe0e0;
-    color: #dc3545;
+.header-icon {
+  font-size: 2.2rem;
 }
 
-/* --- Estilos para la fila de controles (botón y filtro) --- */
+.header-stats {
+  display: flex;
+  gap: 24px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  min-width: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-top: 4px;
+}
+
+/* Controls Section */
+.controls-section {
+  margin-bottom: 24px;
+}
+
+.controls-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
 .controls-row {
-    display: flex;
-    justify-content: space-between; /* Espacio entre el botón y el grupo de filtro */
-    align-items: center;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-    gap: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
-/* Botón para agregar empleado */
-.add-employee-button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-}
-
-.add-employee-button:hover {
-    background-color: #0056b3;
-}
-
-/* Grupo de filtro */
 .filter-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 250px;
 }
 
 .filter-group label {
-    font-weight: bold;
-    color: #495057;
-    white-space: nowrap;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.filter-icon {
+  font-size: 1.1rem;
 }
 
 .filter-select {
-    padding: 8px 12px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 1rem;
-    box-sizing: border-box;
-    min-width: 180px;
-    appearance: none;
-    background-color: #ffffff; /* Asegura un fondo blanco para el select */
-    color: #343a40; /* Asegura un color de texto oscuro para contraste */
-    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20fill%3D%22%23495057%22%2F%3E%3C%2Fsvg%3E');
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 12px;
-    cursor: pointer;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: rgb(117, 117, 216);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.filter-select:hover {
+  border-color: #cbd5e1;
 }
 
 .filter-select:focus {
-    border-color: #80bdff;
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-/* Estilos para las opciones del dropdown (si es necesario) */
-/* Nota: Estilizar las opciones de un <select> es muy limitado y varía entre navegadores.
-   Si el problema persiste, considera usar una librería de componentes de UI que provea un Select con más control de estilos,
-   o una combinación de <div>s y <ul>s para simular un dropdown.
-   Sin embargo, estos estilos básicos a menudo ayudan: */
-.filter-select option {
-    background-color: #ffffff; /* Fondo blanco para las opciones */
-    color: #343a40; /* Texto oscuro para las opciones */
+.add-employee-button {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
-
-/* Estilos para formularios (agregar/editar) */
-.employee-form-card {
-    background-color: #ffffff;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    margin-bottom: 30px;
+.add-employee-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
-.employee-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+.add-employee-button:active {
+  transform: translateY(0);
 }
 
-.form-group {
-    margin-bottom: 15px;
+.button-icon {
+  font-size: 1.1rem;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #495057;
+/* Employee List Section */
+.employee-list-section {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
 }
 
-.form-group input[type="text"],
-.form-group input[type="number"],
-.form-group input[type="date"],
-.form-group select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 1rem;
-    box-sizing: border-box; /* Asegura que el padding no aumente el ancho total */
+.list-header {
+  padding: 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.form-group input[type="text"]:focus,
-.form-group input[type="number"]:focus,
-.form-group input[type="date"]:focus,
-.form-group select:focus {
-    border-color: #80bdff;
-    outline: 0;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+.list-header h2 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.form-group input[disabled] {
-    background-color: #e9ecef;
-    cursor: not-allowed;
+.list-icon {
+  font-size: 1.3rem;
 }
 
-.form-actions {
-    grid-column: 1 / -1; /* Ocupa ambas columnas */
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
+.filter-badge {
+  background: #667eea;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
-.submit-button,
-.cancel-button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
+/* Table Styles */
+.table-container {
+  overflow: hidden;
 }
 
-.submit-button {
-    background-color: #28a745;
-    color: white;
+.table-wrapper {
+  overflow-x: hidden;
 }
 
-.submit-button:hover {
-    background-color: #218838;
+.employees-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
 }
 
-.cancel-button {
-    background-color: #6c757d;
-    color: white;
+.employees-table thead {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  color: white;
 }
 
-.cancel-button:hover {
-    background-color: #5a6268;
+.employees-table th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Estilos para detalles del empleado (tarjeta) */
-.employee-details-card {
-    background-color: #e9f7ef; /* Un color ligeramente diferente */
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    margin-bottom: 30px;
-    border-left: 5px solid #28a745; /* Barra lateral para distinguirlo */
+.employees-table th .header-icon {
+  margin-right: 6px;
+  opacity: 0.8;
 }
 
-.employee-details-card h2 {
-    color: #28a745;
-    margin-bottom: 15px;
+.employee-row {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.employee-details-card p {
-    margin-bottom: 8px;
-    line-height: 1.5;
+.employee-row:hover {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  transform: translateX(4px);
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.08);
 }
 
-.employee-details-card strong {
-    color: #343a40;
+.employees-table td {
+  padding: 16px;
+  vertical-align: middle;
+  font-size: 0.95rem;
 }
 
-.close-details-button {
-    padding: 8px 15px;
-    background-color: #17a2b8;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 15px;
-    transition: background-color 0.3s ease;
+/* Employee Cells */
+.employee-number .number-badge {
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
 }
 
-.close-details-button:hover {
-    background-color: #138496;
+.name-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-/* Estilos para la tabla de empleados */
-.employee-list table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    background-color: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    overflow: hidden; /* Para que los bordes redondeados se apliquen */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1.1rem;
 }
 
-.employee-list th,
-.employee-list td {
-    text-align: left;
-    padding: 12px 15px;
-    border-bottom: 1px solid #dee2e6;
+.employee-name {
+  font-weight: 500;
+  color: #1f2937;
 }
 
-.employee-list th {
-    background-color: #e9ecef;
-    color: #495057;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 0.9rem;
+.employee-position {
+  color: #6b7280;
+  font-style: italic;
 }
 
-.employee-list tbody tr:last-child td {
-    border-bottom: none;
+.department-badge {
+  background: #f3f4f6;
+  color: #374151;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
-.employee-list tbody tr:hover {
-    background-color: #f1f1f1;
-}
-
-/* Estilos para las celdas de acciones */
-.actions-cell {
-    display: flex;
-    gap: 8px; /* Espacio entre los botones */
-    justify-content: flex-start; /* Alinea los botones al inicio */
-}
-
-.action-button {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    white-space: nowrap; /* Evita que el texto del botón se rompa */
-}
-
-.action-button:hover {
-    transform: translateY(-1px);
-}
-
-.action-button.view {
-    background-color: #007bff;
-    color: white;
-}
-
-.action-button.view:hover {
-    background-color: #0056b3;
-}
-
-.action-button.edit {
-    background-color: #ffc107;
-    color: #343a40; /* Texto oscuro para contraste */
-}
-
-.action-button.edit:hover {
-    background-color: #e0a800;
-}
-
-/* --- Estilos para las insignias de estado en la tabla y detalles --- */
+/* Status Badges */
 .status-badge {
-    padding: 4px 8px;
-    border-radius: 12px; /* Más redondeado para un look de "badge" */
-    font-size: 0.75rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: white;
-    display: inline-block; /* Para que tome el padding */
-    min-width: 70px; /* Asegura un ancho mínimo para todos */
-    text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
 }
 
 .status-activo {
-    background-color: #28a745; /* Verde */
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-activo .status-indicator {
+  background: #22c55e;
 }
 
 .status-inactivo {
-    background-color: #dc3545; /* Rojo */
+  background: #fee2e2;
+  color: #991b1b;
 }
 
-.status-licencia {
-    background-color: #ffc107; /* Amarillo/Naranja */
-    color: #343a40; /* Texto oscuro para contraste */
+.status-inactivo .status-indicator {
+  background: #ef4444;
 }
 
-.status-terminado {
-    background-color: #6c757d; /* Gris oscuro */
+.status-suspendido {
+  background: #fef3c7;
+  color: #92400e;
 }
 
-/* Mensaje si no hay empleados */
-.employee-list p {
+.status-suspendido .status-indicator {
+  background: #f59e0b;
+}
+
+/* Action Hints */
+.action-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 0.85rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.employee-row:hover .action-hint {
+  opacity: 1;
+}
+
+.action-icon {
+  font-size: 1rem;
+}
+
+/* Table Footer */
+.table-footer {
+  padding: 16px 24px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.results-summary {
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 64px 24px;
+  color: #6b7280;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.empty-state h3 {
+  margin: 0 0 8px 0;
+  color: #374151;
+  font-size: 1.25rem;
+}
+
+.empty-state p {
+  margin: 0 0 24px 0;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.empty-state-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.empty-state-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Loading State */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px;
+  gap: 16px;
+}
+
+.spinner-circle {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-spinner p {
+  color: #6b7280;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Error State */
+.error-container {
+  text-align: center;
+  padding: 64px 24px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.error-container h2 {
+  color: #dc2626;
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+}
+
+.error-container p {
+  color: #6b7280;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.retry-button {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retry-button:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .employees-management-container {
+    padding: 16px;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 24px;
     text-align: center;
-    color: #6c757d;
-    font-style: italic;
-    padding: 20px;
+  }
+  
+  .header-content h1 {
+    font-size: 2rem;
+  }
+  
+  .header-stats {
+    justify-content: center;
+  }
+  
+  .controls-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-group {
+    min-width: auto;
+  }
+  
+  .add-employee-button {
+    justify-content: center;
+  }
+  
+  .list-header {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .employees-table {
+    font-size: 0.85rem;
+  }
+  
+  .employees-table th,
+  .employees-table td {
+    padding: 12px 8px;
+  }
+  
+  .name-cell {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-stats {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .stat-card {
+    min-width: auto;
+  }
+  
+  .employees-table th:nth-child(3),
+  .employees-table td:nth-child(3),
+  .employees-table th:nth-child(4),
+  .employees-table td:nth-child(4) {
+    display: none;
+  }
 }
