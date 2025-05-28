@@ -1,4 +1,3 @@
-// src/components/logs/LogList.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getWorkedHours } from "../../features/datEvents/datEventsSlice";
@@ -57,7 +56,6 @@ const LogList = () => {
     );
   }
 
-
   // Determine if data has rows
   const hasData = workedHours.length > 0;
 
@@ -69,10 +67,6 @@ const LogList = () => {
     day: 'numeric' 
   });
 
-
-
-
-  
   return (
     <div className="log-list-container">
       <div className="log-list-main-content">
@@ -114,7 +108,8 @@ const LogList = () => {
 
         {/* Custom Table Card */}
         <div className="table-container">
-          <div className="table-header">
+          {/* CAMBIO AQUI: class="log-table-header" */}
+          <div className="log-table-header"> 
             <h3 className="table-title">Registros de Asistencia</h3>
           </div>
           

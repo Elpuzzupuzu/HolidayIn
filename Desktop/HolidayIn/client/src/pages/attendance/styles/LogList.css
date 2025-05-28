@@ -1,35 +1,33 @@
 /* src/components/logs/LogList.css */
 
-/* Variables for easier theme management - Hotel-inspired Palette */
+/* Variables for easier theme management */
 :root {
-  /* Core Hotel Tones */
-  --hotel-primary-blue: #2c3e50; /* A deep, sophisticated charcoal blue/grey */
-  --hotel-accent-gold: #c89666; /* A muted, elegant gold/bronze */
-  --hotel-light-cream: #f4f2ed; /* A warm, inviting off-white/cream */
-  --hotel-soft-gray: #dcdcdc; /* A gentle, light gray for subtle contrasts */
-  --hotel-dark-gray: #5e6b77; /* A slightly darker gray for text */
+  /* Tonos verdes para el hotel (ejemplos) */
+  --primary-color: #4CAF50;    /* Verde medio (similar al Green-500/600 de Material Design) */
+  --primary-dark: #59c45e;     /* Verde oscuro (similar al Green-800/900) */
+  --primary-light: #C8E6C9;    /* Verde muy claro (similar al Green-100) */
+  --primary-lighter: #E8F5E9;  /* Verde casi blanco (similar al Green-50) */
 
-  /* Utility Colors (adjusted to complement the hotel theme) */
-  --success-color: #4CAF50; /* Softer green */
-  --success-light: rgba(76, 175, 80, 0.1);
-  --success-light-hover: rgba(76, 175, 80, 0.2);
+  --accent-color: #2d2c2b;     /* Dorado/Amarillo (similar al Amber-500, para un toque de lujo) */
+  --border-color: #A5D6A7;     /* Verde claro para bordes (similar al Green-200) */
 
-  --warning-color: #ff9800; /* Richer orange */
-  --warning-light: rgba(255, 152, 0, 0.1);
-  --warning-light-hover: rgba(255, 152, 0, 0.2);
+  --success-color: #059669; /* Emerald-600 */
+  --success-light: rgba(220, 252, 231, 0.3);
+  --success-light-hover: rgba(220, 252, 231, 0.7);
 
-  --danger-color: #d32f2f; /* Deeper red */
-  --danger-dark: #b71c1c;
-  --danger-light: rgba(211, 47, 47, 0.1);
-  --danger-light-hover: rgba(211, 47, 47, 0.2);
+  --warning-color: #d97706; /* Amber-600 */
+  --warning-light: rgba(254, 243, 199, 0.3);
+  --warning-light-hover: rgba(254, 243, 199, 0.7);
 
-  /* Text & Border Colors based on new theme */
-  --text-color-dark: var(--hotel-primary-blue);
-  --text-color-light: #ffffff; /* White for dark backgrounds */
-  --text-color-muted: var(--hotel-dark-gray);
-  --border-color-subtle: var(--hotel-soft-gray);
+  --danger-color: #dc2626; /* Red-600 */
+  --danger-dark: #991b1b; /* Red-800 */
+  --danger-light: rgba(254, 226, 226, 0.3);
+  --danger-light-hover: rgba(254, 226, 226, 0.7);
 
-  /* Shadow (kept similar as they are universally useful) */
+  --text-color-primary: #1B5E20; /* Verde muy oscuro (similar al Green-900) */
+  --text-color-secondary: #6B7280; /* Gris (puede mantenerse o ajustarse) */
+  --text-color-light: white; /* Generalmente blanco para fondos oscuros */
+
   --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
@@ -38,11 +36,10 @@
 /* --- Base Layout --- */
 .log-list-container {
   min-height: 100vh;
-  /* A subtle, luxurious gradient */
-  background: linear-gradient(to top right, var(--hotel-light-cream), #ffffff, var(--hotel-light-cream));
+  background: linear-gradient(to top right, var(--primary-light), #ffffff, var(--primary-lighter));
   padding: 1.5rem;
   display: flex;
-  gap: 1.5rem;
+  gap: 1.5rem; /* Consistent spacing */
 }
 
 .log-list-main-content {
@@ -52,10 +49,8 @@
   border-radius: 1rem;
   box-shadow: var(--shadow-md);
   padding: 2rem;
-  border: 1px solid var(--border-color-subtle); /* Use the subtle gray border */
+  border: 1px solid var(--border-color);
 }
-
----
 
 /* --- Loading State --- */
 .loading-container {
@@ -64,13 +59,13 @@
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background: linear-gradient(to bottom right, var(--hotel-light-cream), #ffffff, var(--hotel-light-cream));
+  background: linear-gradient(to bottom right, var(--primary-lighter), #ffffff, var(--primary-lighter));
 }
 
 .loader {
   height: 4rem;
   width: 4rem;
-  border: 4px solid var(--hotel-accent-gold); /* Loader in accent color */
+  border: 4px solid var(--primary-color);
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -84,12 +79,10 @@
 
 .loading-text {
   margin-top: 1.5rem;
-  color: var(--text-color-dark); /* Dark text */
+  color: var(--text-color-primary);
   font-weight: 600;
   font-size: 1.25rem;
 }
-
----
 
 /* --- Error State --- */
 .error-container {
@@ -97,7 +90,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(to bottom right, var(--hotel-light-cream), #ffffff, var(--hotel-light-cream));
+  background: linear-gradient(to bottom right, var(--primary-lighter), #ffffff, var(--primary-lighter));
   padding: 1.5rem;
 }
 
@@ -132,27 +125,25 @@
 }
 
 .error-message {
-  color: var(--danger-color);
+  color: var(--danger-color); /* Kept this as red for strong emphasis */
 }
 
 .retry-button {
   margin-top: 1.5rem;
   padding: 0.5rem 1.5rem;
-  background-color: var(--hotel-primary-blue); /* Action button in primary blue */
-  color: var(--text-color-light);
+  background-color: var(--danger-color);
+  color: white;
   font-weight: 500;
   border-radius: 0.5rem;
-  transition: background-color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out; /* Added ease-in-out */
   box-shadow: var(--shadow-sm);
   border: none;
   cursor: pointer;
 }
 
 .retry-button:hover {
-  background-color: var(--hotel-dark-gray); /* Darker shade on hover */
+  background-color: var(--danger-dark);
 }
-
----
 
 /* --- Header Section --- */
 .header-section {
@@ -162,7 +153,7 @@
   align-items: flex-start;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 2px solid var(--border-color-subtle);
+  border-bottom: 2px solid var(--primary-light);
 }
 
 @media (min-width: 768px) {
@@ -185,7 +176,7 @@
 .header-title {
   font-size: 1.875rem;
   font-weight: 800;
-  color: var(--text-color-dark);
+  color: var(--primary-dark);
   display: flex;
   align-items: center;
 }
@@ -194,11 +185,11 @@
   height: 2rem;
   width: 2rem;
   margin-right: 0.75rem;
-  color: var(--hotel-accent-gold); /* Icons in gold accent */
+  color: var(--accent-color);
 }
 
 .header-department {
-  color: var(--hotel-primary-blue); /* Department name in primary blue */
+  color: var(--primary-color);
   margin-top: 0.5rem;
   font-size: 1.125rem;
   display: flex;
@@ -212,7 +203,7 @@
 }
 
 .header-date {
-  color: var(--text-color-muted); /* Muted gray for dates */
+  color: var(--text-color-secondary);
   font-size: 0.875rem;
   margin-top: 0.5rem;
   font-style: italic;
@@ -223,16 +214,16 @@
 }
 
 .records-selector {
-  background-color: var(--hotel-light-cream); /* Cream background */
+  background-color: var(--primary-lighter);
   border-radius: 0.75rem;
   padding: 1rem 1.25rem;
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-color-subtle);
+  border: 1px solid var(--border-color);
 }
 
 .selector-label {
   font-size: 0.875rem;
-  color: var(--text-color-dark);
+  color: var(--primary-dark);
   font-weight: 600;
   display: block;
   margin-bottom: 0.5rem;
@@ -240,43 +231,41 @@
 
 .selector-dropdown {
   background-color: white;
-  border: 2px solid var(--border-color-subtle);
+  border: 2px solid var(--border-color); /* Adjusted for consistency */
   border-radius: 0.5rem;
   padding: 0.5rem 1rem;
-  color: var(--text-color-dark);
+  color: var(--primary-dark);
   font-weight: 500;
   width: 100%;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease-in-out; /* Added ease-in-out */
   outline: none;
-  appearance: none;
-  /* Updated SVG for dropdown arrow to match gold accent */
-  background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22%23c89666%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E');
+  appearance: none; /* Removes default dropdown arrow */
+  background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22currentColor%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M5.293%207.293a1%201%200%20011.414%200L10%2010.586l3.293-3.293a1%201%200%20111.414%201.414l-4%204a1%201%200%2001-1.414%200l-4-4a1%201%200%20010-1.414z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E'); /* Custom dropdown arrow */
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 1em;
 }
 
 .selector-dropdown:focus {
-  border-color: var(--hotel-accent-gold); /* Focus border in gold */
-  box-shadow: 0 0 0 2px rgba(200, 150, 102, 0.2); /* Soft shadow in gold */
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
-
----
 
 /* --- Table Styles --- */
 .table-container {
   background-color: white;
   border-radius: 0.75rem;
-  border: 1px solid var(--border-color-subtle);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   margin-bottom: 2rem;
-  overflow: hidden;
+  overflow: hidden; /* Ensures rounded corners on children */
 }
 
-.table-header {
+/* REEMPLAZO Y RENOMBRADO: Estilo único para el encabezado de la tabla de logs */
+.log-table-header {
   padding: 1rem;
-  background-color: var(--hotel-primary-blue); /* Deep blue header */
-  color: var(--text-color-light); /* White text */
+  background-color: var(--primary-dark); /* Usando el verde oscuro del hotel */
+  color: var(--text-color-light); /* Texto blanco para contraste */
 }
 
 .table-title {
@@ -285,38 +274,39 @@
 }
 
 .table-wrapper {
-  overflow-x: auto;
+  overflow-x: auto; /* Good for responsiveness */
 }
 
 .custom-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: collapse; /* Removes spacing between cells */
 }
 
+/* This style sets the background and text for the actual table headers (th elements) */
 .custom-table-header {
-  background-color: var(--hotel-light-cream); /* Cream header for table columns */
-  color: var(--text-color-dark); /* Dark blue text */
+  background-color: var(--primary-lighter); /* Lighter background */
+  color: var(--primary-dark); /* Dark text for contrast with lighter background */
 }
 
 .header-row:hover {
-  background-color: var(--hotel-soft-gray); /* Soft gray on hover for table headers */
+  background-color: var(--primary-light); /* Slightly darker on hover for custom table header */
 }
 
 .custom-table-head {
   padding: 1rem 1.5rem;
   font-size: 1.125rem;
   font-weight: 600;
-  text-align: left;
+  text-align: left; /* Default text alignment for table headers */
 }
 
 .table-row {
-  border-bottom: 1px solid var(--border-color-subtle);
-  transition: all 0.2s ease-in-out;
+  border-bottom: 1px solid #e5e7eb;
+  transition: all 0.2s ease-in-out; /* Added ease-in-out */
   cursor: pointer;
 }
 
 .table-row:last-child {
-  border-bottom: none;
+  border-bottom: none; /* No border for the last row */
 }
 
 .row-even {
@@ -324,10 +314,9 @@
 }
 
 .row-odd {
-  background-color: rgba(244, 242, 237, 0.5); /* Semi-transparent cream for odd rows */
+  background-color: rgba(238, 242, 255, 0.5); /* Use rgba for transparency */
 }
 
-/* Row colors for importance, adjusted for theme */
 .row-low {
   background-color: var(--danger-light);
 }
@@ -335,7 +324,7 @@
 .row-low:hover {
   background-color: var(--danger-light-hover);
   box-shadow: var(--shadow-sm);
-  transform: translateY(-2px);
+  transform: translateY(-2px); /* Subtle lift on hover */
 }
 
 .row-medium {
@@ -367,7 +356,6 @@
   text-align: right;
 }
 
-/* Hours urgency colors, kept distinct for functionality */
 .hours-low {
   color: var(--danger-color);
   font-weight: 600;
@@ -383,23 +371,21 @@
   font-weight: 600;
 }
 
----
-
 /* --- Table Legend --- */
 .table-legend {
   padding: 1rem;
-  background-color: var(--hotel-light-cream); /* Cream background */
+  background-color: var(--primary-lighter);
   font-size: 0.875rem;
-  color: var(--text-color-dark);
-  border-top: 1px solid var(--border-color-subtle);
+  color: var(--primary-dark);
+  border-top: 1px solid var(--border-color);
 }
 
 .legend-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  flex-wrap: wrap; /* Allows items to wrap on smaller screens */
+  gap: 0.75rem; /* Gap between items */
 }
 
 @media (min-width: 640px) {
@@ -421,26 +407,23 @@
   margin-right: 0.5rem;
 }
 
-/* Legend marks use original danger/warning/success colors for clarity */
 .legend-low {
-  background-color: var(--danger-color);
+  background-color: var(--danger-color); /* Red-500 */
 }
 
 .legend-medium {
-  background-color: var(--warning-color);
+  background-color: var(--warning-color); /* Amber-500 */
 }
 
 .legend-high {
-  background-color: var(--success-color);
+  background-color: var(--success-color); /* Emerald-500 */
 }
 
 .legend-hint {
   font-size: 0.75rem;
   font-style: italic;
-  margin-top: 0.5rem;
+  margin-top: 0.5rem; /* Space from legend items */
 }
-
----
 
 /* --- Pagination --- */
 .pagination {
@@ -448,11 +431,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  background-color: var(--hotel-light-cream); /* Cream background */
+  background-color: var(--primary-lighter);
   padding: 1.25rem;
   border-radius: 0.75rem;
-  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--border-color-subtle);
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05); /* Subtle inner shadow */
+  border: 1px solid var(--border-color);
 }
 
 @media (min-width: 640px) {
@@ -463,7 +446,7 @@
 
 .pagination-info {
   font-size: 0.875rem;
-  color: var(--text-color-dark); /* Dark text */
+  color: var(--accent-color);
   font-weight: 600;
   margin-bottom: 1rem;
 }
@@ -475,7 +458,7 @@
 }
 
 .page-indicator {
-  background-color: var(--border-color-subtle); /* Soft gray indicator */
+  background-color: var(--border-color);
   padding: 0.25rem 0.75rem;
   border-radius: 0.375rem;
 }
@@ -495,35 +478,34 @@
   font-weight: 600;
   display: flex;
   align-items: center;
-  background-color: var(--hotel-primary-blue); /* Primary button in deep blue */
-  color: var(--text-color-light);
+  background-color: var(--primary-color);
+  color: white;
   box-shadow: var(--shadow-sm);
-  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out; /* Added transform for subtle click effect */
   border: none;
   cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
 .pagination-button:hover {
-  background-color: var(--hotel-accent-gold); /* Hover to gold accent */
-  color: var(--text-color-dark); /* Dark text on gold hover if needed for contrast */
+  background-color: var(--accent-color);
 }
 
 .pagination-button:active {
-  transform: translateY(1px);
+  transform: translateY(1px); /* Simulates a button press */
 }
 
 .button-disabled {
-  background-color: var(--border-color-subtle); /* Lighter disabled background */
-  color: var(--hotel-dark-gray); /* Muted text for disabled */
+  background-color: var(--border-color);
+  color: #a5b4fc; /* Indigo-300 */
   cursor: not-allowed;
-  opacity: 0.7;
-  box-shadow: none;
+  opacity: 0.7; /* Visual cue for disabled state */
+  box-shadow: none; /* No shadow when disabled */
 }
 
 .button-disabled:hover {
-  background-color: var(--border-color-subtle);
-  transform: none;
+  background-color: var(--border-color);
+  transform: none; /* No lift or press when disabled */
 }
 
 .button-icon {
