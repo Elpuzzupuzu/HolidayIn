@@ -4,7 +4,7 @@ import { getWorkedHoursByDepartment, clearWorkedHours, getTotalWorkedHoursByEmpl
 
 import "./styles/LogDetail.css";
 import EmployeeResume from "./EmployeeResume";
-// Importa tu nuevo Hook personalizado
+// Import Hook personalizado
 import useDateValidation from "../../components/hooks/useDateValidation"; 
 
 const ResumenPorDepartamento = () => {
@@ -21,12 +21,15 @@ const ResumenPorDepartamento = () => {
   const { workedHours, status, error, totalWorkedHours } = useSelector((state) => state.datEvents);
   
   // Este useEffect no es estrictamente necesario para la funcionalidad, pero puede ser útil para depuración.
-  useEffect(() => {
-    console.log("PRUEBAAAA ", workedHours);
-  }, [workedHours]);
+
+  // useEffect(() => {
+  //   console.log("PRUEBAAAA ", workedHours);
+  // }, [workedHours]);
 
 
   // Calculate total hours with better number handling
+  
+  
   const totalHours = workedHours?.length > 0 
     ? workedHours.reduce((acc, curr) => {
         const hours = parseFloat(curr.total_hours);
@@ -66,6 +69,8 @@ const ResumenPorDepartamento = () => {
     // Si todas las validaciones pasan, procede con el dispatch
     dispatch(getWorkedHoursByDepartment({ department_id: departmentId, from, to }));
   };
+
+
 
   const setDefaultDates = () => {
     const today = new Date();
