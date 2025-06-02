@@ -34,7 +34,7 @@ h3 {
     padding: 15px;
 }
 
-.error-message { /* Cambié 'error' a 'error-message' para consistencia */
+.error-message {
     text-align: center;
     color: #d9534f;
     font-weight: bold;
@@ -56,7 +56,7 @@ h3 {
 }
 
 /* Tabla */
-.results-section table { /* Usé .results-section para mantener el alcance */
+.results-section table {
     min-width: 700px; /* Asegura ancho mínimo */
     border-collapse: collapse;
     width: 100%;
@@ -70,16 +70,18 @@ h3 {
     background-color: #007bff; /* Color azul para encabezados */
     color: white;
     font-weight: 600;
-    padding: 12px 16px;
+    padding: 12px 8px; /* Ajustado el padding para dar espacio a más columnas */
     text-align: left;
     border-bottom: 1px solid #ddd;
-    z-index: 2; /* Asegura que se mantenga por encima del contenido */
+    z-index: 2;
 }
 
+/* Estilos para las celdas de datos */
 .results-section td {
-    padding: 12px 16px;
+    padding: 12px 8px; /* Ajustado el padding */
     text-align: left;
     border-bottom: 1px solid #ddd;
+    vertical-align: middle; /* Asegura que el contenido esté centrado verticalmente */
 }
 
 .results-section tbody tr:nth-child(even) {
@@ -87,51 +89,63 @@ h3 {
 }
 
 .results-section tbody tr:hover {
-    background-color: #e9f5ff; /* Color al pasar el mouse */
+    background-color: #e9f5ff;
 }
 
 /* Estilos para las filas anómalas en la tabla */
 .results-section .row-anomaly {
-    background-color: #fef1e8; /* Un fondo más suave para filas con anomalías */
-    border-left: 5px solid #f39c12; /* Borde de énfasis naranja */
+    background-color: #fef1e8 !important; /* Un fondo más suave para filas con anomalías, !important para asegurar */
+    border-left: 5px solid #f39c12;
 }
 
 .results-section .text-warning {
-    color: #e67e22; /* Naranja para indicar advertencia */
+    color: #e67e22;
     font-weight: bold;
 }
 
+/* --- Nuevas columnas para icono y fecha --- */
+.results-section .icon-column {
+    width: 35px; /* Ancho para el icono */
+    text-align: center; /* Centrar el icono */
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.results-section .date-column {
+    width: 90px; /* Ancho para la fecha */
+    text-align: center; /* Alinear la fecha al centro */
+    white-space: nowrap; /* Evita que la fecha se divida */
+}
 
 /* Estilos para los iconos de día (getDiaConLetraIcono) */
 .icono-dia {
-    display: inline-block;
-    min-width: 22px;
-    padding: 2px 6px;
-    height: 22px;
-    line-height: 18px;
+    display: inline-flex; /* Usar flexbox para centrar el contenido del icono */
+    align-items: center;
+    justify-content: center;
+    min-width: 28px; /* Aumentado ligeramente para el círculo */
+    height: 28px; /* Aumentado ligeramente para el círculo */
+    line-height: 1; /* Ajustar line-height para centrado vertical con flex */
     text-align: center;
-    border-radius: 50px; /* Hace el borde más redondeado/pill-shaped */
+    border-radius: 50%; /* Ahora es un círculo perfecto */
     color: white;
     font-weight: bold;
-    margin-right: 6px;
-    font-size: 13px;
+    font-size: 0.9em; /* Aumentado ligeramente el tamaño de la fuente */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Sombra sutil para el icono */
 }
 
 /* Colores por día */
-/* Días laborales: lunes a viernes (azul fuerte) */
 .lunes,
 .martes,
 .miercoles,
 .jueves,
 .viernes {
-    background-color: #ea2785; /* Azul fuerte */
+    background-color: #ea2785; /* Azul fuerte (manteniendo tu color original) */
     color: white;
 }
 
-/* Fines de semana: sábado y domingo (naranja intenso) */
 .sabado,
 .domingo {
-    background-color: #f97316; /* Naranja intenso */
+    background-color: #f97316; /* Naranja intenso (manteniendo tu color original) */
     color: white;
 }
 
@@ -140,14 +154,14 @@ h3 {
 .anomalies-section {
     margin-top: 40px;
     padding: 25px;
-    background-color: #fff3e0; /* Fondo más suave para anomalías */
+    background-color: #fff3e0;
     border: 1px solid #ffcc80;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
 }
 
 .anomalies-section h3 {
-    color: #e67e22; /* Color naranja para el título de anomalías */
+    color: #e67e22;
     font-size: 1.6em;
     border-bottom: 2px solid #f9d8b1;
     padding-bottom: 10px;
@@ -155,7 +169,7 @@ h3 {
     align-items: center;
 }
 
-.anomalies-section h3 .fas { /* Ícono de Font Awesome */
+.anomalies-section h3 .fas {
     margin-right: 10px;
     color: #e67e22;
 }
@@ -167,14 +181,14 @@ h3 {
 }
 
 .anomaly-list {
-    list-style: none; /* Eliminar viñetas por defecto */
+    list-style: none;
     padding: 0;
 }
 
 .anomaly-item {
     background-color: #fff;
-    border: 1px solid #ffe0b2; /* Borde más sutil */
-    border-left: 5px solid #ff9800; /* Borde de énfasis naranja */
+    border: 1px solid #ffe0b2;
+    border-left: 5px solid #ff9800;
     padding: 15px;
     margin-bottom: 15px;
     border-radius: 6px;
@@ -190,10 +204,10 @@ h3 {
 .anomaly-header {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px; /* Espacio entre los elementos del encabezado */
+    gap: 15px;
     margin-bottom: 10px;
     padding-bottom: 8px;
-    border-bottom: 1px dashed #f0f0f0; /* Línea separadora */
+    border-bottom: 1px dashed #f0f0f0;
 }
 
 .anomaly-header strong {
@@ -204,13 +218,13 @@ h3 {
 
 .anomaly-type {
     font-weight: bold;
-    color: #c0392b; /* Color para el tipo de anomalía */
+    color: #c0392b;
     margin-right: 20px;
 }
 
 .anomaly-employee {
     font-weight: bold;
-    color: #2980b9; /* Color para el número de empleado */
+    color: #2980b9;
 }
 
 .anomaly-message {
@@ -223,10 +237,32 @@ h3 {
 .anomaly-details {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px; /* Espacio entre los detalles del evento */
+    gap: 20px;
     font-size: 0.9em;
     color: #666;
 }
+
+.anomaly-event-detail,
+.anomaly-hours-detail {
+    display: flex;
+    align-items: center; /* Alinea verticalmente los elementos */
+    gap: 5px; /* Espacio entre el label, icono y fecha/hora */
+}
+
+/* Alineación específica para el contenido de las anomalías */
+.anomaly-event-detail .icon-column,
+.anomaly-event-detail .date-column {
+    padding: 0; /* Elimina el padding extra si lo hay */
+    display: inline-flex; /* Asegura que el icono y la fecha se traten como elementos en línea con flexbox */
+    align-items: center;
+    justify-content: center;
+}
+
+.anomaly-event-detail .date-column {
+    text-align: left; /* Alineación de la fecha en la anomalía */
+    width: auto; /* Permite que la fecha tome el ancho necesario */
+}
+
 
 .anomaly-event-detail .event-label,
 .anomaly-hours-detail .event-label {
@@ -237,7 +273,7 @@ h3 {
 
 .anomaly-hours-detail {
     font-weight: bold;
-    color: #d35400; /* Color para horas anómalas */
+    color: #d35400;
 }
 
 .anomalies-note {
@@ -255,7 +291,6 @@ h3 {
         padding: 1rem;
     }
 
-    /* Ocultar encabezados en móvil para hacer la tabla más "card-like" */
     .results-section table,
     .results-section thead,
     .results-section tbody,
@@ -266,40 +301,43 @@ h3 {
     }
 
     .results-section th {
-        display: none; /* Oculta los th originales */
+        display: none;
     }
 
     .results-section td {
         position: relative;
-        padding-left: 50%; /* Espacio para la pseudo-etiqueta */
+        padding-left: 50%;
         border: none;
         border-bottom: 1px solid #ddd;
+        text-align: right; /* Alinea el contenido de la celda a la derecha en móvil */
     }
 
-    /* Pseudo-elementos para mostrar los nombres de las columnas en cada celda */
     .results-section td::before {
         position: absolute;
         top: 12px;
         left: 16px;
-        width: 45%; /* Ancho de la etiqueta */
+        width: 45%;
         padding-right: 10px;
         white-space: nowrap;
         font-weight: bold;
         color: #666;
+        text-align: left; /* Alinea la etiqueta a la izquierda */
     }
 
-    /* Asignar contenido a las pseudo-etiquetas */
+    /* Asignar contenido a las pseudo-etiquetas (ajustado para las nuevas columnas) */
     .results-section td:nth-child(1)::before { content: "Nº Empleado:"; }
-    .results-section td:nth-child(2)::before { content: "Fecha Entrada:"; } /* Corregido según tu tabla HTML */
-    .results-section td:nth-child(3)::before { content: "Entrada:"; }
-    .results-section td:nth-child(4)::before { content: "Fecha Salida:"; }
-    .results-section td:nth-child(5)::before { content: "Salida:"; }
-    .results-section td:nth-child(6)::before { content: "Horas Trabajadas:"; }
-    .results-section td:nth-child(7)::before { content: "Estado:"; }
+    .results-section td:nth-child(2)::before { content: "Día Ent.:"; } /* Icono Día Entrada */
+    .results-section td:nth-child(3)::before { content: "Fecha Ent.:"; } /* Fecha Entrada */
+    .results-section td:nth-child(4)::before { content: "Entrada:"; }
+    .results-section td:nth-child(5)::before { content: "Día Sal.:"; } /* Icono Día Salida */
+    .results-section td:nth-child(6)::before { content: "Fecha Sal.:"; } /* Fecha Salida */
+    .results-section td:nth-child(7)::before { content: "Salida:"; }
+    .results-section td:nth-child(8)::before { content: "Horas Trabajadas:"; }
+    .results-section td:nth-child(9)::before { content: "Estado:"; }
 
     /* Ajustes para la sección de anomalías en móviles */
     .anomaly-header {
-        flex-direction: column; /* Apila los elementos del encabezado */
+        flex-direction: column;
         align-items: flex-start;
         gap: 5px;
     }

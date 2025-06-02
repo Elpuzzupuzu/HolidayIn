@@ -13,7 +13,7 @@ const mysql = require('mysql2/promise'); // usamos la versión con promesas
 require('dotenv').config();
 
 const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,      // ej: 'localhost'
+  host: process.env.MYSQL_HOST,      // ej: 'localhost' 
   user: process.env.MYSQL_USER,      // ej: 'root'
   password: process.env.MYSQL_PASS,  // tu contraseña
   database: process.env.MYSQL_DB,    // nombre de la base de datos

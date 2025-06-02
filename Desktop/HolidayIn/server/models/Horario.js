@@ -12,12 +12,21 @@ class Horario {
 
       if (!response.ok) {
         let errorMessage = `Error HTTP ${response.status}: ${response.statusText}`;
+        let errorBody = null; // Para almacenar el cuerpo del error
+
         try {
-          const errorData = await response.json();
-          errorMessage += ` - ${errorData.message || JSON.stringify(errorData)}`;
-        } catch (jsonError) {
-          const errorText = await response.text();
-          errorMessage += ` - ${errorText}`;
+          // Lee el cuerpo de la respuesta una sola vez como texto
+          errorBody = await response.text();
+          // Intenta parsear como JSON si el cuerpo no está vacío
+          if (errorBody) {
+            const errorData = JSON.parse(errorBody);
+            errorMessage += ` - ${errorData.message || JSON.stringify(errorData)}`;
+          } else {
+            errorMessage += ` - No response body`;
+          }
+        } catch (parseError) {
+          // Si falla el parseo a JSON, pero ya tenemos el texto del error
+          errorMessage += ` - ${errorBody || 'Failed to parse error body'}`;
         }
         throw new Error(errorMessage);
       }

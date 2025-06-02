@@ -3,7 +3,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
-const supabase = require("../config/supabase");
+// const supabase = require("../config/supabase");
 
 // 🔹 Importar rutas
 const departmentRoutes = require("../routes/departamentRoutes");
