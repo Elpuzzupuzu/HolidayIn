@@ -1,9 +1,8 @@
 // src/components/modals/HorarioModal.js
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-
 import { getWorkedHoursBetweenDates } from "../../features/datEvents/datEventsSlice";
-
+import './styles/HorarioModal.css';
 
 // Helper function to format time strings (e.g., "8:00" -> "08:00")
 const formatTimeForDateParsing = (timeStr) => {
@@ -12,7 +11,6 @@ const formatTimeForDateParsing = (timeStr) => {
   const formattedHours = hours.padStart(2, '0');
   return `${formattedHours}:${minutes}`;
 };
-
 
 // Función para determinar el rango de fechas con el número de la semana y el año (lunes a domingo)
 function obtenerRangoFechasSemana(numeroSemana, anio) {
@@ -56,7 +54,6 @@ function obtenerRangoFechasSemana(numeroSemana, anio) {
   };
 }
 
-
 const HorarioModal = ({ colaborador, onClose }) => {
   const dispatch = useDispatch();
   const workedHours = useSelector(state => state.datEvents.workedHours || []);
@@ -75,10 +72,8 @@ const HorarioModal = ({ colaborador, onClose }) => {
   console.log("en pruebas anioSemana:", colaborador.anioSemana);
   console.log("en pruebas semana (horario planificado):", colaborador.semana);
 
-
   const rangoFechas = obtenerRangoFechasSemana(Number(colaborador.numeroSemana), Number(colaborador.anioSemana));
   console.log("📅 HorarioModal: Rango de fechas calculado:", rangoFechas);
-
 
   useEffect(() => {
     console.log("🔄 HorarioModal: useEffect se ha ejecutado.");
@@ -102,7 +97,6 @@ const HorarioModal = ({ colaborador, onClose }) => {
     }
   }, [colaborador, dispatch, rangoFechas.lunes, rangoFechas.domingo]);
 
-
   // --- LÓGICA PARA PROCESAR HORARIOS Y COMPARAR ---
   const processedWorkedHours = workedHours.map(event => {
     const eventDate = new Date(event.entry_date + 'T00:00:00');
@@ -120,10 +114,8 @@ const HorarioModal = ({ colaborador, onClose }) => {
     if (plannedScheduleStr && typeof plannedScheduleStr === 'string' && plannedScheduleStr.includes('-')) {
       const [plannedStart, plannedEnd] = plannedScheduleStr.split('-');
 
-      // **FIX:** Format plannedStart and plannedEnd to ensure two-digit hours for Date parsing
       const formattedPlannedStart = formatTimeForDateParsing(plannedStart);
       const formattedPlannedEnd = formatTimeForDateParsing(plannedEnd);
-
 
       plannedEntryTime = new Date(`${event.entry_date}T${formattedPlannedStart}:00`);
       plannedExitTime = new Date(`${event.entry_date}T${formattedPlannedEnd}:00`);
@@ -141,7 +133,7 @@ const HorarioModal = ({ colaborador, onClose }) => {
           const anticipatedMs = ANTICIPATED_MINUTES * 60 * 1000;
 
           const plannedEntryTimeWithTolerance = new Date(plannedEntryTime.getTime() - toleranceMs);
-          const entryTimeDifference = plannedEntryTime.getTime() - actualEntryTime.getTime(); // Positivo si llegó antes, negativo si llegó tarde
+          const entryTimeDifference = plannedEntryTime.getTime() - actualEntryTime.getTime();
 
           // --- Lógica para la entrada ---
           if (actualEntryTime <= plannedEntryTime && actualEntryTime >= plannedEntryTimeWithTolerance) {
@@ -153,7 +145,7 @@ const HorarioModal = ({ colaborador, onClose }) => {
           } else if (actualEntryTime < plannedEntryTimeWithTolerance) {
               entryStatusMessage = '🟡 Entrada Temprana';
               entryStatusColor = 'goldenrod';
-          } else if (actualEntryTime > plannedEntryTime) { // If entry is after planned time
+          } else if (actualEntryTime > plannedEntryTime) {
               entryStatusMessage = '🔴 Entrada Tarde';
               entryStatusColor = 'red';
           } else {
@@ -198,68 +190,148 @@ const HorarioModal = ({ colaborador, onClose }) => {
 
   console.log("📊 Horarios procesados (con verificación de rango y tolerancias):", processedWorkedHours);
 
+  const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+  // Función para obtener la clase CSS según el color del estado
+  const getStatusClass = (color) => {
+    switch (color) {
+      case 'green': return 'status-green';
+      case 'red': return 'status-red';
+      case 'orange': return 'status-orange';
+      case 'goldenrod': return 'status-goldenrod';
+      default: return 'status-gray';
+    }
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close-button" onClick={onClose}>
-          &times;
-        </button>
-        <h3>Detalles del Colaborador</h3>
-        <p><strong>ID Colaborador:</strong> {colaborador.id}</p>
-        <p><strong>ID Departamento:</strong> {colaborador.deptoId}</p>
-        <p><strong>Año Semana:</strong> {colaborador.anioSemana}</p>
-        <p><strong>Número de Semana:</strong> {colaborador.numeroSemana}</p>
-        <p>
-          <strong>Rango de Fechas:</strong> {rangoFechas.lunesUI} - {rangoFechas.domingoUI}
-        </p>
-        <p><strong>Activo:</strong> {colaborador.activo ? 'Sí' : 'No'}</p>
+        <h3>
+          Detalles del Colaborador
+          <button className="modal-close-button" onClick={onClose}>
+            &times;
+          </button>
+        </h3>
+        
+        <div className="modal-body">
+          {/* Información del colaborador */}
+          <div className="colaborador-info">
+            <div className="info-item">
+              <span className="info-label">ID Colaborador</span>
+              <span className="info-value">{colaborador.id}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Departamento</span>
+              <span className="info-value">{colaborador.deptoId}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Año</span>
+              <span className="info-value">{colaborador.anioSemana}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Semana</span>
+              <span className="info-value">{colaborador.numeroSemana}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Rango de Fechas</span>
+              <span className="info-value">{rangoFechas.lunesUI} - {rangoFechas.domingoUI}</span>
+            </div>
+            <div className="info-item">
+              <span className="info-label">Estado</span>
+              <span className={`info-value ${colaborador.activo ? 'active-yes' : 'active-no'}`}>
+                {colaborador.activo ? 'Activo' : 'Inactivo'}
+              </span>
+            </div>
+          </div>
 
-        <h4>Horarios Planificados de la Semana:</h4>
-        <ul>
-          {colaborador.semana.map((horario, index) => (
-            <li key={index}>
-              <strong>Día {index + 1} ({['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][index]}):</strong> {horario || 'Sin horario'}
-            </li>
-          ))}
-        </ul>
-
-        <hr/>
-
-        <h4>Horarios Registrados y Verificación:</h4>
-        {processedWorkedHours && processedWorkedHours.length > 0 ? (
-          <ul>
-            {processedWorkedHours.map((entry, index) => (
-              <li key={index}>
-                <strong>Día {entry.entry_date}:</strong> Entrada {entry.entry_time}, Salida {entry.exit_time} ({entry.hours_worked}h)
-                <br />
-                Planificado: {entry.plannedSchedule || 'N/A'} (Entrada: {entry.plannedEntryTime || 'N/A'}, Salida: {entry.plannedExitTime || 'N/A'})
-                <br />
-                <strong style={{ color: entry.entryStatus.color }}>
-                  {entry.entryStatus.message}
-                </strong>
-                <br />
-                <strong style={{ color: entry.exitStatus.color }}>
-                  {entry.exitStatus.message}
-                </strong>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No se encontraron eventos de entrada/salida emparejados para esta semana.</p>
-        )}
-
-        {anomalies && anomalies.length > 0 && (
-          <>
-            <h4>Anomalías de Registros:</h4>
-            <ul>
-              {anomalies.map((anomaly, idx) => (
-                <li key={idx} style={{ color: 'orange' }}>
-                  <strong>{anomaly.type}:</strong> {anomaly.message}
-                </li>
+          {/* Horarios planificados */}
+          <div className="section">
+            <h4>📅 Horarios Planificados de la Semana</h4>
+            <div className="scheduled-hours">
+              {colaborador.semana.map((horario, index) => (
+                <div key={index} className="day-schedule">
+                  <div className="day-name">{diasSemana[index]}</div>
+                  <div className={`day-time ${!horario ? 'no-schedule' : ''}`}>
+                    {horario || 'Sin horario'}
+                  </div>
+                </div>
               ))}
-            </ul>
-          </>
-        )}
+            </div>
+          </div>
+
+          <hr className="section-divider"/>
+
+          {/* Registros trabajados */}
+          <div className="section">
+            <h4>⏰ Horarios Registrados y Verificación</h4>
+            {processedWorkedHours && processedWorkedHours.length > 0 ? (
+              <div className="worked-entries">
+                {processedWorkedHours.map((entry, index) => (
+                  <div key={index} className="worked-entry">
+                    <div className="entry-header">
+                      <div className="entry-date">
+                        📅 {new Date(entry.entry_date).toLocaleDateString('es-ES', { 
+                          weekday: 'long', 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </div>
+                      <div className="entry-hours">
+                        {entry.hours_worked}h trabajadas
+                      </div>
+                    </div>
+                    
+                    <div className="entry-times">
+                      <div className="time-block">
+                        <div className="time-label">Entrada Real</div>
+                        <div className="time-value">{entry.entry_time}</div>
+                        <div className="time-planned">
+                          Planificado: {entry.plannedEntryTime || 'N/A'}
+                        </div>
+                      </div>
+                      <div className="time-block">
+                        <div className="time-label">Salida Real</div>
+                        <div className="time-value">{entry.exit_time}</div>
+                        <div className="time-planned">
+                          Planificado: {entry.plannedExitTime || 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="entry-status">
+                      <div className={`status-item ${getStatusClass(entry.entryStatus.color)}`}>
+                        {entry.entryStatus.message}
+                      </div>
+                      <div className={`status-item ${getStatusClass(entry.exitStatus.color)}`}>
+                        {entry.exitStatus.message}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-data-message">
+                📭 No se encontraron eventos de entrada/salida emparejados para esta semana.
+              </div>
+            )}
+          </div>
+
+          {/* Anomalías */}
+          {anomalies && anomalies.length > 0 && (
+            <div className="section">
+              <h4>⚠️ Anomalías de Registros</h4>
+              <div className="anomalies-section">
+                {anomalies.map((anomaly, idx) => (
+                  <div key={idx} className="anomaly-item">
+                    <div className="anomaly-type">{anomaly.type}</div>
+                    <div className="anomaly-message">{anomaly.message}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
