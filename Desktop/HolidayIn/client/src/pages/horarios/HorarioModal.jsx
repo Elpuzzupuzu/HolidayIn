@@ -1,8 +1,17 @@
 // src/components/modals/HorarioModal.js
 import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux'; // Agregamos useSelector
+import { useDispatch, useSelector } from 'react-redux';
 
 import { getWorkedHoursBetweenDates } from "../../features/datEvents/datEventsSlice";
+
+
+// Helper function to format time strings (e.g., "8:00" -> "08:00")
+const formatTimeForDateParsing = (timeStr) => {
+  if (!timeStr) return '';
+  const [hours, minutes] = timeStr.split(':');
+  const formattedHours = hours.padStart(2, '0');
+  return `${formattedHours}:${minutes}`;
+};
 
 
 // Función para determinar el rango de fechas con el número de la semana y el año (lunes a domingo)
@@ -50,8 +59,6 @@ function obtenerRangoFechasSemana(numeroSemana, anio) {
 
 const HorarioModal = ({ colaborador, onClose }) => {
   const dispatch = useDispatch();
-  // Obtener los datos de horas trabajadas y anomalías del estado de Redux
-  // ¡AJUSTE REALIZADO AQUÍ! Acceso directo a workedHours y anomalies desde el slice
   const workedHours = useSelector(state => state.datEvents.workedHours || []);
   const anomalies = useSelector(state => state.datEvents.anomalies || []);
 
@@ -98,56 +105,98 @@ const HorarioModal = ({ colaborador, onClose }) => {
 
   // --- LÓGICA PARA PROCESAR HORARIOS Y COMPARAR ---
   const processedWorkedHours = workedHours.map(event => {
-    // 1. Determinar el día de la semana para el evento
-    const eventDate = new Date(event.entry_date + 'T00:00:00'); // Crea una fecha para el día del evento
-    const dayOfWeek = (eventDate.getDay() + 6) % 7; // 0=Lunes, 1=Martes, ..., 6=Domingo (ajustado para array 0-6)
+    const eventDate = new Date(event.entry_date + 'T00:00:00');
+    const dayOfWeek = (eventDate.getDay() + 6) % 7; // 0=Lunes, 1=Martes, ..., 6=Domingo
 
-    // 2. Obtener el horario planificado para ese día
-    const plannedScheduleStr = colaborador.semana[dayOfWeek]; // Ej. '8:00-16:00'
-    let isWithinPlannedSchedule = false;
+    const plannedScheduleStr = colaborador.semana[dayOfWeek];
+    let entryStatusMessage = '';
+    let entryStatusColor = '';
+    let exitStatusMessage = '';
+    let exitStatusColor = '';
+
     let plannedEntryTime = null;
     let plannedExitTime = null;
 
     if (plannedScheduleStr && typeof plannedScheduleStr === 'string' && plannedScheduleStr.includes('-')) {
       const [plannedStart, plannedEnd] = plannedScheduleStr.split('-');
-      // Convertir a objetos Date para comparación (usando la fecha del evento para contexto)
-      plannedEntryTime = new Date(`${event.entry_date}T${plannedStart}:00`);
-      plannedExitTime = new Date(`${event.entry_date}T${plannedEnd}:00`);
 
-      // Convertir las horas de entrada y salida reales del evento a objetos Date
+      // **FIX:** Format plannedStart and plannedEnd to ensure two-digit hours for Date parsing
+      const formattedPlannedStart = formatTimeForDateParsing(plannedStart);
+      const formattedPlannedEnd = formatTimeForDateParsing(plannedEnd);
+
+
+      plannedEntryTime = new Date(`${event.entry_date}T${formattedPlannedStart}:00`);
+      plannedExitTime = new Date(`${event.entry_date}T${formattedPlannedEnd}:00`);
+
       const actualEntryTime = new Date(`${event.entry_date}T${event.entry_time}`);
       const actualExitTime = new Date(`${event.exit_date}T${event.exit_time}`);
 
-      // Validar que las fechas parseadas sean válidas antes de comparar
       if (!isNaN(actualEntryTime.getTime()) && !isNaN(actualExitTime.getTime()) &&
           !isNaN(plannedEntryTime.getTime()) && !isNaN(plannedExitTime.getTime())) {
-          // 3. Comparar las horas reales con las planificadas
-          // La entrada debe ser mayor o igual a la planificada y la salida menor o igual a la planificada
-          if (actualEntryTime >= plannedEntryTime && actualExitTime <= plannedExitTime) {
-            isWithinPlannedSchedule = true;
+
+          const TOLERANCE_MINUTES = 10;
+          const ANTICIPATED_MINUTES = 30;
+
+          const toleranceMs = TOLERANCE_MINUTES * 60 * 1000;
+          const anticipatedMs = ANTICIPATED_MINUTES * 60 * 1000;
+
+          const plannedEntryTimeWithTolerance = new Date(plannedEntryTime.getTime() - toleranceMs);
+          const entryTimeDifference = plannedEntryTime.getTime() - actualEntryTime.getTime(); // Positivo si llegó antes, negativo si llegó tarde
+
+          // --- Lógica para la entrada ---
+          if (actualEntryTime <= plannedEntryTime && actualEntryTime >= plannedEntryTimeWithTolerance) {
+              entryStatusMessage = '✅ Entrada a tiempo (con tolerancia)';
+              entryStatusColor = 'green';
+          } else if (actualEntryTime < plannedEntryTimeWithTolerance && entryTimeDifference >= anticipatedMs) {
+              entryStatusMessage = '🟠 Entrada Anticipada (más de 30 min antes)';
+              entryStatusColor = 'orange';
+          } else if (actualEntryTime < plannedEntryTimeWithTolerance) {
+              entryStatusMessage = '🟡 Entrada Temprana';
+              entryStatusColor = 'goldenrod';
+          } else if (actualEntryTime > plannedEntryTime) { // If entry is after planned time
+              entryStatusMessage = '🔴 Entrada Tarde';
+              entryStatusColor = 'red';
+          } else {
+              entryStatusMessage = 'Estado de entrada desconocido';
+              entryStatusColor = 'gray';
           }
+
+          // --- Lógica para la salida ---
+          if (actualExitTime <= plannedExitTime) {
+              exitStatusMessage = '✅ Salida a tiempo o antes de lo planificado';
+              exitStatusColor = 'green';
+          } else {
+              exitStatusMessage = '🔴 Salida Tarde';
+              exitStatusColor = 'red';
+          }
+
       } else {
           console.warn(`⚠️ HorarioModal: Error al parsear fechas/horas para comparación del evento ${event.employee_number} en ${event.entry_date}.`);
+          entryStatusMessage = 'Error al procesar horas de entrada';
+          entryStatusColor = 'gray';
+          exitStatusMessage = 'Error al procesar horas de salida';
+          exitStatusColor = 'gray';
       }
     } else {
-        // Horario planificado no válido o no definido para ese día
         console.warn(`⚠️ Horario planificado inválido o no definido para el día ${dayOfWeek} (${event.entry_date}):`, plannedScheduleStr);
+        entryStatusMessage = 'Horario planificado de entrada no disponible';
+        entryStatusColor = 'gray';
+        exitStatusMessage = 'Horario planificado de salida no disponible';
+        exitStatusColor = 'gray';
     }
 
     return {
-      ...event, // Mantén todas las propiedades originales
+      ...event,
       dayOfWeek: dayOfWeek,
       plannedSchedule: plannedScheduleStr,
-      isWithinPlannedSchedule: isWithinPlannedSchedule,
-      // Usar un formato más legible para mostrar en la UI, sin segundos
+      entryStatus: { message: entryStatusMessage, color: entryStatusColor },
+      exitStatus: { message: exitStatusMessage, color: exitStatusColor },
       plannedEntryTime: plannedEntryTime?.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
       plannedExitTime: plannedExitTime?.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
     };
   });
 
-  console.log("📊 Horarios procesados (con verificación de rango):", processedWorkedHours);
-
-  // --- FIN LÓGICA ---
+  console.log("📊 Horarios procesados (con verificación de rango y tolerancias):", processedWorkedHours);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -174,7 +223,7 @@ const HorarioModal = ({ colaborador, onClose }) => {
           ))}
         </ul>
 
-        <hr/> {/* Separador visual */}
+        <hr/>
 
         <h4>Horarios Registrados y Verificación:</h4>
         {processedWorkedHours && processedWorkedHours.length > 0 ? (
@@ -185,8 +234,12 @@ const HorarioModal = ({ colaborador, onClose }) => {
                 <br />
                 Planificado: {entry.plannedSchedule || 'N/A'} (Entrada: {entry.plannedEntryTime || 'N/A'}, Salida: {entry.plannedExitTime || 'N/A'})
                 <br />
-                <strong style={{ color: entry.isWithinPlannedSchedule ? 'green' : 'red' }}>
-                  {entry.isWithinPlannedSchedule ? '✅ Dentro del horario planificado' : '❌ Fuera del horario planificado'}
+                <strong style={{ color: entry.entryStatus.color }}>
+                  {entry.entryStatus.message}
+                </strong>
+                <br />
+                <strong style={{ color: entry.exitStatus.color }}>
+                  {entry.exitStatus.message}
                 </strong>
               </li>
             ))}

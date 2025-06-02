@@ -1,5 +1,3 @@
-
-
 // ¡ATENCIÓN: REVISA ESTA RUTA! Ajusta según la ubicación real de tu archivo Colaborador.js
 import Colaborador from '../../../../server/models/Colaborador'; // Ajustado a una ruta más común dentro de src/models
 import './styles/HorariosDeptoView.css'
@@ -10,7 +8,7 @@ import { useParams } from 'react-router-dom';
 import { fetchHorarios } from '../../features/horarios/horariosSlice';
 
 // Importar el CSS y el componente Modal
-import './styles/HorariosDeptoView.css'; 
+import './styles/HorariosDeptoView.css';
 import HorarioModal from './HorarioModal';
 
 const HorariosDeptoView = () => {
@@ -49,17 +47,49 @@ const HorariosDeptoView = () => {
   // console.log("horarios (Array de instancias de Colaborador mapeadas):", horarios);
   // --- FIN LOGS EN EL COMPONENTE ---
 
-  const [currentDeptoId, setCurrentDeptoId] = useState(deptoId || '1');
+  // Lista de departamentos
+  const departments = [
+    { id: 1, name: 'Ama de llaves' },
+    { id: 2, name: 'Mantenimiento' },
+    { id: 3, name: 'Alimentos y Bebidas' },
+    { id: 4, name: 'Recepcion' },
+    { id: 5, name: 'Administracion' },
+    { id: 6, name: 'Ventas' },
+    { id: 7, name: 'Recursos Humanos' },
+    { id: 8, name: 'Seguridad' },
+    { id: 9, name: 'Configuracion' },
+  ];
+
+  // Establece el ID del departamento inicial. Si viene de la URL, úsalo, si no, usa el ID del primer departamento.
+  const initialDeptoId = deptoId && departments.some(dep => dep.id === parseInt(deptoId))
+    ? parseInt(deptoId)
+    : departments[0].id; // Establece el primer departamento como predeterminado si no hay uno válido en la URL
+
+  const [currentDeptoId, setCurrentDeptoId] = useState(initialDeptoId);
   const [currentNumeroSemana, setCurrentNumeroSemana] = useState(numeroSemana || '23');
 
   useEffect(() => {
+    // Cuando el componente se monta o los parámetros de la URL cambian
     if (deptoId && numeroSemana) {
-      console.log(`➡️ [HorariosDeptoView] Despachando fetchHorarios (desde URL): deptoId=${deptoId}, numeroSemana=${numeroSemana}`);
-      dispatch(fetchHorarios({ deptoId, numeroSemana }));
-      setCurrentDeptoId(deptoId);
+      const parsedDeptoId = parseInt(deptoId);
+      // Solo despacha si el deptoId de la URL es un número y existe en la lista de departamentos
+      if (!isNaN(parsedDeptoId) && departments.some(dep => dep.id === parsedDeptoId)) {
+        console.log(`➡️ [HorariosDeptoView] Despachando fetchHorarios (desde URL): deptoId=${parsedDeptoId}, numeroSemana=${numeroSemana}`);
+        dispatch(fetchHorarios({ deptoId: parsedDeptoId, numeroSemana }));
+        setCurrentDeptoId(parsedDeptoId);
+      } else {
+        // Si el deptoId de la URL no es válido, usa el departamento predeterminado y despacha
+        console.warn(`⚠️ [HorariosDeptoView] deptoId de la URL no válido o no encontrado: ${deptoId}. Usando el predeterminado: ${departments[0].id}`);
+        dispatch(fetchHorarios({ deptoId: departments[0].id, numeroSemana: numeroSemana }));
+        setCurrentDeptoId(departments[0].id);
+      }
       setCurrentNumeroSemana(numeroSemana);
+    } else {
+      // Si no hay parámetros en la URL, despacha con el departamento predeterminado y semana predeterminada
+      console.log(`➡️ [HorariosDeptoView] Despachando fetchHorarios (inicial, sin URL params): deptoId=${initialDeptoId}, numeroSemana=${currentNumeroSemana}`);
+      dispatch(fetchHorarios({ deptoId: initialDeptoId, numeroSemana: currentNumeroSemana }));
     }
-  }, [dispatch, deptoId, numeroSemana]);
+  }, [dispatch, deptoId, numeroSemana]); // Dependencias para re-ejecutar el efecto
 
   const handleSearch = () => {
     console.log(`➡️ [HorariosDeptoView] Despachando fetchHorarios (desde botón Buscar): deptoId=${currentDeptoId}, numeroSemana=${currentNumeroSemana}`);
@@ -82,14 +112,19 @@ const HorariosDeptoView = () => {
       <h1>Consulta de Horarios por Departamento y Semana</h1>
 
       <div className="search-controls">
-        <label htmlFor="deptoId">Departamento ID:</label>
-        <input
-          type="text"
+        <label htmlFor="deptoId">Departamento:</label>
+        <select
           id="deptoId"
           value={currentDeptoId}
-          onChange={(e) => setCurrentDeptoId(e.target.value)}
-          placeholder="Ej: 1"
-        />
+          onChange={(e) => setCurrentDeptoId(parseInt(e.target.value))} // Convierte a número
+        >
+          {departments.map((dep) => (
+            <option key={dep.id} value={dep.id}>
+              {dep.name}
+            </option>
+          ))}
+        </select>
+
         <label htmlFor="numeroSemana">Número de Semana:</label>
         <input
           type="text"
@@ -101,7 +136,7 @@ const HorariosDeptoView = () => {
         <button onClick={handleSearch}>Buscar</button>
       </div>
 
-      <h2>Horarios del Departamento {currentDeptoId} - Semana {currentNumeroSemana}</h2>
+      <h2>Horarios del Departamento {departments.find(d => d.id === currentDeptoId)?.name || currentDeptoId} - Semana {currentNumeroSemana}</h2>
 
       {horarios.length > 0 ? (
         <table className="horarios-table">
@@ -118,7 +153,7 @@ const HorariosDeptoView = () => {
           <tbody>
             {horarios.map((colaborador) => (
               <tr key={colaborador.idColaborador} onClick={() => handleRowClick(colaborador)}>
-                <td>{colaborador.idColaborador}</td>
+                <td>{colaborador.id}</td>
                 <td>{colaborador.activo ? 'Sí' : 'No'}</td>
                 <td>{colaborador.deptoId}</td>
                 {diasSemana.map((_, index) => (
