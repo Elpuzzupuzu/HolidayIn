@@ -7,8 +7,7 @@ class DatEvent {
   //procesa el archivo .dat
   
  static async processDatFile(filePath) {
-  const connection = await supabase.getConnection(); // aquí supongo que es tu pool MySQL, renombra si quieres
-
+  const connection = await supabase.getConnection(); // 
   try {
     const raw = fs.readFileSync(path.resolve(filePath), "utf-8");
     const lines = raw.split("\n").filter(Boolean);

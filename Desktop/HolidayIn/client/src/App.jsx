@@ -75,6 +75,7 @@ import RegisterAutoEvent from "./components/dinning/scan";
 import DinningList from "./components/dinning/dinningList";
 import EmployeesManagement from "./components/employees/employees";
 import HorariosDeptoView from "./pages/horarios/HoariosDeptoView";
+import ProcessDatFileComponent from "./pages/attendance/uploadDat";
 
 function App() {
   // Dummy de autenticación para pruebas
@@ -111,6 +112,9 @@ function App() {
         <Route path="employees" element={<EmployeesManagement />} />
         <Route path="logs/dinninglist" element={<DinningList />} />
         <Route path="horarios" element={<HorariosDeptoView />} />
+        <Route path="uploadDat" element={<ProcessDatFileComponent />} />
+
+
 
       </Route>
 

@@ -1,6 +1,8 @@
 const DatEvent = require("../models/datEvent");
 const path = require("path");
 const { Parser } = require('json2csv');
+const fs = require("fs"); // <--- ¡ASEGÚRATE DE QUE ESTA LÍNEA ESTÉ AQUÍ, AL PRINCIPIO DEL ARCHIVO!
+
 
 
 class DatEventController {
@@ -25,6 +27,38 @@ class DatEventController {
       res.status(500).json({ error: "No se pudo procesar el archivo .dat" });
     }
   }
+
+
+////
+
+// ✅ NUEVO MÉTODO: Llamado internamente por la ruta de subida de archivo
+  // ✅ NUEVO MÉTODO: Llamado internamente por la ruta de subida de archivo
+  static async processDatFileInServer(filePath) {
+    console.log("DEBUG: Entrando a processDatFileInServer con filePath:", filePath);
+    try {
+      const result = await DatEvent.processDatFile(filePath);
+      console.log("DEBUG: DatEvent.processDatFile completado.");
+
+      // Este es el primer fs.unlink. Si DatEvent.processDatFile() no arrojó un error,
+      // esta línea debería ejecutarse sin problemas.
+      fs.unlink(filePath, (err) => {
+        if (err) console.error("DEBUG: Error al eliminar el archivo temporal:", err);
+        else console.log("DEBUG: Archivo temporal eliminado.");
+      });
+      return result;
+    } catch (error) {
+      console.error("DEBUG: Error en DatEvent.processDatFile catch block:", error);
+      // ESTA ES LA LÍNEA 38:5 EN TU CONTEXTO, DONDE EL ERROR fs IS NOT DEFINED OCURRE.
+      // Si la importación de 'fs' está al principio del archivo, esto no debería pasar.
+      fs.unlink(filePath, (err) => {
+        if (err) console.error("DEBUG: Error al eliminar el archivo temporal después de un error:", err);
+        else console.log("DEBUG: Intento de eliminar archivo temporal tras error.");
+      });
+      throw new Error(`No se pudo procesar el archivo .dat en el servidor: ${error.message}`);
+    }
+  }
+
+////
 
 /// trae todos los registros del dat procesado
  static async getWorkedHours(req, res) {

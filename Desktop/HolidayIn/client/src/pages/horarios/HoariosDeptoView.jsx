@@ -11,6 +11,10 @@ import { fetchHorarios } from '../../features/horarios/horariosSlice';
 import './styles/HorariosDeptoView.css';
 import HorarioModal from './HorarioModal';
 
+
+
+
+
 const HorariosDeptoView = () => {
   const dispatch = useDispatch();
   const { deptoId, numeroSemana } = useParams();

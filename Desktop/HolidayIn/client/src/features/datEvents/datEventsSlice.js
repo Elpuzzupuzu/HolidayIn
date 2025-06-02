@@ -4,17 +4,44 @@ import axios from "axios";
 const API_URL = "http://localhost:3000/api"; // Asegúrate que el puerto es el correcto
 
 // Thunk para procesar archivo .dat
+// export const processDatFile = createAsyncThunk(
+//   "datEvents/processDatFile",
+//   async (filePath, thunkAPI) => {
+//     try {
+//       const response = await axios.post(`${API_URL}/process-dat`, { filePath });
+//       return response.data;
+//     } catch (error) {
+//       return thunkAPI.rejectWithValue(error.response?.data || { error: "Error al procesar archivo .dat" });
+//     }
+//   }
+// );
+
 export const processDatFile = createAsyncThunk(
   "datEvents/processDatFile",
-  async (filePath, thunkAPI) => {
+  async (file, thunkAPI) => { // El thunk ahora recibe directamente el objeto File
     try {
-      const response = await axios.post(`${API_URL}/process-dat`, { filePath });
+      const formData = new FormData();
+      formData.append('datFile', file); // 'datFile' debe coincidir con el nombre del campo en Multer (upload.single('datFile'))
+
+      const response = await axios.post(`${API_URL}/datEvents/upload-and-process-dat`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data' // ¡Es crucial para enviar archivos!
+        }
+      });
       return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data || { error: "Error al procesar archivo .dat" });
+      // Propaga el error de forma que el frontend pueda manejarlo
+      return thunkAPI.rejectWithValue(error.response?.data || { error: "Error desconocido al procesar el archivo .dat" });
     }
   }
 );
+
+
+
+
+
+
+
 
 // este trae toda la data
 export const getWorkedHours = createAsyncThunk(
