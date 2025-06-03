@@ -125,6 +125,9 @@ static async getWorkedHoursPerDay(page = 1, limit = 10) {
 
 
 
+
+
+
 static async getTotalWorkedHoursByDepartment(department_id, from, to) {
   if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
   const connection = await supabase.getConnection();
@@ -227,6 +230,8 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
 
 
 
+
+
 ///// revisando ////
 
 
@@ -307,414 +312,208 @@ static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
 
 
 
+
 static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = null) {
-    let sql = `
-      SELECT *
-      FROM dat_events
-      WHERE event_date BETWEEN ? AND ?
-    `;
-    const params = [startDate, endDate];
+  let sql = `
+    SELECT *
+    FROM dat_events
+    WHERE event_date BETWEEN ? AND ?
+  `;
+  const params = [startDate, endDate];
 
-    if (employeeNumber) {
-      sql += ` AND employee_number = ?`;
-      params.push(employeeNumber);
-    }
-
-    sql += ` ORDER BY employee_number, event_date ASC, event_time ASC`;
-
-    const [events] = await supabase.execute(sql, params);
-
-    if (events && events.length > 0) {
-      console.log("🐛 DEBUG - event_date desde MySQL:", events[0]?.event_date, "Tipo:", typeof events[0]?.event_date);
-    } else {
-      console.log("🐛 DEBUG - No se encontraron eventos para depurar event_date.");
-    }
-
-    const workedHours = [];
-    const anomalies = [];
-
-    const formatEventDateForMessage = (event) => {
-      if (!event || !event.event_date) return 'Fecha desconocida';
-      if (event.event_date instanceof Date) {
-        if (isNaN(event.event_date.getTime())) {
-          return 'Fecha inválida';
-        }
-        return event.event_date.toISOString().substring(0, 10);
-      }
-      return String(event.event_date).substring(0, 10);
-    };
-
-    const eventsByEmployee = {};
-    for (const event of events) {
-      if (!eventsByEmployee[event.employee_number]) {
-        eventsByEmployee[event.employee_number] = [];
-      }
-      eventsByEmployee[event.employee_number].push(event);
-    }
-
-    // Definición de umbrales para las anomalías de duración
-    const SHORT_SHIFT_THRESHOLD_HOURS = 0.1;
-    // --- UMBRALES AJUSTADOS AQUÍ ---
-    const NORMAL_SHIFT_MIN_HOURS = 7.5; // Ajustado para incluir turnos como 8.88h como normales
-    const NORMAL_SHIFT_MAX_HOURS = 9.5; // Ajustado para incluir turnos como 8.88h como normales
-    // --- FIN UMBRALES AJUSTADOS ---
-    const MAX_SHIFT_CONSIDERED_VALID_HOURS = 20;
-
-    for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
-      let lastEntry = null;
-
-      for (let i = 0; i < empEvents.length; i++) {
-        const currentEvent = empEvents[i];
-
-        if (currentEvent.event_type === "0") { // ENTRADA
-          if (lastEntry !== null) {
-            anomalies.push({
-              type: "Entrada Duplicada (Sin Salida Previa)",
-              employee_number: employee,
-              entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-              message: `La entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} fue sobrescrita por una nueva entrada sin una salida intermedia.`,
-            });
-          }
-          lastEntry = currentEvent;
-
-        } else if (currentEvent.event_type === "1") { // SALIDA
-          if (lastEntry !== null) {
-            const entryDate = formatEventDateForMessage(lastEntry);
-            const exitDate = formatEventDateForMessage(currentEvent);
-
-            const entryTimestamp = new Date(`${entryDate}T${lastEntry.event_time}`);
-            const exitTimestamp = new Date(`${exitDate}T${currentEvent.event_time}`);
-
-            if (isNaN(entryTimestamp.getTime()) || isNaN(exitTimestamp.getTime())) {
-              anomalies.push({
-                type: "Fecha/Hora Inválida",
-                employee_number: employee,
-                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-                exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-                message: `Fechas/horas inválidas para el emparejamiento: Entrada ${entryDate} ${lastEntry.event_time}, Salida ${exitDate} ${currentEvent.event_time}.`,
-              });
-              lastEntry = null;
-              continue;
-            }
-
-            if (exitTimestamp <= entryTimestamp) {
-              anomalies.push({
-                type: "Salida Antes/Igual a Entrada",
-                employee_number: employee,
-                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-                exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-                message: `Salida en ${exitDate} ${currentEvent.event_time} es anterior o igual a la entrada en ${entryDate} ${lastEntry.event_time}.`,
-              });
-              lastEntry = null;
-              continue;
-            }
-
-            const diffMs = exitTimestamp - entryTimestamp;
-            let hoursWorked = diffMs / (1000 * 60 * 60);
-
-            // REDONDEAR LAS HORAS TRABAJADAS PARA LA COMPARACIÓN TAMBIÉN
-            hoursWorked = Math.round(hoursWorked * 100) / 100;
-
-            let isAnomaly = false;
-            let anomalyReason = null;
-
-            if (hoursWorked < SHORT_SHIFT_THRESHOLD_HOURS) {
-              isAnomaly = true;
-              anomalyReason = "Turno Muy Corto";
-              anomalies.push({
-                type: anomalyReason,
-                employee_number: employee,
-                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-                exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-                hours_worked: hoursWorked,
-                message: `Turno de ${hoursWorked} horas (${entryDate} a ${exitDate}) es extremadamente corto.`,
-              });
-            } else if (hoursWorked > MAX_SHIFT_CONSIDERED_VALID_HOURS) {
-              anomalies.push({
-                type: "Turno Excesivamente Largo (Descartado)",
-                employee_number: employee,
-                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-                exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-                hours_worked: hoursWorked,
-                message: `Turno de ${hoursWorked} horas (${entryDate} a ${exitDate}) es demasiado largo y se considera un error de registro.`,
-              });
-              lastEntry = null;
-              continue; // <--- SEGUIR DESCARTANDO Y AVANZANDO
-            } else if (hoursWorked < NORMAL_SHIFT_MIN_HOURS) {
-              isAnomaly = true;
-              anomalyReason = "Turno Demasiado Corto";
-              anomalies.push({
-                type: anomalyReason,
-                employee_number: employee,
-                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-                exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-                hours_worked: hoursWorked,
-                message: `Turno de ${hoursWorked} horas (${entryDate} a ${exitDate}) es inferior al mínimo de ${NORMAL_SHIFT_MIN_HOURS}h.`,
-              });
-            } else if (hoursWorked > NORMAL_SHIFT_MAX_HOURS) {
-              isAnomaly = true;
-              anomalyReason = "Turno Excesivo";
-              anomalies.push({
-                type: anomalyReason,
-                employee_number: employee,
-                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-                exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-                hours_worked: hoursWorked,
-                message: `Turno de ${hoursWorked} horas (${entryDate} a ${exitDate}) excede el máximo de ${NORMAL_SHIFT_MAX_HOURS}h.`,
-              });
-            }
-
-            // Solo añadir a workedHours si NO es una anomalía de las que se excluyen (con continue)
-            // O si es una anomalía de "advertencia" (ej. corto/excesivo pero aún válido para mostrar).
-            if (!isAnomaly || (isAnomaly && anomalyReason !== "Turno Excesivamente Largo (Descartado)")) {
-                workedHours.push({
-                    employee_number: employee,
-                    entry_date: entryDate,
-                    entry_time: lastEntry.event_time,
-                    exit_date: exitDate,
-                    exit_time: currentEvent.event_time,
-                    hours_worked: hoursWorked,
-                    is_anomaly: isAnomaly, // Esto indicará al frontend si es una anomalía
-                    anomaly_reason: anomalyReason,
-                });
-            }
-
-            lastEntry = null; // Reiniciar para el siguiente par
-          } else {
-            anomalies.push({
-              type: "Salida sin Entrada Previa",
-              employee_number: employee,
-              exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-              message: `Salida en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} no tiene una entrada previa emparejable.`,
-            });
-          }
-        }
-      }
-
-      if (lastEntry !== null) {
-        anomalies.push({
-          type: "Entrada Final sin Salida",
-          employee_number: employee,
-          entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-          message: `La última entrada para ${employee} en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} no tuvo una salida.`,
-        });
-      }
-    }
-
-    if (anomalies.length > 0) {
-      console.warn("Se encontraron anomalías en el registro de eventos:");
-      anomalies.forEach(anomaly => console.warn(anomaly));
-    }
-
-    console.log("📊 DEBUG BACKEND: Resultado final de getWorkedHoursBetweenDates:");
-    console.log("   Worked Hours:", workedHours);
-    console.log("   Anomalies:", anomalies);
-
-    return { workedHours, anomalies };
+  if (employeeNumber) {
+    sql += ` AND employee_number = ?`;
+    params.push(employeeNumber);
   }
 
+  // Ordenar es CRUCIAL para inferir el tipo de evento
+  sql += ` ORDER BY employee_number, event_date ASC, event_time ASC`;
+
+  const [events] = await supabase.execute(sql, params);
+
+  if (events && events.length > 0) {
+    console.log("🐛 DEBUG - event_date desde MySQL:", events[0]?.event_date, "Tipo:", typeof events[0]?.event_date);
+  } else {
+    console.log("🐛 DEBUG - No se encontraron eventos para depurar event_date.");
+  }
+
+  const workedHours = [];
+  const anomalies = [];
+
+  const formatEventDateForMessage = (event) => {
+    if (!event || !event.event_date) return 'Fecha desconocida';
+    if (event.event_date instanceof Date) {
+      if (isNaN(event.event_date.getTime())) {
+        return 'Fecha inválida';
+      }
+      return event.event_date.toISOString().substring(0, 10);
+    }
+    return String(event.event_date).substring(0, 10);
+  };
+
+  const eventsByEmployee = {};
+  for (const event of events) {
+    if (!eventsByEmployee[event.employee_number]) {
+      eventsByEmployee[event.employee_number] = [];
+    }
+    eventsByEmployee[event.employee_number].push(event);
+  }
+
+  // Definición de umbrales para las anomalías de duración
+  const SHORT_SHIFT_THRESHOLD_HOURS = 0.1; // Turnos extremadamente cortos (ej. < 6 minutos)
+  const NORMAL_SHIFT_MIN_HOURS = 7.5; // Mínimo para un turno considerado normal
+  const NORMAL_SHIFT_MAX_HOURS = 9.5; // Máximo para un turno considerado normal
+  const MAX_ALLOWED_SHIFT_HOURS = 24; // Límite estricto para un solo turno
+
+  for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
+    let lastEntry = null; // Almacena la última "entrada" asumida para emparejar
+
+    for (let i = 0; i < empEvents.length; i++) {
+      const currentEvent = empEvents[i];
+      const eventTimestamp = new Date(`${formatEventDateForMessage(currentEvent)}T${currentEvent.event_time}`);
+
+      if (isNaN(eventTimestamp.getTime())) {
+        anomalies.push({
+          type: "Evento con Fecha/Hora Inválida",
+          employee_number: employee,
+          event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+          message: `Evento en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} tiene fecha/hora inválida y no puede ser procesado.`,
+        });
+        continue; // Saltar este evento inválido
+      }
+
+      if (lastEntry === null) {
+        // No hay entrada pendiente, este es el inicio de un posible turno
+        lastEntry = currentEvent;
+      } else {
+        // Hay una entrada pendiente (lastEntry), este es un posible cierre de turno (salida)
+        const entryTimestamp = new Date(`${formatEventDateForMessage(lastEntry)}T${lastEntry.event_time}`);
+
+        // Validación de la fecha/hora de la entrada pendiente (aunque ya se validó al asignarla)
+        if (isNaN(entryTimestamp.getTime())) {
+             anomalies.push({
+                type: "Entrada Previa con Fecha/Hora Inválida",
+                employee_number: employee,
+                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+                message: `La entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} tiene fecha/hora inválida. Se buscará una nueva entrada.`,
+            });
+            lastEntry = null; // Descartar esta entrada inválida
+            // Volver a procesar el currentEvent, asumiéndolo como una nueva entrada
+            lastEntry = currentEvent;
+            continue; // Ir al siguiente evento
+        }
 
 
-// static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = null) {
-//   let sql = `
-//     SELECT *
-//     FROM dat_events
-//     WHERE event_date BETWEEN ? AND ?
-//   `;
-//   const params = [startDate, endDate];
+        // Comprobación de si el currentEvent es cronológicamente anterior o igual a la entrada
+        if (eventTimestamp <= entryTimestamp) {
+          anomalies.push({
+            type: "Evento Fuera de Secuencia (Posible Entrada Duplicada o Salida Retroactiva)",
+            employee_number: employee,
+            entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+            current_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+            message: `El evento en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} es anterior o igual a la entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time}. Se asumirá que esta entrada previa fue sobrescrita y el evento actual es una nueva entrada.`,
+          });
+          lastEntry = currentEvent; // Este evento se convierte en la nueva "entrada"
+          continue; // Pasar al siguiente evento para buscar su salida
+        }
 
-//   if (employeeNumber) {
-//     sql += ` AND employee_number = ?`;
-//     params.push(employeeNumber);
-//   }
+        const diffMs = eventTimestamp - entryTimestamp;
+        let hoursWorked = diffMs / (1000 * 60 * 60);
+        hoursWorked = Math.round(hoursWorked * 100) / 100; // Redondear a dos decimales
 
-//   sql += ` ORDER BY employee_number, event_date ASC, event_time ASC`;
+        // --- REGLA: Los turnos no pueden exceder 24 horas ---
+        if (hoursWorked > MAX_ALLOWED_SHIFT_HOURS) {
+          anomalies.push({
+            type: "Turno Excede 24 Horas (Descartado)",
+            employee_number: employee,
+            entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+            exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+            hours_worked: hoursWorked,
+            message: `El turno de ${hoursWorked} horas (de ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} a ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time}) excede el límite de ${MAX_ALLOWED_SHIFT_HOURS} horas. Este par no se considera un turno válido. Se buscará una nueva entrada.`,
+          });
+          lastEntry = currentEvent; // El evento actual se asume como una nueva entrada, descartando la anterior.
+          continue; // Pasar al siguiente evento para buscar su salida
+        }
 
-//   const [events] = await supabase.execute(sql, params);
+        // Si llegamos aquí, tenemos un par de eventos válido (entrada -> salida) dentro de 24h
+        let isAnomaly = false;
+        let anomalyReason = null;
 
-//   // --- LOG DEPURACIÓN (sin cambios) ---
-//   if (events && events.length > 0) {
-//     console.log("🐛 DEBUG - event_date desde MySQL:", events[0]?.event_date, "Tipo:", typeof events[0]?.event_date);
-//   } else {
-//     console.log("🐛 DEBUG - No se encontraron eventos para depurar event_date.");
-//   }
-//   // --- FIN DEL LOG ---
+        if (hoursWorked < SHORT_SHIFT_THRESHOLD_HOURS) {
+          isAnomaly = true;
+          anomalyReason = "Turno Muy Corto";
+          anomalies.push({
+            type: anomalyReason,
+            employee_number: employee,
+            entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+            exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+            hours_worked: hoursWorked,
+            message: `Turno de ${hoursWorked} horas es extremadamente corto (< ${SHORT_SHIFT_THRESHOLD_HOURS}h).`,
+          });
+        } else if (hoursWorked < NORMAL_SHIFT_MIN_HOURS) {
+          isAnomaly = true;
+          anomalyReason = "Turno Demasiado Corto";
+          anomalies.push({
+            type: anomalyReason,
+            employee_number: employee,
+            entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+            exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+            hours_worked: hoursWorked,
+            message: `Turno de ${hoursWorked} horas es inferior al mínimo de ${NORMAL_SHIFT_MIN_HOURS}h.`,
+          });
+        } else if (hoursWorked > NORMAL_SHIFT_MAX_HOURS) {
+          isAnomaly = true;
+          anomalyReason = "Turno Excesivo";
+          anomalies.push({
+            type: anomalyReason,
+            employee_number: employee,
+            entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+            exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+            hours_worked: hoursWorked,
+            message: `Turno de ${hoursWorked} horas excede el máximo de ${NORMAL_SHIFT_MAX_HOURS}h.`,
+          });
+        }
 
-//   const workedHours = [];
-//   const anomalies = [];
+        workedHours.push({
+          employee_number: employee,
+          entry_date: formatEventDateForMessage(lastEntry),
+          entry_time: lastEntry.event_time,
+          exit_date: formatEventDateForMessage(currentEvent),
+          exit_time: currentEvent.event_time,
+          hours_worked: hoursWorked,
+          is_anomaly: isAnomaly,
+          anomaly_reason: anomalyReason,
+        });
 
-//   // Función auxiliar para formatear cadenas de fecha (sin cambios)
-//   const formatEventDateForMessage = (event) => {
-//     if (!event || !event.event_date) return 'Fecha desconocida';
-//     if (event.event_date instanceof Date) {
-//       if (isNaN(event.event_date.getTime())) {
-//         return 'Fecha inválida';
-//       }
-//       return event.event_date.toISOString().substring(0, 10);
-//     }
-//     return String(event.event_date).substring(0, 10);
-//   };
+        lastEntry = null; // El par se ha completado, buscar una nueva entrada
+      }
+    }
 
-//   const eventsByEmployee = {};
-//   for (const event of events) {
-//     if (!eventsByEmployee[event.employee_number]) {
-//       eventsByEmployee[event.employee_number] = [];
-//     }
-//     eventsByEmployee[event.employee_number].push(event);
-//   }
+    // Al final del bucle, si queda una entrada sin salida
+    if (lastEntry !== null) {
+      anomalies.push({
+        type: "Entrada Final sin Salida",
+        employee_number: employee,
+        entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+        message: `La última entrada para ${employee} en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} no tuvo una salida emparejada en el rango de fechas.`,
+      });
+    }
+  }
 
-//   // Definición de umbrales para las anomalías de duración
-//   const SHORT_SHIFT_THRESHOLD_HOURS = 0.1; // Menos de 6 minutos, probablemente un error (Ej. Marcaje accidental)
-//   const NORMAL_SHIFT_MIN_HOURS = 8;
-//   const NORMAL_SHIFT_MAX_HOURS = 12; // Rango normal de turnos
-//   const MAX_SHIFT_CONSIDERED_VALID_HOURS = 20; // Un turno máximo que se consideraría válido para cálculo, aunque sea anómalo.
+  if (anomalies.length > 0) {
+    console.warn("Se encontraron anomalías en el registro de eventos:");
+    anomalies.forEach(anomaly => console.warn(anomaly));
+  }
 
-//   for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
-//     let lastEntry = null;
+  console.log("📊 DEBUG BACKEND: Resultado final de getWorkedHoursBetweenDates:");
+  console.log("   Worked Hours:", workedHours);
+  console.log("   Anomalies:", anomalies);
 
-//     for (let i = 0; i < empEvents.length; i++) {
-//       const currentEvent = empEvents[i];
+  return { workedHours, anomalies };
+}
 
-//       if (currentEvent.event_type === "0") { // ENTRADA
-//         if (lastEntry !== null) {
-//           anomalies.push({
-//             type: "Entrada Duplicada (Sin Salida Previa)",
-//             employee_number: employee,
-//             entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-//             message: `La entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} fue sobrescrita por una nueva entrada sin una salida intermedia.`,
-//           });
-//         }
-//         lastEntry = currentEvent;
 
-//       } else if (currentEvent.event_type === "1") { // SALIDA
-//         if (lastEntry !== null) {
-//           const entryDate = formatEventDateForMessage(lastEntry);
-//           const exitDate = formatEventDateForMessage(currentEvent);
 
-//           const entryTimestamp = new Date(`${entryDate}T${lastEntry.event_time}`);
-//           const exitTimestamp = new Date(`${exitDate}T${currentEvent.event_time}`);
-
-//           // Validación de fechas/horas inválidas
-//           if (isNaN(entryTimestamp.getTime()) || isNaN(exitTimestamp.getTime())) {
-//             anomalies.push({
-//               type: "Fecha/Hora Inválida",
-//               employee_number: employee,
-//               entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-//               exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-//               message: `Fechas/horas inválidas para el emparejamiento: Entrada ${entryDate} ${lastEntry.event_time}, Salida ${exitDate} ${currentEvent.event_time}.`,
-//             });
-//             lastEntry = null;
-//             continue;
-//           }
-
-//           // Validación: Salida anterior o igual a la entrada
-//           if (exitTimestamp <= entryTimestamp) {
-//             anomalies.push({
-//               type: "Salida Antes/Igual a Entrada",
-//               employee_number: employee,
-//               entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-//               exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-//               message: `Salida en ${exitDate} ${currentEvent.event_time} es anterior o igual a la entrada en ${entryDate} ${lastEntry.event_time}.`,
-//             });
-//             lastEntry = null;
-//             continue;
-//           }
-
-//           const diffMs = exitTimestamp - entryTimestamp;
-//           const hoursWorked = diffMs / (1000 * 60 * 60);
-
-//           let isAnomaly = false;
-//           let anomalyReason = null;
-
-//           // **CAMBIO APLICADO AQUÍ**
-//           if (hoursWorked < SHORT_SHIFT_THRESHOLD_HOURS) {
-//             isAnomaly = true;
-//             anomalyReason = "Turno Muy Corto";
-//             anomalies.push({
-//               type: anomalyReason,
-//               employee_number: employee,
-//               entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-//               exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-//               hours_worked: Math.round(hoursWorked * 100) / 100,
-//               message: `Turno de ${Math.round(hoursWorked * 100) / 100} horas (${entryDate} a ${exitDate}) es extremadamente corto.`,
-//             });
-//           } else if (hoursWorked > MAX_SHIFT_CONSIDERED_VALID_HOURS) {
-//             // Este caso descarta el turno de las horas trabajadas
-//             anomalies.push({
-//               type: "Turno Excesivamente Largo (Descartado)",
-//               employee_number: employee,
-//               entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-//               exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-//               hours_worked: Math.round(hoursWorked * 100) / 100,
-//               message: `Turno de ${Math.round(hoursWorked * 100) / 100} horas (${entryDate} a ${exitDate}) es demasiado largo y se considera un error de registro.`,
-//             });
-//             lastEntry = null;
-//             continue;
-//           } else if (hoursWorked < NORMAL_SHIFT_MIN_HOURS) {
-//             isAnomaly = true;
-//             anomalyReason = "Turno Demasiado Corto";
-//             anomalies.push({
-//               type: anomalyReason,
-//               employee_number: employee,
-//               entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-//               exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-//               hours_worked: Math.round(hoursWorked * 100) / 100,
-//               message: `Turno de ${Math.round(hoursWorked * 100) / 100} horas (${entryDate} a ${exitDate}) es inferior al mínimo de ${NORMAL_SHIFT_MIN_HOURS}h.`,
-//             });
-//           } else if (hoursWorked > NORMAL_SHIFT_MAX_HOURS) {
-//             isAnomaly = true;
-//             anomalyReason = "Turno Excesivo"; // Este es el único lugar donde se usa "Turno Excesivo"
-//             anomalies.push({
-//               type: anomalyReason,
-//               employee_number: employee,
-//               entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-//               exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-//               hours_worked: Math.round(hoursWorked * 100) / 100,
-//               message: `Turno de ${Math.round(hoursWorked * 100) / 100} horas (${entryDate} a ${exitDate}) excede el máximo de ${NORMAL_SHIFT_MAX_HOURS}h.`,
-//             });
-//           }
-//           // FIN DEL CAMBIO
-
-//           workedHours.push({
-//             employee_number: employee,
-//             entry_date: entryDate,
-//             entry_time: lastEntry.event_time,
-//             exit_date: exitDate,
-//             exit_time: currentEvent.event_time,
-//             hours_worked: Math.round(hoursWorked * 100) / 100,
-//             is_anomaly: isAnomaly,
-//             anomaly_reason: anomalyReason,
-//           });
-
-//           lastEntry = null;
-//         } else {
-//           anomalies.push({
-//             type: "Salida sin Entrada Previa",
-//             employee_number: employee,
-//             exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-//             message: `Salida en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} no tiene una entrada previa emparejable.`,
-//           });
-//         }
-//       }
-//     }
-
-//     if (lastEntry !== null) {
-//       anomalies.push({
-//         type: "Entrada Final sin Salida",
-//         employee_number: employee,
-//         entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-//         message: `La última entrada para ${employee} en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} no tuvo una salida.`,
-//       });
-//     }
-//   }
-
-//   if (anomalies.length > 0) {
-//     console.warn("Se encontraron anomalías en el registro de eventos:");
-//     anomalies.forEach(anomaly => console.warn(anomaly));
-//   }
-
-//   return { workedHours, anomalies };
-// }
 
 
 
