@@ -59,7 +59,7 @@ const HorarioModal = ({ colaborador, onClose }) => {
   const workedHours = useSelector(state => state.datEvents.workedHours || []);
   const anomalies = useSelector(state => state.datEvents.anomalies || []);
 
-  console.log("📍 HorarioModal: Renderizando con colaborador:", colaborador);
+  // console.log("📍 HorarioModal: Renderizando con colaborador:", colaborador);
 
   if (!colaborador) {
     console.log("❌ HorarioModal: Colaborador es nulo, no se renderiza el contenido.");
@@ -67,7 +67,7 @@ const HorarioModal = ({ colaborador, onClose }) => {
   }
 
   console.log("ℹ️ HorarioModal: Colaborador recibido para mostrar en la modal:", colaborador);
-  console.log("en pruebas id (colaborador.id):", colaborador.id);
+  // console.log("en pruebas id (colaborador.id):", colaborador.id);
   console.log("en pruebas numeroSemana:", colaborador.numeroSemana);
   console.log("en pruebas anioSemana:", colaborador.anioSemana);
   console.log("en pruebas semana (horario planificado):", colaborador.semana);
@@ -76,7 +76,7 @@ const HorarioModal = ({ colaborador, onClose }) => {
   console.log("📅 HorarioModal: Rango de fechas calculado:", rangoFechas);
 
   useEffect(() => {
-    console.log("🔄 HorarioModal: useEffect se ha ejecutado.");
+    // console.log("🔄 HorarioModal: useEffect se ha ejecutado.");
 
     if (colaborador && colaborador.id && colaborador.numeroSemana && colaborador.anioSemana &&
         rangoFechas.lunes && rangoFechas.domingo) {
@@ -85,7 +85,7 @@ const HorarioModal = ({ colaborador, onClose }) => {
         startDate: rangoFechas.lunes,
         endDate: rangoFechas.domingo,
       };
-      console.log("✅ HorarioModal: Condición de despacho cumplida. Despachando getWorkedHoursBetweenDates con payload:", payload);
+      // console.log("✅ HorarioModal: Condición de despacho cumplida. Despachando getWorkedHoursBetweenDates con payload:", payload);
       dispatch(getWorkedHoursBetweenDates(payload));
     } else {
       console.warn("⚠️ HorarioModal: No se despacha la acción. Faltan datos requeridos:", {
@@ -97,8 +97,11 @@ const HorarioModal = ({ colaborador, onClose }) => {
     }
   }, [colaborador, dispatch, rangoFechas.lunes, rangoFechas.domingo]);
 
+
+
   // --- LÓGICA PARA PROCESAR HORARIOS Y COMPARAR ---
   const processedWorkedHours = workedHours.map(event => {
+    // La línea siguiente ya usa 'T00:00:00', lo cual es bueno para obtener el día de la semana
     const eventDate = new Date(event.entry_date + 'T00:00:00');
     const dayOfWeek = (eventDate.getDay() + 6) % 7; // 0=Lunes, 1=Martes, ..., 6=Domingo
 
@@ -188,7 +191,7 @@ const HorarioModal = ({ colaborador, onClose }) => {
     };
   });
 
-  console.log("📊 Horarios procesados (con verificación de rango y tolerancias):", processedWorkedHours);
+  // console.log("📊 Horarios procesados (con verificación de rango y tolerancias):", processedWorkedHours);
 
   const diasSemana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -270,12 +273,14 @@ const HorarioModal = ({ colaborador, onClose }) => {
                   <div key={index} className="worked-entry">
                     <div className="entry-header">
                       <div className="entry-date">
-                        📅 {new Date(entry.entry_date).toLocaleDateString('es-ES', { 
-                          weekday: 'long', 
-                          year: 'numeric', 
-                          month: 'long', 
-                          day: 'numeric' 
+                        {/* INICIO DEL CAMBIO: Añadir 'T00:00:00' para asegurar la interpretación local */}
+                        📅 {new Date(entry.entry_date + 'T00:00:00').toLocaleDateString('es-ES', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
                         })}
+                        {/* FIN DEL CAMBIO */}
                       </div>
                       <div className="entry-hours">
                         {entry.hours_worked}h trabajadas

@@ -151,7 +151,8 @@ export const getWorkedHoursBetweenDates = createAsyncThunk(
         },
       });
 
-      console.log("Respuesta getWorkedHoursBetweenDates:", response.data);
+      // 
+      // onsole.log("Respuesta getWorkedHoursBetweenDates:", response.data);
       // Backend now returns { data: workedHours, anomalies: anomalies }
       return response.data;
     } catch (error) {
@@ -327,13 +328,13 @@ const datEventsSlice = createSlice({
 
       // NUEVO: getWorkedHoursBetweenDates
       .addCase(getWorkedHoursBetweenDates.pending, (state) => {
-        console.log("getWorkedHoursBetweenDates pending");
+        // console.log("getWorkedHoursBetweenDates pending");
         state.status = "loading";
         state.error = null;
         state.anomalies = []; // Clear previous anomalies when starting a new fetch
       })
       .addCase(getWorkedHoursBetweenDates.fulfilled, (state, action) => {
-        console.log("getWorkedHoursBetweenDates fulfilled:", action.payload);
+        // console.log("getWorkedHoursBetweenDates fulfilled:", action.payload);
         state.status = "succeeded";
         // Now, action.payload will be { data: workedHours, anomalies: anomalies }
         // Access them correctly
@@ -351,7 +352,7 @@ const datEventsSlice = createSlice({
       })
       // downloadWorkedHoursCSV
       .addCase(downloadWorkedHoursCSV.pending, (state) => {
-        console.log("downloadWorkedHoursCSV pending");
+        // console.log("downloadWorkedHoursCSV pending");
         state.status = "loading";
         state.error = null;
       })

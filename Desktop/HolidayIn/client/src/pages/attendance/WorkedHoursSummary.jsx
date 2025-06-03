@@ -17,26 +17,40 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
     }
   }, [employeeNumber, from, to, dispatch]);
 
-  // Modificamos esta función para devolver un objeto con el icono y la fecha
+  // esta función para devolver un objeto con el icono y la fecha
   const getDiaConLetraIconoYFecha = (fechaStr) => {
-    if (!fechaStr) return { icon: "N/A", date: "" };
+    if (!fechaStr) {
+      return { icon: <strong className="icono-dia">N/A</strong>, date: "", dayLetter: "N/A" };
+    }
 
+    // Asegurarse de que sea una cadena, en caso de que venga como objeto Date (ej. de MySQL)
     const dateOnlyString = String(fechaStr).substring(0, 10);
 
     const letras = ["D", "L", "M", "Mi", "J", "V", "S"];
     const clases = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
 
+    // Crear la fecha, importante incluir una hora para evitar problemas de zona horaria que puedan
+    // mover la fecha al día anterior si solo se usa 'YYYY-MM-DD' y la zona horaria es diferente.
     const fecha = new Date(`${dateOnlyString}T12:00:00`);
 
     if (isNaN(fecha.getTime())) {
-      return { icon: "Fecha inválida", date: dateOnlyString };
+      // Para fechas inválidas, devolver un objeto consistente
+      return { icon: <strong className="icono-dia">Inv</strong>, date: "Fecha inválida", dayLetter: "Inv" };
     }
 
     const letraDia = letras[fecha.getDay()];
     const claseDia = clases[fecha.getDay()];
+
+    // Formatear la fecha a DD-MM-YYYY
+    const day = fecha.getDate().toString().padStart(2, '0');
+    const month = (fecha.getMonth() + 1).toString().padStart(2, '0'); // getMonth() es 0-indexed
+    const year = fecha.getFullYear();
+    const formattedDate = `${day}-${month}-${year}`; // <-- ¡Aquí está el cambio a DD-MM-YYYY!
+
     return {
-      icon: <strong className={`icono-dia ${claseDia}`}>{letraDia}</strong>,
-      date: dateOnlyString,
+      icon: <strong className={`icono-dia ${claseDia}`}>{letraDia}</strong>, // El elemento React para el icono
+      date: formattedDate, // La fecha en formato DD-MM-YYYY
+      dayLetter: letraDia // La letra del día de la semana (texto puro)
     };
   };
 
@@ -99,7 +113,8 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
                     <td className="date-column">{exitDateInfo.date}</td> {/* Fecha de salida */}
                     <td>{item.exit_time}</td>
                     <td>{item.hours_worked ? item.hours_worked.toFixed(2) : "-"}</td>
-                    <td>{item.is_anomaly ? <span className="text-warning">Turno Excesivo</span> : "Normal"}</td>
+                    {/* CAMBIO CLAVE AQUÍ: Usar item.anomaly_reason */}
+                    <td>{item.is_anomaly ? <span className="text-warning">{item.anomaly_reason}</span> : "Normal"}</td>
                   </tr>
                 );
               })}
@@ -114,15 +129,41 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
           <p className="anomalies-intro">Se encontraron inconsistencias en los registros que no pudieron ser procesados como turnos válidos o que superan los límites. Por favor, revise los detalles a continuación:</p>
           <ul className="anomaly-list">
             {sortedAnomalies.map((anomaly, index) => {
-              const anomalyEntryDateInfo = getDiaConLetraIconoYFecha(anomaly.entry_event?.event_date);
-              const anomalyExitDateInfo = getDiaConLetraIconoYFecha(anomaly.exit_event?.event_date);
+              const anomalyEntryDateInfo = anomaly.entry_event
+                ? getDiaConLetraIconoYFecha(anomaly.entry_event.event_date)
+                : null;
+              const anomalyExitDateInfo = anomaly.exit_event
+                ? getDiaConLetraIconoYFecha(anomaly.exit_event.event_date)
+                : null;
+
+              const entryTime = anomaly.entry_event ? anomaly.entry_event.event_time : '';
+              const exitTime = anomaly.exit_event ? anomaly.exit_event.event_time : '';
+
+              let displayMessage = anomaly.message; // Inicialmente, usa el mensaje del backend
+
+              // *** APLICAR FORMATO DD-MM-YYYY Y LA LETRA DEL DÍA AL MENSAJE DE LA ANOMALÍA ***
+              if (anomaly.type === 'Entrada Duplicada (Sin Salida Previa)' && anomaly.entry_event) {
+                displayMessage = `La entrada previa en ${anomalyEntryDateInfo.dayLetter} ${anomalyEntryDateInfo.date} ${entryTime} fue sobrescrita por una nueva entrada sin una salida intermedia.`;
+              } else if (anomaly.type === 'Salida sin Entrada Previa' && anomaly.exit_event) {
+                displayMessage = `Salida en ${anomalyExitDateInfo.dayLetter} ${anomalyExitDateInfo.date} ${exitTime} no tiene una entrada previa emparejable.`;
+              } else if (anomaly.type === 'Entrada Final sin Salida' && anomaly.entry_event) {
+                displayMessage = `La última entrada para ${anomaly.employee_number} en ${anomalyEntryDateInfo.dayLetter} ${anomalyEntryDateInfo.date} ${entryTime} no tuvo una salida.`;
+              } else if (anomaly.hours_worked !== undefined && anomaly.entry_event && anomaly.exit_event) {
+                // Para Turno Muy Corto, Turno Demasiado Corto, Turno Excesivo, etc.
+                // Intentar extraer la parte final del mensaje original si existe
+                const originalMessagePart = anomaly.message.split('horas (')[1] || '';
+                displayMessage = `${anomaly.type} de ${anomaly.hours_worked.toFixed(2)} horas (${anomalyEntryDateInfo.dayLetter} ${anomalyEntryDateInfo.date} ${entryTime} a ${anomalyExitDateInfo.dayLetter} ${anomalyExitDateInfo.date} ${exitTime}) ${originalMessagePart}`;
+              }
+              // Si hay otros tipos de anomalías que no encajan en estas categorías y necesitan formateo,
+              // puedes añadir más `else if` aquí.
+
               return (
                 <li key={index} className="anomaly-item">
                   <div className="anomaly-header">
                     <strong>Tipo de Anomalía:</strong> <span className="anomaly-type">{anomaly.type}</span>
                     <strong>Empleado:</strong> <span className="anomaly-employee">{anomaly.employee_number}</span>
                   </div>
-                  <p className="anomaly-message">{anomaly.message}</p>
+                  <p className="anomaly-message">{displayMessage}</p> {/* Usar el mensaje formateado */}
                   <div className="anomaly-details">
                     {anomaly.entry_event && (
                       <span className="anomaly-event-detail">
@@ -138,7 +179,7 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
                         <span className="date-column">{anomalyExitDateInfo.date}</span> {anomaly.exit_event.event_time}
                       </span>
                     )}
-                    {anomaly.hours_worked && (
+                    {anomaly.hours_worked !== undefined && (
                       <span className="anomaly-hours-detail">
                         <span className="event-label">Horas Anómalas:</span> {anomaly.hours_worked.toFixed(2)}
                       </span>
