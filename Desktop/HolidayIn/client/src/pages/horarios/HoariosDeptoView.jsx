@@ -130,13 +130,30 @@ const HorariosDeptoView = () => {
         </select>
 
         <label htmlFor="numeroSemana">Número de Semana:</label>
-        <input
+          <input
           type="text"
           id="numeroSemana"
           value={currentNumeroSemana}
-          onChange={(e) => setCurrentNumeroSemana(e.target.value)}
+          onChange={(e) => {
+            const inputValue = e.target.value;
+            // Usamos una expresión regular para permitir solo dígitos
+            const numericValue = inputValue.replace(/[^0-9]/g, '');
+
+            // Convertimos a número para la validación, pero lo guardamos como string si es válido
+            const numberToCheck = parseInt(numericValue, 10);
+
+            if (numericValue === "") {
+              // Permite que el campo esté vacío
+              setCurrentNumeroSemana("");
+            } else if (!isNaN(numberToCheck) && numberToCheck >= 1 && numberToCheck <= 52) {
+              // Si es un número válido en el rango, lo guardamos como string
+              setCurrentNumeroSemana(numericValue);
+            }
+            // Si no es un número válido o está fuera del rango, no actualizamos el estado.
+            // Esto significa que el input visualmente no mostrará valores inválidos.
+          }}
           placeholder="Ej: 23"
-        />
+          />
         <button onClick={handleSearch}>Buscar</button>
       </div>
 

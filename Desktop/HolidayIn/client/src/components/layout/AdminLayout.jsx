@@ -38,7 +38,7 @@ export default function AdminLayout() {
     },
     // --- NUEVA RUTA PARA CARGA DE ARCHIVO .DAT ---
     {
-      name: "Cargar Archivo .DAT", // Nombre que aparecerá en el menú
+      name: "Cargar entradas Archivo .DAT", // Nombre que aparecerá en el menú
       href: "/admin/uploadDat", // La ruta a la que navegará
       icon: (
         <svg className="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
