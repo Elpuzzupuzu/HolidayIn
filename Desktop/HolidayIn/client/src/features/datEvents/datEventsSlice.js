@@ -60,8 +60,6 @@ export const getWorkedHours = createAsyncThunk(
 
 
 
-
-
 // funciona para filtrar por rango de fechas
 export const getWorkedHoursByDateRange = createAsyncThunk(
   "datEvents/getWorkedHoursByDateRange",
@@ -166,6 +164,42 @@ export const getWorkedHoursBetweenDates = createAsyncThunk(
 );
 
 // NUEVO THUNK: descarga CSV de horas trabajadas entre fechas
+// export const downloadWorkedHoursCSV = createAsyncThunk(
+//   "datEvents/downloadWorkedHoursCSV",
+//   async ({ startDate, endDate, employeeNumber = null }, thunkAPI) => {
+//     try {
+//       if (!startDate || !endDate) {
+//         return thunkAPI.rejectWithValue({ error: "Los parámetros startDate y endDate son obligatorios." });
+//       }
+
+//       const response = await axios.get(`${API_URL}/datEvents/worked-hours/csv`, {
+//         params: {
+//           startDate,
+//           endDate,
+//           employeeNumber,
+//         },
+//         responseType: 'blob', // Necesario para recibir archivos
+//       });
+
+//       // Crear enlace para descarga
+//       const url = window.URL.createObjectURL(new Blob([response.data]));
+//       const link = document.createElement("a");
+//       link.href = url;
+//       link.setAttribute("download", `horas_trabajadas_${employeeNumber || 'general'}_${startDate}_${endDate}.csv`);
+//       document.body.appendChild(link);
+//       link.click();
+//       link.remove();
+
+//       return true; // o null si no necesitas payload
+
+//     } catch (error) {
+//       console.error("Error en downloadWorkedHoursCSV:", error.response?.data || error.message);
+//       return thunkAPI.rejectWithValue(
+//         error.response?.data || { error: "Error al descargar el archivo CSV" }
+//       );
+//     }
+//   }
+// );
 export const downloadWorkedHoursCSV = createAsyncThunk(
   "datEvents/downloadWorkedHoursCSV",
   async ({ startDate, endDate, employeeNumber = null }, thunkAPI) => {
@@ -180,29 +214,67 @@ export const downloadWorkedHoursCSV = createAsyncThunk(
           endDate,
           employeeNumber,
         },
-        responseType: 'blob', // Necesario para recibir archivos
+        responseType: 'blob', // Crucial para recibir la respuesta como Blob
       });
 
-      // Crear enlace para descarga
+      // --- Verificación del tipo de contenido ---
+      // Si el backend envía un error como JSON con un Blob, el tipo MIME podría ser 'application/json'
+      // o incluso si el backend no lo configura bien, podría ser inferido incorrectamente.
+      // Axios ya maneja si el response.data es un Blob por responseType: 'blob'.
+      // La clave es el tipo MIME del Blob mismo.
+
+      if (response.data.type === 'application/json') {
+        // Si el Blob es de tipo JSON, intenta leerlo como texto para ver el mensaje de error
+        const errorText = await response.data.text();
+        let errorMessage = "Error desconocido al descargar el archivo CSV.";
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorJson.error || errorMessage;
+        } catch (parseError) {
+          // Si no es un JSON válido, usa el texto directamente
+          errorMessage = errorText || errorMessage;
+        }
+        console.error("Error en downloadWorkedHoursCSV: El backend devolvió un JSON en lugar de CSV.", errorMessage);
+        return thunkAPI.rejectWithValue({ error: errorMessage });
+      }
+
+      // Si llegamos aquí, asumimos que es un Blob CSV válido
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", `horas_trabajadas_${employeeNumber || 'general'}_${startDate}_${endDate}.csv`);
       document.body.appendChild(link);
       link.click();
-      link.remove();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url); // Importante para liberar memoria
 
-      return true; // o null si no necesitas payload
-
+      return { success: true }; // Indica que la descarga fue exitosa
     } catch (error) {
-      console.error("Error en downloadWorkedHoursCSV:", error.response?.data || error.message);
-      return thunkAPI.rejectWithValue(
-        error.response?.data || { error: "Error al descargar el archivo CSV" }
-      );
+      console.error("Error en downloadWorkedHoursCSV:", error); // Log del error original
+      // Si el error tiene una respuesta y es un Blob, podemos intentar leerlo también
+      if (error.response && error.response.data instanceof Blob) {
+        try {
+          const errorText = await error.response.data.text();
+          let errorMessage = "Error desconocido al descargar el archivo CSV.";
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.message || errorJson.error || errorMessage;
+          } catch (parseError) {
+            errorMessage = errorText || errorMessage;
+          }
+          console.error("Detalle del error del backend (desde Blob):", errorMessage);
+          return thunkAPI.rejectWithValue({ error: errorMessage });
+        } catch (readBlobError) {
+          // Fallback si no se puede leer el Blob del error
+          return thunkAPI.rejectWithValue({ error: error.message || "Error al descargar el archivo CSV (problema al leer Blob de error)." });
+        }
+      } else {
+        // Errores de red o de otro tipo
+        return thunkAPI.rejectWithValue({ error: error.message || "Error al descargar el archivo CSV." });
+      }
     }
   }
 );
-
 
 
 

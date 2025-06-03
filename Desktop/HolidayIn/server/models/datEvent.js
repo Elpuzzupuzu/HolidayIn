@@ -242,10 +242,6 @@ static async getWorkedHoursPerDay(page = 1, limit = 10) {
 /// esto busca por departamento y filtra por un rango de fechas A
 
 
-
-
-
-
 static async getTotalWorkedHoursByDepartment(department_id, from, to) {
   if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
   const connection = await supabase.getConnection();
@@ -436,86 +432,8 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
 
 
 
-
-
-
 ///// revisando ////
 
-
-// static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
-//   if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
-
-//   try {
-//     // console.log(`[MONITOR] Buscando eventos para el empleado: ${employee_number} desde: ${from} hasta: ${to}`);
-//     const [rows] = await supabase.query(
-//       `
-//       SELECT *
-//       FROM dat_events
-//       WHERE employee_number = ?
-//         AND event_date BETWEEN ? AND ?
-//       ORDER BY event_date ASC, event_time ASC
-//       `,
-//       [employee_number, from, to]
-//     );
-
-//     // console.log(`[MONITOR] Eventos encontrados: ${rows.length}`);
-
-//     if (!rows.length) {
-//       // console.log(`[MONITOR] No se encontraron eventos para el empleado ${employee_number} en el rango de fechas. Total de horas: 0`);
-//       return { employee_number, from, to, total_hours: 0 };
-//     }
-
-//     let totalHours = 0;
-//     // console.log("[MONITOR] Iniciando cálculo de horas...");
-
-//     for (let i = 0; i < rows.length - 1; i++) {
-//       const curr = rows[i];
-//       const next = rows[i + 1];
-
-    
-
-//       if (curr.event_type === "0" && next.event_type === "1") {
-//         // --- CAMBIO CLAVE AQUÍ ---
-//         // Asegúrate de que event_date sea un string en formato YYYY-MM-DD
-//         // Si curr.event_date ya es un objeto Date, usa .toISOString().split('T')[0]
-//         const currDateStr = curr.event_date instanceof Date ? curr.event_date.toISOString().split('T')[0] : curr.event_date;
-//         const nextDateStr = next.event_date instanceof Date ? next.event_date.toISOString().split('T')[0] : next.event_date;
-
-//         const start = new Date(`${currDateStr}T${curr.event_time}`);
-//         const end = new Date(`${nextDateStr}T${next.event_time}`);
-//         // --- FIN DEL CAMBIO CLAVE ---
-
-//         const diffHours = (end - start) / 3600000; // 3600000 milisegundos en una hora
-
-//         console.log(`[MONITOR] Par de entrada/salida encontrado:`);
-//         console.log(`[MONITOR]   Entrada: ${start.toLocaleString()}`);
-//         console.log(`[MONITOR]   Salida: ${end.toLocaleString()}`);
-//         console.log(`[MONITOR]   Horas calculadas para este par: ${diffHours.toFixed(2)}`);
-
-//         totalHours += diffHours;
-//         // console.log(`[MONITOR]   Total de horas acumuladas hasta ahora: ${totalHours.toFixed(2)}`);
-//         i++; // Saltar el siguiente evento, ya emparejado
-//       } else {
-//         // console.log(`[MONITOR] Saltando par de eventos no válido (curr.event_type: ${curr.event_type}, next.event_type: ${next.event_type})`);
-//       }
-//     }
-
-//     const roundedTotalHours = Math.round(totalHours * 100) / 100;
-//     // console.log(`[MONITOR] Cálculo de horas finalizado. Total de horas brutas: ${totalHours.toFixed(2)}`);
-//     // console.log(`[MONITOR] Total de horas redondeadas: ${roundedTotalHours}`);
-
-
-//     return {
-//       employee_number,
-//       from,
-//       to,
-//       total_hours: roundedTotalHours,
-//     };
-//   } catch (error) {
-//     // console.error(`[ERROR] Error al obtener eventos del empleado ${employee_number}: ${error.message}`);
-//     throw new Error(`Error al obtener eventos del empleado: ${error.message}`);
-//   }
-// }
 
 static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
   if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
@@ -871,8 +789,93 @@ static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = nul
 
 
 
+// static async getWorkedHoursBetweenDatesCSV(startDate, endDate, employeeNumber = null) {
+//   if (!startDate || !endDate) {
+//     throw new Error("Debe proporcionar ambas fechas: startDate y endDate.");
+//   }
 
+//   try {
+//     let query = `
+//       SELECT *
+//       FROM dat_events
+//       WHERE event_date BETWEEN ? AND ?
+//     `;
+//     const params = [startDate, endDate];
 
+//     // Aplicar filtro por empleado si se proporciona
+//     if (employeeNumber) {
+//       query += ` AND employee_number = ?`;
+//       params.push(employeeNumber);
+//     }
+
+//     query += `
+//       ORDER BY employee_number ASC, event_date ASC, event_time ASC;
+//     `;
+
+//     // Ejecutar la consulta. Asumimos que 'supabase' es tu pool de conexión MySQL
+//     // y que su método 'query' devuelve un array de filas (o similar) y maneja errores.
+//     const [events] = await supabase.query(query, params);
+
+//     // console.log("Eventos obtenidos de MySQL:", events); // Para depuración
+
+//     if (!events.length) {
+//       return []; // No se encontraron eventos, devuelve un array vacío
+//     }
+
+//     const workedHours = [];
+
+//     // Agrupar eventos por empleado
+//     const eventsByEmployee = {};
+//     for (const event of events) {
+//       if (!eventsByEmployee[event.employee_number]) {
+//         eventsByEmployee[event.employee_number] = [];
+//       }
+//       eventsByEmployee[event.employee_number].push(event);
+//     }
+
+//     // Emparejar entrada y salida para cada empleado
+//     for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
+//       for (let i = 0; i < empEvents.length - 1; i++) {
+//         const current = empEvents[i];
+//         const next = empEvents[i + 1];
+
+//         if (current.event_type === "0" && next.event_type === "1") {
+//           // MySQL debería devolver event_date como una cadena 'YYYY-MM-DD'
+//           // o un objeto Date. La lógica actual maneja ambos casos.
+//           const entryDateStr = current.event_date instanceof Date ? current.event_date.toISOString().split('T')[0] : current.event_date;
+//           const exitDateStr = next.event_date instanceof Date ? next.event_date.toISOString().split('T')[0] : next.event_date;
+
+//           const entryTime = current.event_time;
+//           const exitTime = next.event_time;
+
+//           const entryTimestamp = new Date(`${entryDateStr}T${entryTime}`);
+//           const exitTimestamp = new Date(`${exitDateStr}T${exitTime}`);
+
+//           const diffMs = exitTimestamp - entryTimestamp;
+//           const hoursWorked = diffMs / (1000 * 60 * 60); // horas
+
+//           workedHours.push({
+//             numero_empleado: employee,
+//             fecha_entrada: entryDateStr,
+//             hora_entrada: entryTime,
+//             fecha_salida: exitDateStr,
+//             hora_salida: exitTime,
+//             horas_trabajadas: Math.round(hoursWorked * 100) / 100,
+//           });
+
+//           i++; // saltar siguiente evento ya emparejado
+//         }
+//       }
+//     }
+
+//     return workedHours;
+
+//   } catch (error) {
+//     // Es crucial registrar el error para depuración en el servidor
+//     console.error(`Error en getWorkedHoursBetweenDatesCSV (MySQL): ${error.message}`);
+//     throw new Error(`Error al obtener datos para CSV: ${error.message}`);
+//   }
+// }
 
 
 static async getWorkedHoursBetweenDatesCSV(startDate, endDate, employeeNumber = null) {
@@ -882,13 +885,12 @@ static async getWorkedHoursBetweenDatesCSV(startDate, endDate, employeeNumber = 
 
   try {
     let query = `
-      SELECT *
+      SELECT employee_number, event_date, event_time
       FROM dat_events
       WHERE event_date BETWEEN ? AND ?
     `;
     const params = [startDate, endDate];
 
-    // Aplicar filtro por empleado si se proporciona
     if (employeeNumber) {
       query += ` AND employee_number = ?`;
       params.push(employeeNumber);
@@ -898,19 +900,29 @@ static async getWorkedHoursBetweenDatesCSV(startDate, endDate, employeeNumber = 
       ORDER BY employee_number ASC, event_date ASC, event_time ASC;
     `;
 
-    // Ejecutar la consulta. Asumimos que 'supabase' es tu pool de conexión MySQL
-    // y que su método 'query' devuelve un array de filas (o similar) y maneja errores.
     const [events] = await supabase.query(query, params);
 
-    // console.log("Eventos obtenidos de MySQL:", events); // Para depuración
-
     if (!events.length) {
-      return []; // No se encontraron eventos, devuelve un array vacío
+      return [];
     }
 
-    const workedHours = [];
+    const workedHoursForCSV = [];
+    const anomalies = []; // Still useful for internal logging/debugging
 
-    // Agrupar eventos por empleado
+    const SHORT_SHIFT_THRESHOLD_HOURS = 0.1;
+    const MAX_ALLOWED_SHIFT_HOURS = 24;
+
+    const formatEventDateForMessage = (event) => {
+      if (!event || !event.event_date) return 'Fecha desconocida';
+      if (event.event_date instanceof Date) {
+        if (isNaN(event.event_date.getTime())) {
+          return 'Fecha inválida';
+        }
+        return event.event_date.toISOString().substring(0, 10);
+      }
+      return String(event.event_date).substring(0, 10);
+    };
+
     const eventsByEmployee = {};
     for (const event of events) {
       if (!eventsByEmployee[event.employee_number]) {
@@ -919,46 +931,119 @@ static async getWorkedHoursBetweenDatesCSV(startDate, endDate, employeeNumber = 
       eventsByEmployee[event.employee_number].push(event);
     }
 
-    // Emparejar entrada y salida para cada empleado
     for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
-      for (let i = 0; i < empEvents.length - 1; i++) {
-        const current = empEvents[i];
-        const next = empEvents[i + 1];
+      let lastEntry = null;
 
-        if (current.event_type === "0" && next.event_type === "1") {
-          // MySQL debería devolver event_date como una cadena 'YYYY-MM-DD'
-          // o un objeto Date. La lógica actual maneja ambos casos.
-          const entryDateStr = current.event_date instanceof Date ? current.event_date.toISOString().split('T')[0] : current.event_date;
-          const exitDateStr = next.event_date instanceof Date ? next.event_date.toISOString().split('T')[0] : next.event_date;
+      for (let i = 0; i < empEvents.length; i++) {
+        const currentEvent = empEvents[i];
+        const currentEventDate = currentEvent.event_date instanceof Date ? currentEvent.event_date : new Date(currentEvent.event_date);
+        const eventTimestamp = new Date(`${currentEventDate.toISOString().slice(0, 10)}T${currentEvent.event_time}`);
 
-          const entryTime = current.event_time;
-          const exitTime = next.event_time;
-
-          const entryTimestamp = new Date(`${entryDateStr}T${entryTime}`);
-          const exitTimestamp = new Date(`${exitDateStr}T${exitTime}`);
-
-          const diffMs = exitTimestamp - entryTimestamp;
-          const hoursWorked = diffMs / (1000 * 60 * 60); // horas
-
-          workedHours.push({
-            numero_empleado: employee,
-            fecha_entrada: entryDateStr,
-            hora_entrada: entryTime,
-            fecha_salida: exitDateStr,
-            hora_salida: exitTime,
-            horas_trabajadas: Math.round(hoursWorked * 100) / 100,
+        if (isNaN(eventTimestamp.getTime())) {
+          anomalies.push({
+            type: "Evento con Fecha/Hora Inválida",
+            employee_number: employee,
+            event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+            message: `Evento en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} tiene fecha/hora inválida.`,
           });
-
-          i++; // saltar siguiente evento ya emparejado
+          continue;
         }
+
+        if (lastEntry === null) {
+          lastEntry = currentEvent;
+        } else {
+          const entryDate = lastEntry.event_date instanceof Date ? lastEntry.event_date : new Date(lastEntry.event_date);
+          const entryTimestamp = new Date(`${entryDate.toISOString().slice(0, 10)}T${lastEntry.event_time}`);
+
+          if (isNaN(entryTimestamp.getTime())) {
+             anomalies.push({
+                type: "Entrada Previa con Fecha/Hora Inválida",
+                employee_number: employee,
+                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+                message: `La entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} tiene fecha/hora inválida. Se buscará una nueva entrada.`,
+            });
+            lastEntry = null;
+            lastEntry = currentEvent;
+            continue;
+          }
+
+          // >>>>> ESTA ES LA SECCIÓN QUE FALTÓ DEFINIR <<<<<
+          const exitDate = currentEvent.event_date instanceof Date ? currentEvent.event_date : new Date(currentEvent.event_date);
+          const exitTimestamp = new Date(`${exitDate.toISOString().slice(0, 10)}T${currentEvent.event_time}`);
+          // >>>>> FIN DE LA SECCIÓN QUE FALTÓ DEFINIR <<<<<
+
+
+          if (eventTimestamp <= entryTimestamp) {
+            anomalies.push({
+              type: "Evento Fuera de Secuencia (Posible Entrada Duplicada o Salida Retroactiva)",
+              employee_number: employee,
+              entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+              current_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+              message: `El evento en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} es anterior o igual a la entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time}. Se asumirá que esta entrada previa fue sobrescrita.`,
+            });
+            lastEntry = currentEvent;
+            continue;
+          }
+
+          const diffMs = exitTimestamp - entryTimestamp; // Ahora exitTimestamp estará definido aquí
+          let hoursWorked = diffMs / (1000 * 60 * 60);
+          hoursWorked = Math.round(hoursWorked * 100) / 100;
+
+          if (hoursWorked > MAX_ALLOWED_SHIFT_HOURS) {
+            anomalies.push({
+              type: "Turno Excede 24 Horas (Descartado)",
+              employee_number: employee,
+              entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+              exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+              hours_worked: hoursWorked,
+              message: `Turno de ${hoursWorked} horas (de ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} a ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time}) excede el límite de ${MAX_ALLOWED_SHIFT_HOURS} horas.`,
+            });
+            lastEntry = currentEvent;
+            continue;
+          }
+
+          if (hoursWorked >= SHORT_SHIFT_THRESHOLD_HOURS) {
+            workedHoursForCSV.push({
+              numero_empleado: employee,
+              fecha_entrada: formatEventDateForMessage(lastEntry),
+              hora_entrada: lastEntry.event_time,
+              fecha_salida: formatEventDateForMessage(currentEvent),
+              hora_salida: currentEvent.event_time,
+              horas_trabajadas: hoursWorked,
+            });
+          } else {
+             anomalies.push({
+                type: "Turno Demasiado Corto (No Contabilizado)",
+                employee_number: employee,
+                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+                exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+                hours_worked: hoursWorked,
+                message: `Turno de ${hoursWorked} horas es extremadamente corto (< ${SHORT_SHIFT_THRESHOLD_HOURS}h) y no se contabiliza.`,
+              });
+          }
+
+          lastEntry = null; // Pair completed, look for a new entry
+        }
+      }
+
+      if (lastEntry !== null) {
+        anomalies.push({
+          type: "Entrada Final sin Salida en Rango",
+          employee_number: employee,
+          entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+          message: `La última entrada para ${employee} en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} no tuvo una salida emparejada.`,
+        });
       }
     }
 
-    return workedHours;
+    if (anomalies.length > 0) {
+        console.warn("Anomalías detectadas durante la generación del CSV (servicio):", anomalies);
+    }
+
+    return workedHoursForCSV;
 
   } catch (error) {
-    // Es crucial registrar el error para depuración en el servidor
-    console.error(`Error en getWorkedHoursBetweenDatesCSV (MySQL): ${error.message}`);
+    // Es crucial lanzar un error aquí para que el controller lo capture
     throw new Error(`Error al obtener datos para CSV: ${error.message}`);
   }
 }

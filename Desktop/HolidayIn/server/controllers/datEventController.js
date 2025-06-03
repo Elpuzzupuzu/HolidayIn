@@ -190,6 +190,53 @@ static async getWorkedHoursBetweenDates(req, res) {
 ///
 
 
+// static async getWorkedHoursBetweenDatesCSV(req, res) {
+//   try {
+//     const { startDate, endDate, employeeNumber } = req.query;
+
+//     if (!startDate || !endDate) {
+//       return res.status(400).json({ error: "Se requieren las fechas startDate y endDate." });
+//     }
+
+//     const start = new Date(startDate);
+//     const end = new Date(endDate);
+//     if (isNaN(start) || isNaN(end)) {
+//       return res.status(400).json({ error: "Las fechas proporcionadas no tienen un formato válido." });
+//     }
+
+//     if (start > end) {
+//       return res.status(400).json({ error: "La fecha de inicio no puede ser mayor que la fecha final." });
+//     }
+
+//     const empNumber = employeeNumber ? String(employeeNumber).trim() : null;
+
+//     const result = await DatEvent.getWorkedHoursBetweenDatesCSV(startDate, endDate, empNumber);
+
+//     // Definir campos con los nombres en español (deben coincidir con las propiedades del objeto)
+//     const fields = [
+//       { label: 'Numero de empleado', value: 'numero_empleado' },
+//       { label: 'Fecha de entrada', value: 'fecha_entrada' },
+//       { label: 'Hora de entrada', value: 'hora_entrada' },
+//       { label: 'Fecha de salida', value: 'fecha_salida' },
+//       { label: 'Hora de salida', value: 'hora_salida' },
+//       { label: 'Horas trabajadas', value: 'horas_trabajadas' },
+//     ];
+
+//     const json2csvParser = new Parser({ fields });
+//     const csv = json2csvParser.parse(result);
+
+//     // Enviar el archivo CSV como descarga
+//     res.header('Content-Type', 'text/csv');
+//     res.attachment('horas_trabajadas.csv');
+//     return res.send(csv);
+
+//   } catch (error) {
+//     console.error("Error en getWorkedHoursBetweenDatesCSV:", error.message);
+//     return res.status(500).json({ error: "Error al obtener las horas trabajadas." });
+//   }
+// }
+
+
 static async getWorkedHoursBetweenDatesCSV(req, res) {
   try {
     const { startDate, endDate, employeeNumber } = req.query;
@@ -200,7 +247,7 @@ static async getWorkedHoursBetweenDatesCSV(req, res) {
 
     const start = new Date(startDate);
     const end = new Date(endDate);
-    if (isNaN(start) || isNaN(end)) {
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) { // Usar .getTime() para una validación más robusta de Date
       return res.status(400).json({ error: "Las fechas proporcionadas no tienen un formato válido." });
     }
 
@@ -210,6 +257,8 @@ static async getWorkedHoursBetweenDatesCSV(req, res) {
 
     const empNumber = employeeNumber ? String(employeeNumber).trim() : null;
 
+    // Llama a la función del servicio que ya está actualizada
+    // Esta función devuelve un array de objetos con las horas trabajadas
     const result = await DatEvent.getWorkedHoursBetweenDatesCSV(startDate, endDate, empNumber);
 
     // Definir campos con los nombres en español (deben coincidir con las propiedades del objeto)
@@ -223,19 +272,28 @@ static async getWorkedHoursBetweenDatesCSV(req, res) {
     ];
 
     const json2csvParser = new Parser({ fields });
-    const csv = json2csvParser.parse(result);
+    let csv = '';
+
+    if (result && result.length > 0) {
+      csv = json2csvParser.parse(result);
+    } else {
+      // Si no hay resultados, generar un CSV con solo los encabezados.
+      // Esto asegura que siempre se envíe un CSV, incluso si está vacío.
+      csv = fields.map(f => f.label).join(',');
+    }
 
     // Enviar el archivo CSV como descarga
-    res.header('Content-Type', 'text/csv');
-    res.attachment('horas_trabajadas.csv');
+    res.header('Content-Type', 'text/csv; charset=utf-8'); // Añadir charset para mayor compatibilidad
+    res.attachment(`horas_trabajadas_${empNumber || 'general'}_${startDate}_${endDate}.csv`); // Nombre de archivo más descriptivo
     return res.send(csv);
 
   } catch (error) {
-    console.error("Error en getWorkedHoursBetweenDatesCSV:", error.message);
-    return res.status(500).json({ error: "Error al obtener las horas trabajadas." });
+    console.error("Error en getWorkedHoursBetweenDatesCSV (controller):", error.message, error.stack); // Incluir stack para mejor depuración
+    // IMPORTANTE: Enviar un JSON de error si algo sale mal.
+    // Esto es lo que el frontend con responseType: 'blob' interpretaría como Blob de tipo JSON.
+    return res.status(500).json({ error: "Error interno del servidor al generar el CSV.", details: error.message });
   }
 }
-
 
 
 
