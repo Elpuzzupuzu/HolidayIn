@@ -235,14 +235,88 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
 ///// revisando ////
 
 
+// static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
+//   if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
+
+//   try {
+//     // console.log(`[MONITOR] Buscando eventos para el empleado: ${employee_number} desde: ${from} hasta: ${to}`);
+//     const [rows] = await supabase.query(
+//       `
+//       SELECT *
+//       FROM dat_events
+//       WHERE employee_number = ?
+//         AND event_date BETWEEN ? AND ?
+//       ORDER BY event_date ASC, event_time ASC
+//       `,
+//       [employee_number, from, to]
+//     );
+
+//     // console.log(`[MONITOR] Eventos encontrados: ${rows.length}`);
+
+//     if (!rows.length) {
+//       // console.log(`[MONITOR] No se encontraron eventos para el empleado ${employee_number} en el rango de fechas. Total de horas: 0`);
+//       return { employee_number, from, to, total_hours: 0 };
+//     }
+
+//     let totalHours = 0;
+//     // console.log("[MONITOR] Iniciando cálculo de horas...");
+
+//     for (let i = 0; i < rows.length - 1; i++) {
+//       const curr = rows[i];
+//       const next = rows[i + 1];
+
+    
+
+//       if (curr.event_type === "0" && next.event_type === "1") {
+//         // --- CAMBIO CLAVE AQUÍ ---
+//         // Asegúrate de que event_date sea un string en formato YYYY-MM-DD
+//         // Si curr.event_date ya es un objeto Date, usa .toISOString().split('T')[0]
+//         const currDateStr = curr.event_date instanceof Date ? curr.event_date.toISOString().split('T')[0] : curr.event_date;
+//         const nextDateStr = next.event_date instanceof Date ? next.event_date.toISOString().split('T')[0] : next.event_date;
+
+//         const start = new Date(`${currDateStr}T${curr.event_time}`);
+//         const end = new Date(`${nextDateStr}T${next.event_time}`);
+//         // --- FIN DEL CAMBIO CLAVE ---
+
+//         const diffHours = (end - start) / 3600000; // 3600000 milisegundos en una hora
+
+//         console.log(`[MONITOR] Par de entrada/salida encontrado:`);
+//         console.log(`[MONITOR]   Entrada: ${start.toLocaleString()}`);
+//         console.log(`[MONITOR]   Salida: ${end.toLocaleString()}`);
+//         console.log(`[MONITOR]   Horas calculadas para este par: ${diffHours.toFixed(2)}`);
+
+//         totalHours += diffHours;
+//         // console.log(`[MONITOR]   Total de horas acumuladas hasta ahora: ${totalHours.toFixed(2)}`);
+//         i++; // Saltar el siguiente evento, ya emparejado
+//       } else {
+//         // console.log(`[MONITOR] Saltando par de eventos no válido (curr.event_type: ${curr.event_type}, next.event_type: ${next.event_type})`);
+//       }
+//     }
+
+//     const roundedTotalHours = Math.round(totalHours * 100) / 100;
+//     // console.log(`[MONITOR] Cálculo de horas finalizado. Total de horas brutas: ${totalHours.toFixed(2)}`);
+//     // console.log(`[MONITOR] Total de horas redondeadas: ${roundedTotalHours}`);
+
+
+//     return {
+//       employee_number,
+//       from,
+//       to,
+//       total_hours: roundedTotalHours,
+//     };
+//   } catch (error) {
+//     // console.error(`[ERROR] Error al obtener eventos del empleado ${employee_number}: ${error.message}`);
+//     throw new Error(`Error al obtener eventos del empleado: ${error.message}`);
+//   }
+// }
+
 static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
   if (!from || !to) throw new Error("Se requieren fechas 'from' y 'to'.");
 
   try {
-    // console.log(`[MONITOR] Buscando eventos para el empleado: ${employee_number} desde: ${from} hasta: ${to}`);
     const [rows] = await supabase.query(
       `
-      SELECT *
+      SELECT employee_number, event_date, event_time
       FROM dat_events
       WHERE employee_number = ?
         AND event_date BETWEEN ? AND ?
@@ -251,65 +325,140 @@ static async getTotalWorkedHoursByEmployee(employee_number, from, to) {
       [employee_number, from, to]
     );
 
-    // console.log(`[MONITOR] Eventos encontrados: ${rows.length}`);
-
     if (!rows.length) {
-      // console.log(`[MONITOR] No se encontraron eventos para el empleado ${employee_number} en el rango de fechas. Total de horas: 0`);
-      return { employee_number, from, to, total_hours: 0 };
+      return { employee_number, from, to, total_hours: 0, anomalies: [] }; // Incluimos 'anomalies'
     }
 
     let totalHours = 0;
-    // console.log("[MONITOR] Iniciando cálculo de horas...");
+    const anomalies = []; // Capturaremos las anomalías específicas para este empleado
 
-    for (let i = 0; i < rows.length - 1; i++) {
-      const curr = rows[i];
-      const next = rows[i + 1];
+    // --- REGLAS DE UMBRALES (consistentes con los otros métodos) ---
+    const SHORT_SHIFT_THRESHOLD_HOURS = 0.1;
+    const MAX_ALLOWED_SHIFT_HOURS = 24;
 
-    
+    const formatEventDateForMessage = (event) => {
+      if (!event || !event.event_date) return 'Fecha desconocida';
+      if (event.event_date instanceof Date) {
+        if (isNaN(event.event_date.getTime())) {
+          return 'Fecha inválida';
+        }
+        return event.event_date.toISOString().substring(0, 10);
+      }
+      return String(event.event_date).substring(0, 10);
+    };
 
-      if (curr.event_type === "0" && next.event_type === "1") {
-        // --- CAMBIO CLAVE AQUÍ ---
-        // Asegúrate de que event_date sea un string en formato YYYY-MM-DD
-        // Si curr.event_date ya es un objeto Date, usa .toISOString().split('T')[0]
-        const currDateStr = curr.event_date instanceof Date ? curr.event_date.toISOString().split('T')[0] : curr.event_date;
-        const nextDateStr = next.event_date instanceof Date ? next.event_date.toISOString().split('T')[0] : next.event_date;
+    let lastEntry = null; // Almacena la última "entrada" asumida para emparejar
 
-        const start = new Date(`${currDateStr}T${curr.event_time}`);
-        const end = new Date(`${nextDateStr}T${next.event_time}`);
-        // --- FIN DEL CAMBIO CLAVE ---
+    for (let i = 0; i < rows.length; i++) {
+      const currentEvent = rows[i];
+      // Asegúrate de que event_date sea un Date si viene de MySQL como string
+      const currentEventDate = currentEvent.event_date instanceof Date ? currentEvent.event_date : new Date(currentEvent.event_date);
+      const eventTimestamp = new Date(`${currentEventDate.toISOString().slice(0, 10)}T${currentEvent.event_time}`);
 
-        const diffHours = (end - start) / 3600000; // 3600000 milisegundos en una hora
+      if (isNaN(eventTimestamp.getTime())) {
+        anomalies.push({
+          type: "Evento con Fecha/Hora Inválida",
+          employee_number: employee_number,
+          event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+          message: `Evento en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} tiene fecha/hora inválida y no puede ser procesado.`,
+        });
+        continue; // Saltar este evento inválido
+      }
 
-        console.log(`[MONITOR] Par de entrada/salida encontrado:`);
-        console.log(`[MONITOR]   Entrada: ${start.toLocaleString()}`);
-        console.log(`[MONITOR]   Salida: ${end.toLocaleString()}`);
-        console.log(`[MONITOR]   Horas calculadas para este par: ${diffHours.toFixed(2)}`);
-
-        totalHours += diffHours;
-        // console.log(`[MONITOR]   Total de horas acumuladas hasta ahora: ${totalHours.toFixed(2)}`);
-        i++; // Saltar el siguiente evento, ya emparejado
+      if (lastEntry === null) {
+        // No hay entrada pendiente, este es el inicio de un posible turno
+        lastEntry = currentEvent;
       } else {
-        // console.log(`[MONITOR] Saltando par de eventos no válido (curr.event_type: ${curr.event_type}, next.event_type: ${next.event_type})`);
+        // Hay una entrada pendiente (lastEntry), este es un posible cierre de turno (salida)
+        const entryDate = lastEntry.event_date instanceof Date ? lastEntry.event_date : new Date(lastEntry.event_date);
+        const entryTimestamp = new Date(`${entryDate.toISOString().slice(0, 10)}T${lastEntry.event_time}`);
+
+        // Validación de la fecha/hora de la entrada pendiente (aunque ya se validó al asignarla)
+        if (isNaN(entryTimestamp.getTime())) {
+             anomalies.push({
+                type: "Entrada Previa con Fecha/Hora Inválida",
+                employee_number: employee_number,
+                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+                message: `La entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} tiene fecha/hora inválida. Se buscará una nueva entrada.`,
+            });
+            lastEntry = null; // Descartar esta entrada inválida
+            // Volver a procesar el currentEvent, asumiéndolo como una nueva entrada
+            lastEntry = currentEvent;
+            continue; // Ir al siguiente evento
+        }
+
+        // Comprobación de si el currentEvent es cronológicamente anterior o igual a la entrada
+        if (eventTimestamp <= entryTimestamp) {
+          anomalies.push({
+            type: "Evento Fuera de Secuencia (Posible Entrada Duplicada o Salida Retroactiva)",
+            employee_number: employee_number,
+            entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+            current_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+            message: `El evento en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} es anterior o igual a la entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time}. Se asumirá que esta entrada previa fue sobrescrita y el evento actual es una nueva entrada.`,
+          });
+          lastEntry = currentEvent; // Este evento se convierte en la nueva "entrada"
+          continue; // Pasar al siguiente evento para buscar su salida
+        }
+
+        const diffMs = eventTimestamp - entryTimestamp;
+        let hoursWorked = diffMs / (1000 * 60 * 60);
+        hoursWorked = Math.round(hoursWorked * 100) / 100; // Redondear a dos decimales
+
+        // --- REGLA: Los turnos no pueden exceder 24 horas ---
+        if (hoursWorked > MAX_ALLOWED_SHIFT_HOURS) {
+          anomalies.push({
+            type: "Turno Excede 24 Horas (Descartado)",
+            employee_number: employee_number,
+            entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+            exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+            hours_worked: hoursWorked,
+            message: `El turno de ${hoursWorked} horas (de ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} a ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time}) excede el límite de ${MAX_ALLOWED_SHIFT_HOURS} horas. Este par no se considera un turno válido. Se buscará una nueva entrada.`,
+          });
+          lastEntry = currentEvent; // El evento actual se asume como una nueva entrada, descartando la anterior.
+          continue; // Pasar al siguiente evento para buscar su salida
+        }
+
+        // Si el turno es válido (no excedió 24h y es cronológico)
+        if (hoursWorked >= SHORT_SHIFT_THRESHOLD_HOURS) { // Solo sumar si el turno no es extremadamente corto
+          totalHours += hoursWorked;
+        } else {
+           anomalies.push({
+              type: "Turno Demasiado Corto (No Contabilizado)",
+              employee_number: employee_number,
+              entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+              exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+              hours_worked: hoursWorked,
+              message: `Turno de ${hoursWorked} horas es extremadamente corto (< ${SHORT_SHIFT_THRESHOLD_HOURS}h) y no se contabiliza.`,
+            });
+        }
+
+        lastEntry = null; // El par se ha completado, buscar una nueva entrada
       }
     }
 
-    const roundedTotalHours = Math.round(totalHours * 100) / 100;
-    // console.log(`[MONITOR] Cálculo de horas finalizado. Total de horas brutas: ${totalHours.toFixed(2)}`);
-    // console.log(`[MONITOR] Total de horas redondeadas: ${roundedTotalHours}`);
+    // Al final del bucle, si queda una entrada sin salida
+    if (lastEntry !== null) {
+      anomalies.push({
+        type: "Entrada Final sin Salida en Rango",
+        employee_number: employee_number,
+        entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+        message: `La última entrada para ${employee_number} en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} no tuvo una salida emparejada dentro del rango de fechas.`,
+      });
+    }
 
+    const roundedTotalHours = Math.round(totalHours * 100) / 100;
 
     return {
       employee_number,
       from,
       to,
       total_hours: roundedTotalHours,
+      anomalies: anomalies // Devolver las anomalías encontradas
     };
   } catch (error) {
-    // console.error(`[ERROR] Error al obtener eventos del empleado ${employee_number}: ${error.message}`);
     throw new Error(`Error al obtener eventos del empleado: ${error.message}`);
   }
 }
-
 
 
 
