@@ -70,56 +70,174 @@ static async getWorkedHoursPerDay(page = 1, limit = 10) {
   const connection = await supabase.getConnection();
 
   try {
-    const [rows] = await connection.query(`
+    // 1. Fetch all events for the current page's employees within the range
+    // We can't filter by date range directly in the main query for accurate pagination
+    // unless we also fetch all events first and then paginate.
+    // For simplicity, we'll fetch all events, then process and paginate.
+    // In a very large dataset, this might need optimization (e.g., cursor-based pagination).
+
+    // First, get the employee_numbers that will be part of this page to limit the event fetch.
+    // This is a more complex approach if you truly need pagination *before* processing.
+    // For now, let's assume 'limit' applies to the *final calculated shifts*.
+    // If 'limit' applies to raw events, the logic would be different.
+    // We'll fetch all events, process them, and then paginate the results.
+
+    const [allEvents] = await connection.query(`
       SELECT
           employee_number,
-          event_date AS entry_date,
-          event_time AS entry_time,
-          next_event_date AS exit_date,
-          next_event_time AS exit_time,
-          ROUND(
-              TIMESTAMPDIFF(SECOND,
-                  CONCAT(event_date, ' ', event_time),
-                  CONCAT(next_event_date, ' ', next_event_time)
-              ) / 3600, 2
-          ) AS hours_worked
-      FROM (
-          SELECT
-              employee_number,
-              event_date,
-              event_time,
-              event_type,
-              LEAD(event_type) OVER (PARTITION BY employee_number ORDER BY event_date, event_time) AS next_event_type,
-              LEAD(event_date) OVER (PARTITION BY employee_number ORDER BY event_date, event_time) AS next_event_date,
-              LEAD(event_time) OVER (PARTITION BY employee_number ORDER BY event_date, event_time) AS next_event_time
-          FROM dat_events
-      ) AS sequenced
-      WHERE event_type = '0' AND next_event_type = '1'
-      ORDER BY employee_number, entry_date, entry_time
-      LIMIT ? OFFSET ?
-    `, [limit, offset]);
+          event_date,
+          event_time
+      FROM dat_events
+      ORDER BY employee_number, event_date ASC, event_time ASC
+    `);
+
+    // 2. Group events by employee and apply the pairing logic
+    const eventsByEmployee = {};
+    for (const ev of allEvents) {
+      if (!eventsByEmployee[ev.employee_number]) {
+        eventsByEmployee[ev.employee_number] = [];
+      }
+      eventsByEmployee[ev.employee_number].push(ev);
+    }
+
+    const allCalculatedShifts = [];
+    const allAnomalies = []; // To capture anomalies across all employees for debugging/reporting
+
+    // --- REGLAS DE UMBRALES (consistentes con los otros métodos) ---
+    const SHORT_SHIFT_THRESHOLD_HOURS = 0.1;
+    const MAX_ALLOWED_SHIFT_HOURS = 24;
+
+    const formatEventDateForMessage = (event) => {
+      if (!event || !event.event_date) return 'Fecha desconocida';
+      if (event.event_date instanceof Date) {
+        if (isNaN(event.event_date.getTime())) {
+          return 'Fecha inválida';
+        }
+        return event.event_date.toISOString().substring(0, 10);
+      }
+      return String(event.event_date).substring(0, 10);
+    };
+
+    for (const [employee_number, empEvents] of Object.entries(eventsByEmployee)) {
+      let lastEntry = null;
+
+      for (let i = 0; i < empEvents.length; i++) {
+        const currentEvent = empEvents[i];
+        const currentEventDate = currentEvent.event_date instanceof Date ? currentEvent.event_date : new Date(currentEvent.event_date);
+        const eventTimestamp = new Date(`${currentEventDate.toISOString().slice(0, 10)}T${currentEvent.event_time}`);
+
+        if (isNaN(eventTimestamp.getTime())) {
+          allAnomalies.push({
+            type: "Evento con Fecha/Hora Inválida",
+            employee_number: employee_number,
+            event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+            message: `Evento en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} tiene fecha/hora inválida y no puede ser procesado.`,
+          });
+          continue;
+        }
+
+        if (lastEntry === null) {
+          lastEntry = currentEvent;
+        } else {
+          const entryDate = lastEntry.event_date instanceof Date ? lastEntry.event_date : new Date(lastEntry.event_date);
+          const entryTimestamp = new Date(`${entryDate.toISOString().slice(0, 10)}T${lastEntry.event_time}`);
+
+          if (isNaN(entryTimestamp.getTime())) {
+             allAnomalies.push({
+                type: "Entrada Previa con Fecha/Hora Inválida",
+                employee_number: employee_number,
+                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+                message: `La entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} tiene fecha/hora inválida. Se buscará una nueva entrada.`,
+            });
+            lastEntry = null;
+            lastEntry = currentEvent;
+            continue;
+          }
+
+          if (eventTimestamp <= entryTimestamp) {
+            allAnomalies.push({
+              type: "Evento Fuera de Secuencia (Posible Entrada Duplicada o Salida Retroactiva)",
+              employee_number: employee_number,
+              entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+              current_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+              message: `El evento en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} es anterior o igual a la entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time}. Se asumirá que esta entrada previa fue sobrescrita y el evento actual es una nueva entrada.`,
+            });
+            lastEntry = currentEvent;
+            continue;
+          }
+
+          const diffMs = eventTimestamp - entryTimestamp;
+          let hoursWorked = diffMs / (1000 * 60 * 60);
+          hoursWorked = Math.round(hoursWorked * 100) / 100;
+
+          if (hoursWorked > MAX_ALLOWED_SHIFT_HOURS) {
+            allAnomalies.push({
+              type: "Turno Excede 24 Horas (Descartado)",
+              employee_number: employee_number,
+              entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+              exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+              hours_worked: hoursWorked,
+              message: `El turno de ${hoursWorked} horas (de ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} a ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time}) excede el límite de ${MAX_ALLOWED_SHIFT_HOURS} horas.`,
+            });
+            lastEntry = currentEvent;
+            continue;
+          }
+
+          if (hoursWorked >= SHORT_SHIFT_THRESHOLD_HOURS) {
+            allCalculatedShifts.push({
+              employee_number: employee_number,
+              entry_date: formatEventDateForMessage(lastEntry),
+              entry_time: lastEntry.event_time,
+              exit_date: formatEventDateForMessage(currentEvent),
+              exit_time: currentEvent.event_time,
+              hours_worked: hoursWorked,
+              // Optionally, you might add is_anomaly and anomaly_reason here if needed
+              // for shifts that are normal but were flagged as too short/too long previously.
+            });
+          } else {
+             allAnomalies.push({
+                type: "Turno Demasiado Corto (No Contabilizado)",
+                employee_number: employee_number,
+                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+                exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+                hours_worked: hoursWorked,
+                message: `Turno de ${hoursWorked} horas es extremadamente corto (< ${SHORT_SHIFT_THRESHOLD_HOURS}h) y no se contabiliza.`,
+              });
+          }
+
+          lastEntry = null;
+        }
+      }
+
+      if (lastEntry !== null) {
+        allAnomalies.push({
+          type: "Entrada Final sin Salida en Rango",
+          employee_number: employee_number,
+          entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+          message: `La última entrada para ${employee_number} en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} no tuvo una salida emparejada.`,
+        });
+      }
+    }
 
     connection.release();
 
-    // 🔄 Formateo de fechas y conversión de horas trabajadas
-    const formattedRows = rows.map(row => ({
-      ...row,
-      entry_date: new Date(row.entry_date).toISOString().split("T")[0],
-      exit_date: new Date(row.exit_date).toISOString().split("T")[0],
-      hours_worked: parseFloat(row.hours_worked)
-    }));
+    // 3. Apply pagination to the calculated shifts
+    const startIndex = offset;
+    const endIndex = offset + limit;
+    const paginatedShifts = allCalculatedShifts.slice(startIndex, endIndex);
 
     return {
       page,
       limit,
-      data: formattedRows,
+      total_shifts: allCalculatedShifts.length, // Total number of valid shifts found
+      data: paginatedShifts,
+      anomalies: allAnomalies // Optional: include all anomalies for full context
     };
   } catch (err) {
     connection.release();
-    throw new Error(`Error obteniendo las horas trabajadas: ${err.message}`);
+    throw new Error(`Error obteniendo las horas trabajadas por día: ${err.message}`);
   }
 }
-
 
 /// esto busca por departamento y filtra por un rango de fechas A
 
@@ -133,7 +251,7 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
   const connection = await supabase.getConnection();
 
   try {
-    // 1) Obtener el nombre del departamento
+    // 1) Get the department name
     const [deptRows] = await connection.query(
       "SELECT name FROM departments WHERE id = ?",
       [department_id]
@@ -141,7 +259,7 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
     if (!deptRows.length) throw new Error("Departamento no encontrado.");
     const departmentName = deptRows[0].name;
 
-    // 2) Obtener empleados del departamento
+    // 2) Get employees from the department
     const [empRows] = await connection.query(
       "SELECT employee_number, name FROM employees WHERE department_id = ?",
       [department_id]
@@ -153,19 +271,20 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
 
     const employeeNumbers = empRows.map((e) => e.employee_number);
 
-    // 3) Obtener eventos del rango de fechas para esos empleados
+    // 3) Get events for the date range for these employees
+    // IMPORTANT: 'event_type' is removed from the SELECT statement
     const [eventRows] = await connection.query(
       `
-      SELECT employee_number, event_type, event_date, event_time
+      SELECT employee_number, event_date, event_time
       FROM dat_events
       WHERE employee_number IN (?)
         AND event_date BETWEEN ? AND ?
-      ORDER BY employee_number, event_date, event_time
+      ORDER BY employee_number, event_date ASC, event_time ASC
     `,
       [employeeNumbers, from, to]
     );
 
-    // 4) Agrupar eventos por empleado
+    // 4) Group events by employee
     const groupedEvents = {};
     for (const ev of eventRows) {
       if (!groupedEvents[ev.employee_number]) {
@@ -174,43 +293,131 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
       groupedEvents[ev.employee_number].push(ev);
     }
 
-    // 5) Emparejar entradas/salidas y calcular horas
+    // --- THRESHOLD RULES (must be consistent across all functions) ---
+    const SHORT_SHIFT_THRESHOLD_HOURS = 0.1;
+    const MAX_ALLOWED_SHIFT_HOURS = 24; // Strict limit for a single shift
+
+    // Helper to format dates for messages (consistent with other functions)
+    const formatEventDateForMessage = (event) => {
+      if (!event || !event.event_date) return 'Fecha desconocida';
+      if (event.event_date instanceof Date) {
+        if (isNaN(event.event_date.getTime())) {
+          return 'Fecha inválida';
+        }
+        return event.event_date.toISOString().substring(0, 10);
+      }
+      // Assuming event_date is already a string like 'YYYY-MM-DD' if not a Date object
+      return String(event.event_date).substring(0, 10);
+    };
+
+    // 5) Pair events and calculate hours using the new inferred logic
     const totalsByEmp = {};
+    const departmentAnomalies = []; // Collect anomalies for the entire department
+
     for (const empNum in groupedEvents) {
       const empEvents = groupedEvents[empNum];
-      let i = 0;
-      while (i < empEvents.length) {
-        const entry = empEvents[i];
+      let lastEntry = null; // Stores the last assumed "entry" event for pairing
 
-        if (entry.event_type === '0') {
-          let j = i + 1;
-          while (j < empEvents.length) {
-            const exit = empEvents[j];
-            if (exit.event_type === '1') {
-              // Construir fechas en formato ISO correctamente (YYYY-MM-DD)
-              const dateStr = entry.event_date.toISOString().slice(0, 10);
-              const start = new Date(`${dateStr}T${entry.event_time}`);
+      for (let i = 0; i < empEvents.length; i++) {
+        const currentEvent = empEvents[i];
+        // Ensure event_date is a Date object if it comes from MySQL as a string
+        const currentEventDate = currentEvent.event_date instanceof Date ? currentEvent.event_date : new Date(currentEvent.event_date);
+        const eventTimestamp = new Date(`${currentEventDate.toISOString().slice(0, 10)}T${currentEvent.event_time}`);
 
-              const exitDateStr = exit.event_date.toISOString().slice(0, 10);
-              const end = new Date(`${exitDateStr}T${exit.event_time}`);
-
-              const diffH = (end - start) / 3600000;
-
-              if (diffH > 0 && diffH < 24) {
-                totalsByEmp[empNum] = (totalsByEmp[empNum] || 0) + diffH;
-              }
-
-              i = j; // Avanzar al evento de salida
-              break;
-            }
-            j++;
-          }
+        // Validate event timestamp
+        if (isNaN(eventTimestamp.getTime())) {
+          departmentAnomalies.push({
+            type: "Evento con Fecha/Hora Inválida",
+            employee_number: empNum,
+            event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+            message: `Evento en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} tiene fecha/hora inválida y no puede ser procesado.`,
+          });
+          continue; // Skip this invalid event
         }
-        i++;
+
+        if (lastEntry === null) {
+          // No pending entry, this is the start of a potential shift
+          lastEntry = currentEvent;
+        } else {
+          // There's a pending entry (lastEntry), this is a potential shift end (exit)
+          const entryDate = lastEntry.event_date instanceof Date ? lastEntry.event_date : new Date(lastEntry.event_date);
+          const entryTimestamp = new Date(`${entryDate.toISOString().slice(0, 10)}T${lastEntry.event_time}`);
+
+          // Validate the timestamp of the pending entry (though already validated when assigned)
+          if (isNaN(entryTimestamp.getTime())) {
+             departmentAnomalies.push({
+                type: "Entrada Previa con Fecha/Hora Inválida",
+                employee_number: empNum,
+                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+                message: `La entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} tiene fecha/hora inválida. Se buscará una nueva entrada.`,
+            });
+            lastEntry = null; // Discard this invalid entry
+            // Re-process the currentEvent, assuming it's a new entry
+            lastEntry = currentEvent;
+            continue; // Go to the next event
+          }
+
+          // Check if currentEvent is chronologically before or at the same time as the entry
+          if (eventTimestamp <= entryTimestamp) {
+            departmentAnomalies.push({
+              type: "Evento Fuera de Secuencia (Posible Entrada Duplicada o Salida Retroactiva)",
+              employee_number: empNum,
+              entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+              current_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+              message: `El evento en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} es anterior o igual a la entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time}. Se asumirá que esta entrada previa fue sobrescrita y el evento actual es una nueva entrada.`,
+            });
+            lastEntry = currentEvent; // This event becomes the new "entry"
+            continue; // Move to the next event to find its exit
+          }
+
+          const diffMs = eventTimestamp - entryTimestamp;
+          let hoursWorked = diffMs / (1000 * 60 * 60);
+          hoursWorked = Math.round(hoursWorked * 100) / 100; // Round to two decimal places
+
+          // --- RULE: Shifts cannot exceed 24 hours ---
+          if (hoursWorked > MAX_ALLOWED_SHIFT_HOURS) {
+            departmentAnomalies.push({
+              type: "Turno Excede 24 Horas (Descartado)",
+              employee_number: empNum,
+              entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+              exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+              hours_worked: hoursWorked,
+              message: `El turno de ${hoursWorked} horas (de ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} a ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time}) excede el límite de ${MAX_ALLOWED_SHIFT_HOURS} horas.`,
+            });
+            lastEntry = currentEvent; // The current event is assumed as a new entry, discarding the previous one.
+            continue; // Move to the next event to find its exit
+          }
+
+          // If the shift is valid (didn't exceed 24h and is chronological)
+          if (hoursWorked >= SHORT_SHIFT_THRESHOLD_HOURS) { // Only sum if the shift isn't extremely short
+            totalsByEmp[empNum] = (totalsByEmp[empNum] || 0) + hoursWorked;
+          } else {
+             departmentAnomalies.push({
+                type: "Turno Demasiado Corto (No Contabilizado)",
+                employee_number: empNum,
+                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+                exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
+                hours_worked: hoursWorked,
+                message: `Turno de ${hoursWorked} horas es extremadamente corto (< ${SHORT_SHIFT_THRESHOLD_HOURS}h) y no se contabiliza.`,
+              });
+          }
+
+          lastEntry = null; // The pair is complete, look for a new entry
+        }
+      }
+
+      // At the end of the employee's events loop, if an entry remains without an exit
+      if (lastEntry !== null) {
+        departmentAnomalies.push({
+          type: "Entrada Final sin Salida en Rango",
+          employee_number: empNum,
+          entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
+          message: `La última entrada para ${empNum} en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} no tuvo una salida emparejada dentro del rango de fechas.`,
+        });
       }
     }
 
-    // 6) Armar respuesta final
+    // 6) Build the final response
     const data = empRows.map((e) => ({
       employee_number: e.employee_number,
       name: e.name,
@@ -219,13 +426,13 @@ static async getTotalWorkedHoursByDepartment(department_id, from, to) {
     }));
 
     connection.release();
-    return { department_id, department: departmentName, from, to, data };
+    // Optionally, you can return department anomalies if the frontend needs them
+    return { department_id, department: departmentName, from, to, data, departmentAnomalies };
   } catch (err) {
     connection.release();
     throw new Error(`Error obteniendo horas por departamento: ${err.message}`);
   }
 }
-
 
 
 
