@@ -79,6 +79,12 @@ export const getWorkedHoursByDateRange = createAsyncThunk(
   }
 );
 
+
+
+
+
+
+
 // Thunk para obtener horas trabajadas por departamento
 export const getWorkedHoursByDepartment = createAsyncThunk(
   "datEvents/getWorkedHoursByDepartment",

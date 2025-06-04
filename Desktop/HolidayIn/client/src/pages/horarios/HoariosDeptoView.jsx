@@ -61,7 +61,7 @@ const HorariosDeptoView = () => {
     { id: 6, name: 'Ventas' },
     { id: 7, name: 'Recursos Humanos' },
     { id: 8, name: 'Seguridad' },
-    { id: 9, name: 'Configuracion' },
+   
   ];
 
   // Establece el ID del departamento inicial. Si viene de la URL, úsalo, si no, usa el ID del primer departamento.
