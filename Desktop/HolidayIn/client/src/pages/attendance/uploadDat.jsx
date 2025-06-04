@@ -6,7 +6,7 @@ import './styles/uploadDat.css';
 const ProcessDatFileComponent = () => {
   const dispatch = useDispatch();
   const { loading, error, message } = useSelector((state) => state.datEvents);
-  
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const [validationError, setValidationError] = useState('');
@@ -15,20 +15,20 @@ const ProcessDatFileComponent = () => {
   // Validación de archivo
   const validateFile = useCallback((file) => {
     if (!file) return false;
-    
+
     // Verificar extensión
     if (!file.name.toLowerCase().endsWith('.dat')) {
       setValidationError('El archivo debe tener extensión .dat');
       return false;
     }
-    
+
     // Verificar tamaño (ejemplo: máximo 50MB)
     const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
       setValidationError('El archivo es demasiado grande (máximo 50MB)');
       return false;
     }
-    
+
     setValidationError('');
     return true;
   }, []);
@@ -36,10 +36,12 @@ const ProcessDatFileComponent = () => {
   // Manejo de cambio de archivo
   const handleFileChange = useCallback((event) => {
     const file = event.target.files[0];
-    if (file && validateFile(file)) {
-      setSelectedFile(file);
-    } else if (file) {
-      setSelectedFile(null);
+    if (file) {
+      if (validateFile(file)) {
+        setSelectedFile(file);
+      } else {
+        setSelectedFile(null); // Limpiar el archivo si la validación falla
+      }
     }
   }, [validateFile]);
 
@@ -58,7 +60,7 @@ const ProcessDatFileComponent = () => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       if (validateFile(file)) {
@@ -73,11 +75,12 @@ const ProcessDatFileComponent = () => {
       setValidationError('Por favor, selecciona un archivo .dat primero.');
       return;
     }
-    
+
     try {
       await dispatch(processDatFile(selectedFile)).unwrap();
     } catch (err) {
       console.error('Error procesando archivo:', err);
+      // El error ya se maneja en el slice y se propaga a 'state.datEvents.error'
     }
   }, [selectedFile, dispatch]);
 
@@ -85,9 +88,12 @@ const ProcessDatFileComponent = () => {
   const handleClearFile = useCallback(() => {
     setSelectedFile(null);
     setValidationError('');
+    // Restablecer el valor del input para permitir seleccionar el mismo archivo de nuevo
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+    // Opcional: Si necesitas resetear el estado de Redux para 'message' y 'error'
+    // dispatch(resetDatEventsState()); // Tendrías que definir esta acción en tu slice
   }, []);
 
   // Formatear tamaño de archivo
@@ -99,6 +105,10 @@ const ProcessDatFileComponent = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }, []);
 
+  // Determinar si los controles de carga deben estar deshabilitados
+  // Se deshabilitan si está cargando o si ya hay un mensaje de éxito sin error
+  const disableUploadControls = loading || (message && !error);
+
   return (
     <div className="process-dat-container">
       <div className="process-dat-header">
@@ -109,13 +119,13 @@ const ProcessDatFileComponent = () => {
       </div>
 
       <div className="file-upload-section">
-        <div 
-          className={`file-drop-zone ${dragActive ? 'drag-active' : ''} ${selectedFile ? 'has-file' : ''}`}
+        <div
+          className={`file-drop-zone ${dragActive ? 'drag-active' : ''} ${selectedFile ? 'has-file' : ''} ${disableUploadControls ? 'disabled' : ''}`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => !disableUploadControls && fileInputRef.current?.click()} // Previene clic cuando está deshabilitado
         >
           <input
             ref={fileInputRef}
@@ -123,9 +133,9 @@ const ProcessDatFileComponent = () => {
             accept=".dat"
             onChange={handleFileChange}
             className="file-input-hidden"
-            disabled={loading}
+            disabled={disableUploadControls}
           />
-          
+
           <div className="file-drop-content">
             {selectedFile ? (
               <div className="selected-file-info">
@@ -141,7 +151,7 @@ const ProcessDatFileComponent = () => {
                     handleClearFile();
                   }}
                   className="clear-file-btn"
-                  disabled={loading}
+                  disabled={loading} // Se deshabilita solo durante la carga, no si ya hay un éxito
                   aria-label="Eliminar archivo seleccionado"
                 >
                   ✕
@@ -151,7 +161,7 @@ const ProcessDatFileComponent = () => {
               <div className="file-drop-placeholder">
                 <div className="upload-icon">📁</div>
                 <span className="upload-text">
-                  Haz clic aquí o arrastra tu archivo .DAT
+                  {disableUploadControls ? 'Cargando...' : 'Haz clic aquí o arrastra tu archivo .DAT'}
                 </span>
                 <span className="upload-subtext">
                   Tamaño máximo: 50MB
@@ -164,7 +174,7 @@ const ProcessDatFileComponent = () => {
         <div className="action-buttons">
           <button
             onClick={handleSubmit}
-            disabled={!selectedFile || loading || !!validationError}
+            disabled={!selectedFile || disableUploadControls || !!validationError}
             className={`process-button ${loading ? 'loading' : ''}`}
             type="button"
           >
@@ -188,26 +198,37 @@ const ProcessDatFileComponent = () => {
             {validationError}
           </div>
         )}
-        
+
         {loading && (
           <div className="status-message status-loading" role="status">
             <span className="status-icon loading-icon">⏳</span>
             Procesando el archivo, por favor espera...
           </div>
         )}
-        
+
         {error && !loading && (
           <div className="status-message status-error" role="alert">
             <span className="status-icon">❌</span>
             Error: {error?.error || error?.message || 'Error desconocido'}
           </div>
         )}
-        
+
         {message && !loading && !error && (
           <div className="status-message status-success" role="status">
             <span className="status-icon">✅</span>
             {message}
           </div>
+        )}
+
+        {/* Botón para cargar otro archivo, visible después de una carga exitosa */}
+        {message && !loading && !error && (
+          <button
+            type="button"
+            onClick={handleClearFile}
+            className="upload-another-file-btn"
+          >
+            Cargar otro archivo
+          </button>
         )}
       </div>
     </div>

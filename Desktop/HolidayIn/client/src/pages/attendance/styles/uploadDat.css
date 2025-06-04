@@ -1,356 +1,501 @@
 /* Container principal */
 .process-dat-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(60, 54, 54, 0.829), 0 2px 4px -1px rgba(68, 64, 64, 0.801);
 }
 
 /* Header */
 .process-dat-header {
-  text-align: center;
-  margin-bottom: 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
 }
 
 .process-dat-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
 }
 
 .process-dat-description {
-  color: #6b7280;
-  font-size: 1rem;
-  margin: 0;
+    color: #6b7280;
+    font-size: 1rem;
+    margin: 0;
 }
 
 /* Sección de upload */
 .file-upload-section {
-  margin-bottom: 2rem;
+    margin-bottom: 2rem;
 }
 
 /* Zona de drop */
 .file-drop-zone {
-  border: 2px dashed #d1d5db;
-  border-radius: 8px;
-  padding: 2rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: #f9fafb;
-  margin-bottom: 1.5rem;
-  position: relative;
-  min-height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f9fafb;
+    margin-bottom: 1.5rem;
+    position: relative;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.file-drop-zone:hover {
-  border-color: #3b82f6;
-  background: #eff6ff;
+.file-drop-zone:hover:not(.disabled) { /* Modificado para no aplicar hover cuando está deshabilitado */
+    border-color: #3b82f6;
+    background: #eff6ff;
 }
 
 .file-drop-zone.drag-active {
-  border-color: #3b82f6;
-  background: #dbeafe;
-  transform: scale(1.02);
+    border-color: #3b82f6;
+    background: #dbeafe;
+    transform: scale(1.02);
 }
 
 .file-drop-zone.has-file {
-  border-color: #10b981;
-  background: #ecfdf5;
+    border-color: #10b981;
+    background: #ecfdf5;
+}
+
+/* --- NUEVO: Estilo para la zona de drop deshabilitada --- */
+.file-drop-zone.disabled {
+    cursor: not-allowed; /* Cambia el cursor para indicar que no es interactivo */
+    background-color: #e5e7eb; /* Fondo más oscuro para estado deshabilitado */
+    border-color: #d1d5db; /* Borde más suave */
+    opacity: 0.8; /* Ligeramente transparente */
+    pointer-events: none; /* Crucial para prevenir interacciones de clic y drag/drop */
 }
 
 /* Input oculto */
 .file-input-hidden {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
+    position: absolute;
+    opacity: 0;
+    pointer-events: none; /* Asegura que el input no sea interactivo */
 }
 
 /* Contenido del drop zone */
 .file-drop-content {
-  width: 100%;
+    width: 100%;
 }
 
 /* Placeholder cuando no hay archivo */
 .file-drop-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .upload-icon {
-  font-size: 3rem;
-  opacity: 0.6;
+    font-size: 3rem;
+    opacity: 0.6;
 }
 
 .upload-text {
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: #374151;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #374151;
 }
 
 .upload-subtext {
-  font-size: 0.9rem;
-  color: #6b7280;
+    font-size: 0.9rem;
+    color: #6b7280;
 }
 
 /* Info del archivo seleccionado */
 .selected-file-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  background: white;
-  padding: 1rem;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
 }
 
 .file-icon {
-  font-size: 2rem;
+    font-size: 2rem;
 }
 
 .file-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .file-name {
-  font-weight: 500;
-  color: #1f2937;
-  word-break: break-all;
+    font-weight: 500;
+    color: #1f2937;
+    word-break: break-all;
 }
 
 .file-size {
-  font-size: 0.875rem;
-  color: #6b7280;
+    font-size: 0.875rem;
+    color: #6b7280;
 }
 
 .clear-file-btn {
-  background: #fee2e2;
-  color: #dc2626;
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
+    background: #fee2e2;
+    color: #dc2626;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
 }
 
 .clear-file-btn:hover:not(:disabled) {
-  background: #fecaca;
-  transform: scale(1.05);
+    background: #fecaca;
+    transform: scale(1.05);
 }
 
 .clear-file-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 /* Botones de acción */
 .action-buttons {
-  display: flex;
-  justify-content: center;
+    display: flex;
+    justify-content: center;
 }
 
 .process-button {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
-  border: none;
-  padding: 0.875rem 2rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 180px;
-  justify-content: center;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    color: white;
+    border: none;
+    padding: 0.875rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 180px;
+    justify-content: center;
 }
 
 .process-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    background: linear-gradient(135deg, #2563eb, #1e40af);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .process-button:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+    background: #9ca3af; /* Color de fondo para botón deshabilitado */
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.7; /* Suaviza el color cuando está deshabilitado */
 }
 
 .process-button.loading {
-  background: #6b7280;
+    background: #6b7280; /* Mantiene un color consistente durante la carga */
+    cursor: progress; /* Cambia el cursor a progreso */
 }
 
 /* Spinner */
 .spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* Sección de estado */
 .status-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center; /* Centrar mensajes de estado y el nuevo botón */
 }
 
 .status-message {
-  padding: 1rem;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-weight: 500;
-  animation: slideInUp 0.3s ease;
+    padding: 1rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 500;
+    animation: slideInUp 0.3s ease;
+    width: 100%; /* Ajusta el ancho */
+    max-width: 400px; /* Limita el ancho máximo */
+    box-sizing: border-box; /* Incluye padding y border en el ancho */
 }
 
 @keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .status-icon {
-  font-size: 1.25rem;
-  flex-shrink: 0;
+    font-size: 1.25rem;
+    flex-shrink: 0;
 }
 
 .status-loading {
-  background: #eff6ff;
-  color: #1e40af;
-  border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
 }
 
 .status-success {
-  background: #ecfdf5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
 }
 
 .status-error {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
 }
 
 .status-validation-error {
-  background: #fef3cd;
-  color: #d97706;
-  border: 1px solid #fed7aa;
+    background: #fef3cd;
+    color: #d97706;
+    border: 1px solid #fed7aa;
 }
 
 .loading-icon {
-  animation: pulse 1.5s ease-in-out infinite;
+    animation: pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
 }
+
+/* --- NUEVO: Estilo para el botón "Cargar otro archivo" --- */
+.upload-another-file-btn {
+    background: #6b7280; /* Un color secundario agradable */
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1rem; /* Espacio superior */
+}
+
+.upload-another-file-btn:hover {
+    background: #4b5563; /* Color más oscuro al pasar el ratón */
+    transform: translateY(-1px);
+}
+
+.upload-another-file-btn:active {
+    transform: translateY(0);
+}
+
 
 /* Responsive */
 @media (max-width: 640px) {
-  .process-dat-container {
-    margin: 1rem;
-    padding: 1.5rem;
-  }
-  
-  .process-dat-title {
-    font-size: 1.5rem;
-  }
-  
-  .file-drop-zone {
-    padding: 1.5rem;
-    min-height: 100px;
-  }
-  
-  .selected-file-info {
-    flex-direction: column;
-    text-align: center;
-    gap: 0.75rem;
-  }
-  
-  .file-details {
-    align-items: center;
-  }
-  
-  .process-button {
-    width: 100%;
-    padding: 1rem;
-  }
+    .process-dat-container {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .process-dat-title {
+        font-size: 1.5rem;
+    }
+    
+    .file-drop-zone {
+        padding: 1.5rem;
+        min-height: 100px;
+    }
+    
+    .selected-file-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .file-details {
+        align-items: center;
+    }
+    
+    .process-button {
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .status-message {
+        width: 90%; /* Ajuste para móviles */
+    }
 }
 
 /* Estados de accesibilidad */
 .file-drop-zone:focus-within {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
 }
 
 .process-button:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
 }
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  .process-dat-container {
-    background: #1f2937;
-    color: #f9fafb;
-  }
-  
-  .process-dat-title {
-    color: #f9fafb;
-  }
-  
-  .file-drop-zone {
-    background: #374151;
-    border-color: #4b5563;
-  }
-  
-  .file-drop-zone:hover {
-    background: #4b5563;
-  }
-  
-  .selected-file-info {
-    background: #4b5563;
-    border-color: #6b7280;
-  }
-  
-  .file-name {
-    color: #f9fafb;
-  }
+    .process-dat-container {
+        background: #1f2937;
+        color: #f9fafb;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    }
+    
+    .process-dat-title {
+        color: #f9fafb;
+    }
+    
+    .process-dat-description {
+        color: #9ca3af;
+    }
+
+    .file-drop-zone {
+        background: #374151;
+        border-color: #4b5563;
+    }
+    
+    .file-drop-zone:hover:not(.disabled) {
+        background: #4b5563;
+        border-color: #6b7280;
+    }
+
+    .file-drop-zone.disabled {
+        background-color: #2d3748;
+        border-color: #4a5568;
+        opacity: 0.6;
+    }
+    
+    .file-drop-zone.drag-active {
+        background: #2b6cb0;
+        border-color: #3b82f6;
+    }
+
+    .file-drop-zone.has-file {
+        background: #1a4d3e;
+        border-color: #047857;
+    }
+
+    .upload-icon {
+        color: #93c5fd; /* Light blue for dark mode icon */
+    }
+
+    .upload-text {
+        color: #e5e7eb;
+    }
+
+    .upload-subtext {
+        color: #9ca3af;
+    }
+    
+    .selected-file-info {
+        background: #374151;
+        border-color: #4b5563;
+    }
+    
+    .file-name {
+        color: #f9fafb;
+    }
+
+    .file-size {
+        color: #9ca3af;
+    }
+
+    .clear-file-btn {
+        background: #ef4444;
+        color: white;
+    }
+
+    .clear-file-btn:hover:not(:disabled) {
+        background: #dc2626;
+    }
+
+    .process-button {
+        background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    }
+
+    .process-button:hover:not(:disabled) {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
+    }
+
+    .process-button:disabled {
+        background: #4b5563;
+    }
+
+    .process-button.loading {
+        background: #4a5568;
+    }
+
+    .spinner {
+        border-color: rgba(255, 255, 255, 0.4);
+        border-top-color: #f9fafb;
+    }
+
+    .status-loading {
+        background: #2563eb;
+        color: #bfdbfe;
+        border-color: #3b82f6;
+    }
+
+    .status-success {
+        background: #065f46;
+        color: #a7f3d0;
+        border-color: #34d399;
+    }
+
+    .status-error {
+        background: #991b1b;
+        color: #fecaca;
+        border-color: #ef4444;
+    }
+
+    .status-validation-error {
+        background: #b45309;
+        color: #fed7aa;
+        border-color: #f59e0b;
+    }
+
+    .upload-another-file-btn {
+        background: #4b5563;
+        color: #f9fafb;
+    }
+    
+    .upload-another-file-btn:hover {
+        background: #6b7280;
+    }
 }
