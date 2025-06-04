@@ -31,6 +31,9 @@ export const fetchHorarios = createAsyncThunk(
   }
 );
 
+
+
+
 // --- Slice de Horarios ---
 const horariosSlice = createSlice({
   name: 'horarios', // Nombre del slice

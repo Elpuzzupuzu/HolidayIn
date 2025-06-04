@@ -66,6 +66,8 @@ class Employee {
    * @returns {Promise<object | null>} El objeto del empleado, o null si no se encuentra.
    * @throws {Error} Si ocurre un error de base de datos.
    */
+
+
   static async getByEmployeeNumber(employeeNumber) {
     try {
       const query = "SELECT * FROM employees WHERE employee_number = ?";
@@ -76,6 +78,9 @@ class Employee {
       throw new Error(`Error al obtener empleado por número: ${error.message}`);
     }
   }
+
+
+  
 
   /**
    * Actualiza los campos de un empleado específico usando su número de empleado.

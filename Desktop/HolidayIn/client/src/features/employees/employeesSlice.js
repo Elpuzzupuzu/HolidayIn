@@ -102,15 +102,18 @@ export const deleteEmployee = createAsyncThunk(
 const employeesSlice = createSlice({
   name: 'employees',
   initialState: {
-    employees: [],
-    selectedEmployee: null,
-    status: 'idle',
-    error: null,
+    employees: [], // Lista de todos los empleados
+    selectedEmployee: null, // El empleado seleccionado o cargado por ID
+    status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
+    error: null, // Cualquier error ocurrido
   },
   reducers: {
+    // Acción para limpiar el empleado actualmente seleccionado
     clearSelectedEmployee: (state) => {
       state.selectedEmployee = null;
-    }
+      state.status = 'idle'; // Resetear el estado también para consistencia
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -132,10 +135,7 @@ const employeesSlice = createSlice({
       })
       .addCase(createEmployee.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        // Redux Toolkit recomienda no mutar directamente el estado fuera del reducer
-        // y que el extraReducer solo maneje el estado de carga y error.
-        // La lista principal se refrescará con un nuevo `WorkspaceEmployees`
-        // después de la creación/actualización en el componente.
+        // No mutamos `state.employees` directamente aquí, se espera un refetch en el componente
       })
       .addCase(createEmployee.rejected, (state, action) => {
         state.status = 'failed';
@@ -144,7 +144,8 @@ const employeesSlice = createSlice({
       // Reducers para fetchEmployeeByNumber
       .addCase(fetchEmployeeByNumber.pending, (state) => {
         state.status = 'loading';
-        state.selectedEmployee = null;
+        state.selectedEmployee = null; // Limpiar cualquier empleado anterior
+        state.error = null; // Limpiar errores anteriores
       })
       .addCase(fetchEmployeeByNumber.fulfilled, (state, action) => {
         state.status = 'succeeded';
@@ -153,7 +154,7 @@ const employeesSlice = createSlice({
       .addCase(fetchEmployeeByNumber.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload || 'Failed to fetch employee by number';
-        state.selectedEmployee = null;
+        state.selectedEmployee = null; // Asegurarse de que no haya un empleado parcial o incorrecto
       })
       // Reducers para updateEmployee
       .addCase(updateEmployee.pending, (state) => {
@@ -161,12 +162,14 @@ const employeesSlice = createSlice({
       })
       .addCase(updateEmployee.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        // En una aplicación real, probablemente harías un nuevo fetchEmployees()
-        // en el componente después de una actualización exitosa para asegurar
-        // que la lista esté completamente sincronizada y filtrada.
-        // Por ahora, solo limpiamos el empleado seleccionado si lo estamos actualizando.
+        // Si el empleado actualizado es el que está seleccionado, actualiza sus datos localmente
         if (state.selectedEmployee && state.selectedEmployee.employee_number === action.meta.arg.employeeNumber) {
             state.selectedEmployee = { ...state.selectedEmployee, ...action.meta.arg.employeeData };
+        }
+        // También puedes buscar y actualizarlo en `state.employees` si es necesario:
+        const index = state.employees.findIndex(emp => emp.employee_number === action.meta.arg.employeeNumber);
+        if (index !== -1) {
+            state.employees[index] = { ...state.employees[index], ...action.meta.arg.employeeData };
         }
       })
       .addCase(updateEmployee.rejected, (state, action) => {
@@ -179,7 +182,9 @@ const employeesSlice = createSlice({
       })
       .addCase(deleteEmployee.fulfilled, (state, action) => {
         state.status = 'succeeded';
+        // Filtra el empleado eliminado de la lista
         state.employees = state.employees.filter(emp => emp.employee_number !== action.payload);
+        // Si el empleado eliminado era el seleccionado, límpialo
         if (state.selectedEmployee && state.selectedEmployee.employee_number === action.payload) {
           state.selectedEmployee = null;
         }
@@ -191,6 +196,8 @@ const employeesSlice = createSlice({
   },
 });
 
+// Exporta la acción generada por el reductor `clearSelectedEmployee`
 export const { clearSelectedEmployee } = employeesSlice.actions;
 
+// Exporta el reductor principal del slice
 export default employeesSlice.reducer;

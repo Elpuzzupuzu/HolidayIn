@@ -5,6 +5,7 @@ import { X, Clock, User, Calendar, List } from "lucide-react";
 import "./styles/EmployeeResume.css";
 import WorkedHoursSummary from "./WorkedHoursSummary";
 import { downloadWorkedHoursCSV } from "../../features/datEvents/datEventsSlice"; // Ajusta esta ruta
+import EmployeeSearchComponent from "../horarios/SearchEmplooye";
 
 
 const EmployeeResume = ({ resumen, workedHours = [], onClose }) => {
@@ -74,6 +75,8 @@ const EmployeeResume = ({ resumen, workedHours = [], onClose }) => {
               <div className="header-text">
                 <h3 className="header-title">Resumen del Empleado</h3>
                 <p className="header-subtitle">#{resumen.employee_number}</p>
+               <EmployeeSearchComponent employeeNumber={resumen.employee_number} />
+
               </div>
             </div>
             <button onClick={onClose} className="header-close-btn">

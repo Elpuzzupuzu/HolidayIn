@@ -1,0 +1,58 @@
+/* client/src/components/styles/EmployeeSearch.css */
+
+/* Estilos para el mensaje de carga */
+.employee-search-loading-message {
+  color: #007bff; /* Azul vibrante */
+  font-size: 0.95em;
+  font-style: italic;
+  padding: 8px 0;
+  text-align: center;
+  border-bottom: 1px dashed #e0e0e0; /* Una línea suave para separar */
+}
+
+/* Estilos para el mensaje de error */
+.employee-search-error-message {
+  color: #dc3545; /* Rojo de error */
+  font-size: 0.95em;
+  border: 1px solid #dc3545;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #ffe6e6; /* Fondo rojo claro */
+  margin: 10px 0;
+  text-align: center;
+}
+
+/* Estilos para la información del empleado */
+.employee-search-info {
+  padding: 15px 0;
+  border-top: 1px solid #eee;
+  margin-top: 15px;
+  font-size: 1.05em;
+  line-height: 1.6;
+}
+
+.employee-search-info p {
+  margin: 0 0 5px 0; /* Espacio entre párrafos */
+}
+
+.employee-search-info p:last-child {
+  margin-bottom: 0;
+}
+
+/* Estilos para el mensaje de "no encontrado" */
+.employee-search-no-employee-message {
+  color: #6c757d; /* Gris neutral */
+  font-size: 0.95em;
+  font-style: italic;
+  padding: 8px 0;
+  text-align: center;
+}
+
+/* Estilo para el mensaje de "falta número de empleado" */
+.employee-search-missing-id {
+  color: #888;
+  font-size: 0.9em;
+  font-style: italic;
+  padding: 8px 0;
+  text-align: center;
+}
