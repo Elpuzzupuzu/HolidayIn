@@ -96,7 +96,7 @@
 }
 
 .header-icon {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 249, 249, 0.868);
   padding: 0.5rem;
   border-radius: 0.5rem;
   display: flex;
@@ -117,7 +117,7 @@
 }
 
 .header-subtitle {
-  color: rgba(219, 234, 254, 1);
+  color: rgb(254, 219, 245);
   font-size: 0.875rem;
   margin: 0;
   margin-top: 0.125rem;
