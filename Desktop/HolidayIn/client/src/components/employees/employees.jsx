@@ -307,10 +307,10 @@ function EmployeesManagement() {
                       <span className="header-icon">📈</span>
                       Estado
                     </th>
-                    <th>
+                    {/* <th>
                       <span className="header-icon">⚡</span>
                       Acción
-                    </th>
+                    </th> */}
                   </tr>
                 </thead>
                 <tbody>
@@ -347,12 +347,12 @@ function EmployeesManagement() {
                           {employee.status}
                         </span>
                       </td>
-                      <td className="employee-actions">
+                      {/* <td className="employee-actions">
                         <div className="action-hint">
                           <span className="action-icon">👁️</span>
                           Ver detalles
                         </div>
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
                 </tbody>

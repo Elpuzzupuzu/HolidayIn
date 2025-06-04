@@ -190,7 +190,7 @@
 }
 
 .filter-badge {
-  background: #667eea;
+  background: #262729;
   color: white;
   padding: 6px 12px;
   border-radius: 20px;
@@ -214,7 +214,7 @@
 }
 
 .employees-table thead {
-  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  background: linear-gradient(135deg, #7f7f7f 0%, #374151 100%);
   color: white;
 }
 
