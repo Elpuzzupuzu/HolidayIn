@@ -82,8 +82,6 @@ const ResumenPorDepartamento = () => {
   };
 
   const handleRowClick = (employeeNumber) => {
-    // Aquí puedes decidir si quieres usar también validateSearchDates
-    // o si la validación en handleSearch es suficiente antes de entrar a esta lógica
     if (!from || !to) {
       alert("Por favor selecciona un rango de fechas antes de ver el resumen del empleado.");
       return;

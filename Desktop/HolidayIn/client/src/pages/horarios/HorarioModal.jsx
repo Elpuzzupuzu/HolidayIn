@@ -7,7 +7,7 @@ import { getWorkedHoursBetweenDates } from "../../features/datEvents/datEventsSl
 import './styles/HorarioModal.css';
 import EmployeeSearchComponent from './SearchEmplooye';
 
-// ... (Las funciones formatTimeForDateParsing y obtenerRangoFechasSemana permanecen sin cambios) ...
+// ... (Las funciones formatTimeForDateParsing y obtenerRangoFechasSemana) 
 const formatTimeForDateParsing = (timeStr) => {
     if (!timeStr) return '';
     const [hours, minutes] = timeStr.split(':');
@@ -93,8 +93,7 @@ const HorarioModal = ({ colaborador, onClose }) => {
                 rangoFechasValido: !!(rangoFechas.lunes && rangoFechas.domingo)
             });
         }
-        // Ya NO necesitas despachar fetchEmployeeByNumber aquí,
-        // porque EmployeeSearchComponent lo hará automáticamente cuando reciba la prop.
+        
     }, [colaborador, dispatch, rangoFechas.lunes, rangoFechas.domingo]);
 
 

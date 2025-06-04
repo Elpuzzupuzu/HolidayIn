@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchEmployeeByNumber, clearSelectedEmployee } from '../../features/employees/employeesSlice'; 
 
-// Importa el nuevo archivo CSS
 import './styles/SearchEmployee.css'; // Ajusta la ruta si es necesario
 
 function EmployeeSearchComponent({ employeeNumber }) {
@@ -14,7 +13,6 @@ function EmployeeSearchComponent({ employeeNumber }) {
 
 
   useEffect(() => {
-    // console.log(`🚀 EmployeeSearchComponent: useEffect se ejecutó para ID: ${employeeNumber}`);
     if (employeeNumber) {
       console.log(`➡️ EmployeeSearchComponent: Despachando fetchEmployeeByNumber para ID: ${employeeNumber}`);
       dispatch(fetchEmployeeByNumber(employeeNumber));

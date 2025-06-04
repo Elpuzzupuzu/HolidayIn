@@ -70,7 +70,7 @@ const HorariosDeptoView = () => {
     : departments[0].id; // Establece el primer departamento como predeterminado si no hay uno válido en la URL
 
   const [currentDeptoId, setCurrentDeptoId] = useState(initialDeptoId);
-  const [currentNumeroSemana, setCurrentNumeroSemana] = useState(numeroSemana || '23');
+  const [currentNumeroSemana, setCurrentNumeroSemana] = useState(numeroSemana || '11');
 
   useEffect(() => {
     // Cuando el componente se monta o los parámetros de la URL cambian
