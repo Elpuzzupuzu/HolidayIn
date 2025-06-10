@@ -17,10 +17,11 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
     }
   }, [employeeNumber, from, to, dispatch]);
 
-  // esta función para devolver un objeto con el icono y la fecha
+  // Función para devolver un objeto con el icono del día de la semana y la fecha formateada
   const getDiaConLetraIconoYFecha = (fechaStr) => {
+    // Manejo de valores nulos o indefinidos para 'fechaStr'
     if (!fechaStr) {
-      return { icon: <strong className="icono-dia">N/A</strong>, date: "", dayLetter: "N/A" };
+      return { icon: <strong className="icono-dia icono-dia-na">N/A</strong>, date: "N/A", dayLetter: "N/A" };
     }
 
     // Asegurarse de que sea una cadena, en caso de que venga como objeto Date (ej. de MySQL)
@@ -35,7 +36,7 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
 
     if (isNaN(fecha.getTime())) {
       // Para fechas inválidas, devolver un objeto consistente
-      return { icon: <strong className="icono-dia">Inv</strong>, date: "Fecha inválida", dayLetter: "Inv" };
+      return { icon: <strong className="icono-dia icono-dia-invalid">Inv</strong>, date: "Fecha inválida", dayLetter: "Inv" };
     }
 
     const letraDia = letras[fecha.getDay()];
@@ -45,7 +46,7 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
     const day = fecha.getDate().toString().padStart(2, '0');
     const month = (fecha.getMonth() + 1).toString().padStart(2, '0'); // getMonth() es 0-indexed
     const year = fecha.getFullYear();
-    const formattedDate = `${day}-${month}-${year}`; // <-- ¡Aquí está el cambio a DD-MM-YYYY!
+    const formattedDate = `${day}-${month}-${year}`;
 
     return {
       icon: <strong className={`icono-dia ${claseDia}`}>{letraDia}</strong>, // El elemento React para el icono
@@ -54,7 +55,7 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
     };
   };
 
-  // Función para ordenar las anomalías
+  // Función para ordenar las anomalías (mantenemos la lógica de ordenamiento por empleado y fecha)
   const sortedAnomalies = [...anomalies].sort((a, b) => {
     // Ordenar por número de empleado
     if (a.employee_number !== b.employee_number) {
@@ -62,14 +63,80 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
     }
 
     // Luego, ordenar por la fecha más temprana del evento (entrada o salida)
-    const dateA = a.entry_event?.event_date || a.exit_event?.event_date;
-    const dateB = b.entry_event?.event_date || b.exit_event?.event_date;
+    // Usamos el 'message' o los eventos para extraer la fecha si están disponibles
+    let dateA = null;
+    if (a.entry_event?.event_date) dateA = a.entry_event.event_date;
+    else if (a.exit_event?.event_date) dateA = a.exit_event.event_date;
+    else if (a.event?.event_date) dateA = a.event.event_date; // Para 'Evento con Fecha/Hora Inválida'
+
+    let dateB = null;
+    if (b.entry_event?.event_date) dateB = b.entry_event.event_date;
+    else if (b.exit_event?.event_date) dateB = b.exit_event.event_date;
+    else if (b.event?.event_date) dateB = b.event.event_date;
 
     if (dateA && dateB) {
-      return dateA.localeCompare(dateB);
+      // Convertir a objetos Date para una comparación cronológica precisa
+      const timestampA = new Date(String(dateA).substring(0,10) + 'T' + (a.entry_event?.event_time || a.exit_event?.event_time || '00:00:00')).getTime();
+      const timestampB = new Date(String(dateB).substring(0,10) + 'T' + (b.entry_event?.event_time || b.exit_event?.event_time || '00:00:00')).getTime();
+      return timestampA - timestampB;
     }
     return 0;
   });
+
+  // Función para obtener el icono de FontAwesome para cada tipo de anomalía
+  const getAnomalyIcon = (type) => {
+    switch (type) {
+      case "Turno Muy Corto (Descartado)":
+        return <i className="fas fa-arrows-alt-h anomaly-icon short-shift-icon" title="Turno muy corto"></i>;
+      case "Turno Excede Límite (Descartado)":
+        return <i className="fas fa-clock anomaly-icon excessive-shift-icon" title="Turno excede límite"></i>;
+      case "Turno Demasiado Corto":
+        return <i className="fas fa-hourglass-half anomaly-icon warning-icon" title="Turno más corto de lo normal"></i>;
+      case "Turno Excesivo":
+        return <i className="fas fa-hourglass-end anomaly-icon warning-icon" title="Turno más largo de lo normal"></i>;
+      case "Evento Fuera de Secuencia / Entrada Duplicada / Salida Retroactiva":
+        return <i className="fas fa-exchange-alt anomaly-icon sequence-error-icon" title="Evento fuera de secuencia"></i>;
+      case "Entrada Previa con Fecha/Hora Inválida":
+      case "Evento con Fecha/Hora Inválida":
+        return <i className="fas fa-calendar-times anomaly-icon invalid-date-icon" title="Fecha/hora inválida"></i>;
+      case "Entrada Sin Salida Detectada (Fin de Rango)":
+        return <i className="fas fa-sign-in-alt anomaly-icon missing-exit-icon" title="Entrada sin salida"></i>;
+      default:
+        return <i className="fas fa-exclamation-circle anomaly-icon unknown-icon" title="Anomalía desconocida"></i>;
+    }
+  };
+
+  // Función para construir el mensaje de la anomalía de forma más amigable
+  const buildAnomalyMessage = (anomaly) => {
+    const entryInfo = anomaly.entry_event ? getDiaConLetraIconoYFecha(anomaly.entry_event.event_date) : null;
+    const exitInfo = anomaly.exit_event ? getDiaConLetraIconoYFecha(anomaly.exit_event.event_date) : null;
+    const eventInfo = anomaly.event ? getDiaConLetraIconoYFecha(anomaly.event.event_date) : null; // Para 'Evento con Fecha/Hora Inválida'
+
+    const entryTime = anomaly.entry_event?.event_time || 'N/A';
+    const exitTime = anomaly.exit_event?.event_time || 'N/A';
+    const eventTime = anomaly.event?.event_time || 'N/A';
+
+    switch (anomaly.type) {
+      case "Turno Muy Corto (Descartado)":
+        return `Turno de ${anomaly.hours_worked?.toFixed(2) || 'N/A'} horas (${entryInfo?.dayLetter} ${entryInfo?.date} ${entryTime} a ${exitInfo?.dayLetter} ${exitInfo?.date} ${exitTime}) es extremadamente corto y se descarta.`;
+      case "Turno Excede Límite (Descartado)":
+        return `Turno de ${anomaly.hours_worked?.toFixed(2) || 'N/A'} horas (${entryInfo?.dayLetter} ${entryInfo?.date} ${entryTime} a ${exitInfo?.dayLetter} ${exitInfo?.date} ${exitTime}) excede el límite de 12 horas y se descarta.`;
+      case "Turno Demasiado Corto":
+        return `Turno de ${anomaly.hours_worked?.toFixed(2) || 'N/A'} horas (${entryInfo?.dayLetter} ${entryInfo?.date} ${entryTime} a ${exitInfo?.dayLetter} ${exitInfo?.date} ${exitTime}) es más corto de lo esperado pero se contabiliza.`;
+      case "Turno Excesivo":
+        return `Turno de ${anomaly.hours_worked?.toFixed(2) || 'N/A'} horas (${entryInfo?.dayLetter} ${entryInfo?.date} ${entryTime} a ${exitInfo?.dayLetter} ${exitInfo?.date} ${exitTime}) es más largo de lo esperado pero se contabiliza.`;
+      case "Evento Fuera de Secuencia / Entrada Duplicada / Salida Retroactiva":
+        return `Evento en ${entryInfo?.dayLetter} ${entryInfo?.date} ${entryTime} está fuera de secuencia. La entrada previa fue sobrescrita.`;
+      case "Entrada Previa con Fecha/Hora Inválida":
+        return `La entrada previa en ${entryInfo?.dayLetter} ${entryInfo?.date} ${entryTime} tenía fecha/hora inválida y fue descartada.`;
+      case "Evento con Fecha/Hora Inválida":
+        return `Evento en ${eventInfo?.dayLetter} ${eventInfo?.date} ${eventTime} tiene fecha/hora inválida y no pudo ser procesado.`;
+      case "Entrada Sin Salida Detectada (Fin de Rango)":
+        return `La entrada en ${entryInfo?.dayLetter} ${entryInfo?.date} ${entryTime} no tuvo una salida emparejada en el rango seleccionado.`;
+      default:
+        return anomaly.message || `Anomalía desconocida para el empleado ${anomaly.employee_number}.`;
+    }
+  };
 
   return (
     <div className="worked-hours-summary">
@@ -113,7 +180,6 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
                     <td className="date-column">{exitDateInfo.date}</td> {/* Fecha de salida */}
                     <td>{item.exit_time}</td>
                     <td>{item.hours_worked ? item.hours_worked.toFixed(2) : "-"}</td>
-                    {/* CAMBIO CLAVE AQUÍ: Usar item.anomaly_reason */}
                     <td>{item.is_anomaly ? <span className="text-warning">{item.anomaly_reason}</span> : "Normal"}</td>
                   </tr>
                 );
@@ -126,62 +192,52 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
       {sortedAnomalies && sortedAnomalies.length > 0 && (
         <div className="anomalies-section">
           <h3><i className="fas fa-exclamation-triangle"></i> Eventos Anómalos Detectados:</h3>
-          <p className="anomalies-intro">Se encontraron inconsistencias en los registros que no pudieron ser procesados como turnos válidos o que superan los límites. Por favor, revise los detalles a continuación:</p>
+          <p className="anomalies-intro">Se encontraron inconsistencias en los registros. Por favor, revise los detalles:</p>
           <ul className="anomaly-list">
             {sortedAnomalies.map((anomaly, index) => {
-              const anomalyEntryDateInfo = anomaly.entry_event
-                ? getDiaConLetraIconoYFecha(anomaly.entry_event.event_date)
-                : null;
-              const anomalyExitDateInfo = anomaly.exit_event
-                ? getDiaConLetraIconoYFecha(anomaly.exit_event.event_date)
-                : null;
-
-              const entryTime = anomaly.entry_event ? anomaly.entry_event.event_time : '';
-              const exitTime = anomaly.exit_event ? anomaly.exit_event.event_time : '';
-
-              let displayMessage = anomaly.message; // Inicialmente, usa el mensaje del backend
-
-              // *** APLICAR FORMATO DD-MM-YYYY Y LA LETRA DEL DÍA AL MENSAJE DE LA ANOMALÍA ***
-              if (anomaly.type === 'Entrada Duplicada (Sin Salida Previa)' && anomaly.entry_event) {
-                displayMessage = `La entrada previa en ${anomalyEntryDateInfo.dayLetter} ${anomalyEntryDateInfo.date} ${entryTime} fue sobrescrita por una nueva entrada sin una salida intermedia.`;
-              } else if (anomaly.type === 'Salida sin Entrada Previa' && anomaly.exit_event) {
-                displayMessage = `Salida en ${anomalyExitDateInfo.dayLetter} ${anomalyExitDateInfo.date} ${exitTime} no tiene una entrada previa emparejable.`;
-              } else if (anomaly.type === 'Entrada Final sin Salida' && anomaly.entry_event) {
-                displayMessage = `La última entrada para ${anomaly.employee_number} en ${anomalyEntryDateInfo.dayLetter} ${anomalyEntryDateInfo.date} ${entryTime} no tuvo una salida.`;
-              } else if (anomaly.hours_worked !== undefined && anomaly.entry_event && anomaly.exit_event) {
-                // Para Turno Muy Corto, Turno Demasiado Corto, Turno Excesivo, etc.
-                // Intentar extraer la parte final del mensaje original si existe
-                const originalMessagePart = anomaly.message.split('horas (')[1] || '';
-                displayMessage = `${anomaly.type} de ${anomaly.hours_worked.toFixed(2)} horas (${anomalyEntryDateInfo.dayLetter} ${anomalyEntryDateInfo.date} ${entryTime} a ${anomalyExitDateInfo.dayLetter} ${anomalyExitDateInfo.date} ${exitTime}) ${originalMessagePart}`;
-              }
-              // Si hay otros tipos de anomalías que no encajan en estas categorías y necesitan formateo,
-              // puedes añadir más `else if` aquí.
+              const entryInfo = anomaly.entry_event ? getDiaConLetraIconoYFecha(anomaly.entry_event.event_date) : null;
+              const exitInfo = anomaly.exit_event ? getDiaConLetraIconoYFecha(anomaly.exit_event.event_date) : null;
+              const generalEventInfo = anomaly.event ? getDiaConLetraIconoYFecha(anomaly.event.event_date) : null; // Para Evento con Fecha/Hora Inválida
 
               return (
-                <li key={index} className="anomaly-item">
+                <li key={index} className={`anomaly-item anomaly-type-${anomaly.type.replace(/[^a-zA-Z0-9]/g, '-')}`}>
                   <div className="anomaly-header">
-                    <strong>Tipo de Anomalía:</strong> <span className="anomaly-type">{anomaly.type}</span>
+                    {getAnomalyIcon(anomaly.type)} {/* Icono de FontAwesome para el tipo */}
+                    <strong>Tipo:</strong> <span className="anomaly-type">{anomaly.type}</span>
                     <strong>Empleado:</strong> <span className="anomaly-employee">{anomaly.employee_number}</span>
                   </div>
-                  <p className="anomaly-message">{displayMessage}</p> {/* Usar el mensaje formateado */}
+                  <p className="anomaly-message">{buildAnomalyMessage(anomaly)}</p> {/* Mensaje formateado */}
                   <div className="anomaly-details">
-                    {anomaly.entry_event && (
-                      <span className="anomaly-event-detail">
-                        <span className="event-label">Entrada:</span>
-                        <span className="icon-column">{anomalyEntryDateInfo.icon}</span>
-                        <span className="date-column">{anomalyEntryDateInfo.date}</span> {anomaly.entry_event.event_time}
-                      </span>
-                    )}
-                    {anomaly.exit_event && (
-                      <span className="anomaly-event-detail">
-                        <span className="event-label">Salida:</span>
-                        <span className="icon-column">{anomalyExitDateInfo.icon}</span>
-                        <span className="date-column">{anomalyExitDateInfo.date}</span> {anomaly.exit_event.event_time}
-                      </span>
+                    {/* Detalles específicos del evento */}
+                    {(anomaly.entry_event || anomaly.exit_event || anomaly.event) && (
+                      <div className="event-info-wrapper">
+                        {anomaly.entry_event && (
+                          <span className="anomaly-event-detail">
+                            <span className="event-label">Entrada:</span>
+                            {entryInfo?.icon}
+                            <span className="date-time-display">{entryInfo?.date} {anomaly.entry_event.event_time}</span>
+                          </span>
+                        )}
+                        {anomaly.exit_event && (
+                          <span className="anomaly-event-detail">
+                            <span className="event-label">Salida:</span>
+                            {exitInfo?.icon}
+                            <span className="date-time-display">{exitInfo?.date} {anomaly.exit_event.event_time}</span>
+                          </span>
+                        )}
+                        {/* Esto es para el caso de 'Evento con Fecha/Hora Inválida' donde solo hay un 'event' */}
+                        {anomaly.type === "Evento con Fecha/Hora Inválida" && anomaly.event && (
+                           <span className="anomaly-event-detail">
+                             <span className="event-label">Evento Afectado:</span>
+                             {generalEventInfo?.icon}
+                             <span className="date-time-display">{generalEventInfo?.date} {anomaly.event.event_time}</span>
+                           </span>
+                        )}
+                      </div>
                     )}
                     {anomaly.hours_worked !== undefined && (
                       <span className="anomaly-hours-detail">
-                        <span className="event-label">Horas Anómalas:</span> {anomaly.hours_worked.toFixed(2)}
+                        <span className="event-label">Duración:</span> {anomaly.hours_worked.toFixed(2)} hrs.
                       </span>
                     )}
                   </div>
@@ -189,7 +245,7 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
               );
             })}
           </ul>
-          <p className="anomalies-note">Estos registros no se incluyen en el cálculo total de horas trabajadas *válidas*, pero se informan para su revisión.</p>
+          <p className="anomalies-note">Las anomalías de tipo "(Descartado)" no se incluyen en el cálculo total de horas trabajadas válidas. Las demás se informan para su revisión.</p>
         </div>
       )}
     </div>

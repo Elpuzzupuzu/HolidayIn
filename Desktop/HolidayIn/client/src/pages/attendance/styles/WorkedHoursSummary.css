@@ -99,7 +99,7 @@ h3 {
 }
 
 .results-section .text-warning {
-    color: #e67e22;
+    color: #e67e22; /* Color naranja para texto de advertencia */
     font-weight: bold;
 }
 
@@ -134,36 +134,34 @@ h3 {
 }
 
 /* Colores por día */
-.lunes,
-.martes,
-.miercoles,
-.jueves,
-.viernes {
-    background-color: #ea2785; /* Azul fuerte (manteniendo tu color original) */
-    color: white;
-}
+/* Colores más variados para los días de la semana */
+.domingo { background-color: #e74c3c; } /* Rojo suave */
+.lunes { background-color: #27ae60; } /* Verde esmeralda */
+.martes { background-color: #2980b9; } /* Azul pétroleo */
+.miercoles { background-color: #f39c12; } /* Naranja suave */
+.jueves { background-color: #8e44ad; } /* Púrpura */
+.viernes { background-color: #1abc9c; } /* Turquesa */
+.sabado { background-color: #d35400; } /* Naranja oscuro */
 
-.sabado,
-.domingo {
-    background-color: #f97316; /* Naranja intenso (manteniendo tu color original) */
-    color: white;
-}
+/* Clases específicas para iconos de fecha (N/A e Inválida) */
+.icono-dia-na { background-color: #95a5a6; } /* Gris plomo para N/A */
+.icono-dia-invalid { background-color: #c0392b; } /* Rojo ladrillo para inválida */
 
 
 /* --- Estilos para la sección de Anomalías --- */
 .anomalies-section {
     margin-top: 40px;
     padding: 25px;
-    background-color: #fff3e0;
-    border: 1px solid #ffcc80;
+    background-color: #fff3e0; /* Fondo naranja claro */
+    border: 1px solid #ffcc80; /* Borde naranja */
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
 }
 
 .anomalies-section h3 {
-    color: #e67e22;
+    color: #e67e22; /* Título naranja */
     font-size: 1.6em;
-    border-bottom: 2px solid #f9d8b1;
+    border-bottom: 2px solid #f9d8b1; /* Borde inferior naranja más claro */
     padding-bottom: 10px;
     display: flex;
     align-items: center;
@@ -171,7 +169,7 @@ h3 {
 
 .anomalies-section h3 .fas {
     margin-right: 10px;
-    color: #e67e22;
+    color: #e67e22; /* Icono naranja */
 }
 
 .anomalies-intro {
@@ -187,8 +185,8 @@ h3 {
 
 .anomaly-item {
     background-color: #fff;
-    border: 1px solid #ffe0b2;
-    border-left: 5px solid #ff9800;
+    border: 1px solid #ffe0b2; /* Borde de item naranja claro */
+    border-left: 5px solid; /* Color dinámico definido por clase de tipo */
     padding: 15px;
     margin-bottom: 15px;
     border-radius: 6px;
@@ -208,6 +206,7 @@ h3 {
     margin-bottom: 10px;
     padding-bottom: 8px;
     border-bottom: 1px dashed #f0f0f0;
+    align-items: center; /* Alinea los elementos verticalmente */
 }
 
 .anomaly-header strong {
@@ -216,15 +215,16 @@ h3 {
     margin-right: 5px;
 }
 
+/* Colores específicos para el tipo de anomalía y empleado en el header */
 .anomaly-type {
     font-weight: bold;
-    color: #c0392b;
+    color: #c0392b; /* Rojo para el texto del tipo de anomalía */
     margin-right: 20px;
 }
 
 .anomaly-employee {
     font-weight: bold;
-    color: #2980b9;
+    color: #2980b9; /* Azul para el número de empleado */
 }
 
 .anomaly-message {
@@ -250,17 +250,20 @@ h3 {
 }
 
 /* Alineación específica para el contenido de las anomalías */
-.anomaly-event-detail .icon-column,
-.anomaly-event-detail .date-column {
-    padding: 0; /* Elimina el padding extra si lo hay */
-    display: inline-flex; /* Asegura que el icono y la fecha se traten como elementos en línea con flexbox */
+.anomaly-event-detail .icon-column {
+    padding: 0;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    width: 28px; /* Ajuste para el tamaño del icono en detalles de anomalía */
+    height: 28px; /* Ajuste para el tamaño del icono en detalles de anomalía */
 }
 
-.anomaly-event-detail .date-column {
-    text-align: left; /* Alineación de la fecha en la anomalía */
-    width: auto; /* Permite que la fecha tome el ancho necesario */
+.anomaly-event-detail .date-time-display {
+    text-align: left;
+    white-space: nowrap; /* Asegura que no se rompa la fecha y hora */
+    font-weight: bold;
+    color: #333;
 }
 
 
@@ -273,7 +276,7 @@ h3 {
 
 .anomaly-hours-detail {
     font-weight: bold;
-    color: #d35400;
+    color: #d35400; /* Naranja oscuro para las horas anómalas */
 }
 
 .anomalies-note {
@@ -284,6 +287,36 @@ h3 {
     padding-top: 15px;
     border-top: 1px dashed #e0e0e0;
 }
+
+/* --- Clases para los iconos de FontAwesome por tipo de anomalía y su color de borde --- */
+/* (Estas clases son generadas dinámicamente en el JSX y se usan para el `border-left` del `anomaly-item` y el `color` del `anomaly-icon`) */
+
+/* Anomalías que resultan en descarte del turno */
+.anomaly-type-Turno-Muy-Corto--Descartado- { border-color: #dc3545; } /* Rojo para descarte crítico */
+.anomaly-type-Turno-Excede-Límite--Descartado- { border-color: #dc3545; } /* Rojo para descarte crítico */
+
+/* Iconos para anomalías de descarte */
+.anomaly-icon.short-shift-icon,
+.anomaly-icon.excessive-shift-icon { color: #dc3545; } /* Rojo para descarte crítico */
+
+/* Anomalías que se contabilizan pero son "advertencias" */
+.anomaly-type-Turno-Demasiado-Corto { border-color: #ffc107; } /* Amarillo para advertencia */
+.anomaly-type-Turno-Excesivo { border-color: #ffc107; } /* Amarillo para advertencia */
+
+/* Iconos para anomalías de advertencia */
+.anomaly-icon.warning-icon { color: #ffc107; } /* Amarillo para advertencia */
+
+/* Anomalías de secuencia o datos */
+.anomaly-type-Evento-Fuera-de-Secuencia---Entrada-Duplicada---Salida-Retroactiva { border-color: #6c757d; } /* Gris para errores de secuencia/lógica */
+.anomaly-type-Entrada-Previa-con-Fecha-Hora-Inválida { border-color: #17a2b8; } /* Azul claro para problemas de datos */
+.anomaly-type-Evento-con-Fecha-Hora-Inválida { border-color: #17a2b8; } /* Azul claro para problemas de datos */
+.anomaly-type-Entrada-Sin-Salida-Detectada--Fin-de-Rango- { border-color: #fd7e14; } /* Naranja para entradas sin salida */
+
+/* Iconos para otras anomalías */
+.anomaly-icon.sequence-error-icon { color: #6c757d; } /* Gris para estructurales */
+.anomaly-icon.invalid-date-icon { color: #17a2b8; } /* Azul para datos */
+.anomaly-icon.missing-exit-icon { color: #fd7e14; } /* Naranja para faltantes */
+.anomaly-icon.unknown-icon { color: #343a40; } /* Gris oscuro para desconocido */
 
 /* Modo responsivo para móviles */
 @media screen and (max-width: 768px) {
@@ -301,15 +334,16 @@ h3 {
     }
 
     .results-section th {
-        display: none;
+        display: none; /* Oculta los encabezados reales de la tabla en móvil */
     }
 
     .results-section td {
         position: relative;
-        padding-left: 50%;
+        padding-left: 50%; /* Espacio para la pseudo-etiqueta */
         border: none;
         border-bottom: 1px solid #ddd;
         text-align: right; /* Alinea el contenido de la celda a la derecha en móvil */
+        white-space: normal; /* Permite que el contenido se ajuste */
     }
 
     .results-section td::before {
@@ -318,7 +352,7 @@ h3 {
         left: 16px;
         width: 45%;
         padding-right: 10px;
-        white-space: nowrap;
+        white-space: nowrap; /* Mantiene la etiqueta en una sola línea */
         font-weight: bold;
         color: #666;
         text-align: left; /* Alinea la etiqueta a la izquierda */
@@ -337,16 +371,29 @@ h3 {
 
     /* Ajustes para la sección de anomalías en móviles */
     .anomaly-header {
-        flex-direction: column;
+        flex-direction: column; /* Apila los elementos del encabezado */
         align-items: flex-start;
         gap: 5px;
     }
 
+    .anomaly-details {
+        flex-direction: column; /* Apila los detalles de la anomalía */
+        gap: 10px; /* Reduce el espacio entre detalles */
+    }
+
     .anomaly-event-detail,
     .anomaly-hours-detail {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
+        align-items: flex-start; /* Alinea las etiquetas al inicio */
         gap: 3px;
+    }
+
+    .anomaly-event-detail .icono-dia {
+        min-width: 20px; /* Reducir un poco el tamaño del icono en móvil */
+        height: 20px;
+        font-size: 0.8em;
+    }
+
+    .anomaly-icon {
+        font-size: 1.2em; /* Iconos de anomalía un poco más pequeños */
     }
 }

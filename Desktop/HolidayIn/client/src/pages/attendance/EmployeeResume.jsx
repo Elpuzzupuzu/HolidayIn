@@ -107,7 +107,7 @@ const EmployeeResume = ({ resumen, workedHours = [], onClose }) => {
 
           {/* Hours Summary Section */}
           <div className="hours-section">
-            <div className="hours-content">
+            {/* <div className="hours-content">
               <div className="hours-icon">
                 <Clock size={24} />
               </div>
@@ -123,7 +123,7 @@ const EmployeeResume = ({ resumen, workedHours = [], onClose }) => {
                   Equivalente a {formatHours(resumen.total_hours)}
                 </p>
               </div>
-            </div>
+            </div> */}
           </div>
 
           {/* Days Worked Section */}

@@ -865,173 +865,264 @@ static async getWorkedHoursBetweenDates(startDate, endDate, employeeNumber = nul
 
 
 static async getWorkedHoursBetweenDatesCSV(startDate, endDate, employeeNumber = null) {
+  // --- 1. Robust Input Validation ---
   if (!startDate || !endDate) {
-    throw new Error("Debe proporcionar ambas fechas: startDate y endDate.");
+    throw new Error("Fechas de inicio y fin son requeridas.");
   }
 
+  const parsedStartDate = new Date(startDate);
+  const parsedEndDate = new Date(endDate);
+
+  if (isNaN(parsedStartDate.getTime()) || isNaN(parsedEndDate.getTime())) {
+    throw new Error("Fechas de inicio o fin inválidas. Use un formato de fecha reconocido (ej. 'YYYY-MM-DD').");
+  }
+
+  if (parsedStartDate > parsedEndDate) {
+    throw new Error("La fecha de inicio no puede ser posterior a la fecha de fin.");
+  }
+
+  if (employeeNumber !== null && (typeof employeeNumber !== 'string' && typeof employeeNumber !== 'number')) {
+    throw new Error("El número de empleado debe ser una cadena o un número, o nulo.");
+  }
+
+  // --- 2. Database Query with Error Handling ---
+  let sql = `
+    SELECT employee_number, event_date, event_time
+    FROM dat_events
+    WHERE event_date BETWEEN ? AND ?
+  `;
+  const params = [startDate, endDate];
+
+  if (employeeNumber) {
+    sql += ` AND employee_number = ?`;
+    params.push(employeeNumber);
+  }
+
+  // Ordering is CRUCIAL for inferring event types based on sequence
+  sql += ` ORDER BY employee_number, event_date ASC, event_time ASC`;
+
+  let events;
   try {
-    let query = `
-      SELECT employee_number, event_date, event_time
-      FROM dat_events
-      WHERE event_date BETWEEN ? AND ?
-    `;
-    const params = [startDate, endDate];
-
-    if (employeeNumber) {
-      query += ` AND employee_number = ?`;
-      params.push(employeeNumber);
+    // Asumo que `supabase.query` es equivalente a `supabase.execute` o la forma correcta de ejecutar la consulta.
+    [events] = await supabase.query(sql, params);
+    if (!events || events.length === 0) {
+      console.log("🐛 DEBUG - No se encontraron eventos para los criterios de búsqueda para CSV.");
+      return []; // Retorna un array vacío para CSV si no hay eventos.
     }
+  } catch (dbError) {
+    console.error("❌ ERROR - Error al consultar la base de datos para CSV:", dbError.message);
+    throw new Error("No se pudieron recuperar los eventos de la base de datos para CSV. Intente de nuevo más tarde.");
+  }
 
-    query += `
-      ORDER BY employee_number ASC, event_date ASC, event_time ASC;
-    `;
-
-    const [events] = await supabase.query(query, params);
-
-    if (!events.length) {
-      return [];
-    }
-
-    const workedHoursForCSV = [];
-    const anomalies = []; // Still useful for internal logging/debugging
-
-    const SHORT_SHIFT_THRESHOLD_HOURS = 0.1;
-    const MAX_ALLOWED_SHIFT_HOURS = 24;
-
-    const formatEventDateForMessage = (event) => {
-      if (!event || !event.event_date) return 'Fecha desconocida';
-      if (event.event_date instanceof Date) {
-        if (isNaN(event.event_date.getTime())) {
+  // --- 3. Centralized Date Formatting (Helper Function) ---
+  // Esta función asegura que las fechas se formateen consistentemente y maneja valores inválidos.
+  const safeFormatDate = (dateLike) => {
+    try {
+      if (dateLike instanceof Date) {
+        if (isNaN(dateLike.getTime())) {
           return 'Fecha inválida';
         }
-        return event.event_date.toISOString().substring(0, 10);
+        return dateLike.toISOString().substring(0, 10); // Formato YYYY-MM-DD
       }
-      return String(event.event_date).substring(0, 10);
-    };
-
-    const eventsByEmployee = {};
-    for (const event of events) {
-      if (!eventsByEmployee[event.employee_number]) {
-        eventsByEmployee[event.employee_number] = [];
+      // Intenta convertir la cadena a Date y luego formatear.
+      const d = new Date(dateLike);
+      if (isNaN(d.getTime())) {
+        return String(dateLike).substring(0, 10); // Fallback para cadenas no parseables
       }
-      eventsByEmployee[event.employee_number].push(event);
+      return d.toISOString().substring(0, 10);
+    } catch (error) {
+      console.warn(`⚠️ ADVERTENCIA: Error al formatear la fecha "${dateLike}" para CSV: ${error.message}`);
+      return 'Fecha con error de formato';
     }
+  };
 
-    for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
-      let lastEntry = null;
+  // --- 4. Anomaly and Result Initialization ---
+  const workedHoursForCSV = [];
+  const anomalies = []; // Sigue siendo útil para registro interno/depuración.
 
-      for (let i = 0; i < empEvents.length; i++) {
-        const currentEvent = empEvents[i];
-        const currentEventDate = currentEvent.event_date instanceof Date ? currentEvent.event_date : new Date(currentEvent.event_date);
-        const eventTimestamp = new Date(`${currentEventDate.toISOString().slice(0, 10)}T${currentEvent.event_time}`);
+  // --- 5. Define Anomaly Thresholds (Constants for Clarity and Easy Adjustment) ---
+  const SHORT_SHIFT_THRESHOLD_HOURS = 0.1; // Turnos extremadamente cortos (ej. < 6 minutos)
+  const NORMAL_SHIFT_MIN_HOURS = 7.5;     // Mínimo para un turno considerado "normal"
+  const NORMAL_SHIFT_MAX_HOURS = 9.5;     // Máximo para un turno considerado "normal"
 
-        if (isNaN(eventTimestamp.getTime())) {
-          anomalies.push({
-            type: "Evento con Fecha/Hora Inválida",
-            employee_number: employee,
-            event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-            message: `Evento en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} tiene fecha/hora inválida.`,
-          });
-          continue;
-        }
+  // ¡¡¡AJUSTE CRUCIAL BASADO EN TU ACLARACIÓN!!!
+  // Si los turnos NO exceden las 12 horas (ni los nocturnos), este es el límite absoluto
+  // para considerar un par Entrada-Salida como un turno VÁLIDO para el cómputo de horas.
+  const MAX_ALLOWED_SHIFT_HOURS = 12.5; // Un pequeño margen sobre 12 horas.
 
-        if (lastEntry === null) {
-          lastEntry = currentEvent;
-        } else {
-          const entryDate = lastEntry.event_date instanceof Date ? lastEntry.event_date : new Date(lastEntry.event_date);
-          const entryTimestamp = new Date(`${entryDate.toISOString().slice(0, 10)}T${lastEntry.event_time}`);
+  // --- 6. Group Events by Employee ---
+  const eventsByEmployee = events.reduce((acc, event) => {
+    if (!acc[event.employee_number]) {
+      acc[event.employee_number] = [];
+    }
+    acc[event.employee_number].push(event);
+    return acc;
+  }, {});
 
-          if (isNaN(entryTimestamp.getTime())) {
-             anomalies.push({
+  // --- 7. Process Events for Each Employee ---
+  for (const [employee, empEvents] of Object.entries(eventsByEmployee)) {
+    let lastEntry = null; // Almacena la última "entrada" asumida para emparejar.
+
+    for (let i = 0; i < empEvents.length; i++) {
+      const currentEvent = empEvents[i];
+      const formattedCurrentDate = safeFormatDate(currentEvent.event_date);
+      const currentTimestamp = new Date(`${formattedCurrentDate}T${currentEvent.event_time}`);
+
+      // Validación básica para la fecha/hora del evento actual.
+      if (isNaN(currentTimestamp.getTime())) {
+        anomalies.push({
+          type: "Evento con Fecha/Hora Inválida",
+          employee_number: employee,
+          event: { ...currentEvent, event_date: formattedCurrentDate },
+          message: `Evento en ${formattedCurrentDate} ${currentEvent.event_time} tiene fecha/hora inválida y no puede ser procesado.`,
+        });
+        continue; // Saltar este evento inválido.
+      }
+
+      if (lastEntry === null) {
+        // No hay una entrada pendiente, este evento es la primera "entrada" de un posible turno.
+        lastEntry = currentEvent;
+      } else {
+        // Hay una entrada pendiente (lastEntry), este currentEvent es una posible "salida".
+        const formattedLastEntryDate = safeFormatDate(lastEntry.event_date);
+        const entryTimestamp = new Date(`${formattedLastEntryDate}T${lastEntry.event_time}`);
+
+        // Validación de la fecha/hora de la entrada pendiente.
+        if (isNaN(entryTimestamp.getTime())) {
+            anomalies.push({
                 type: "Entrada Previa con Fecha/Hora Inválida",
                 employee_number: employee,
-                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-                message: `La entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} tiene fecha/hora inválida. Se buscará una nueva entrada.`,
+                entry_event: { ...lastEntry, event_date: formattedLastEntryDate },
+                message: `La entrada previa en ${formattedLastEntryDate} ${lastEntry.event_time} tiene fecha/hora inválida. Se descartará y el evento actual (${formattedCurrentDate} ${currentEvent.event_time}) se considerará una nueva entrada.`,
             });
-            lastEntry = null;
-            lastEntry = currentEvent;
+            lastEntry = currentEvent; // Descarta la entrada inválida, el evento actual se convierte en la nueva entrada.
             continue;
-          }
-
-          // >>>>> ESTA ES LA SECCIÓN QUE FALTÓ DEFINIR <<<<<
-          const exitDate = currentEvent.event_date instanceof Date ? currentEvent.event_date : new Date(currentEvent.event_date);
-          const exitTimestamp = new Date(`${exitDate.toISOString().slice(0, 10)}T${currentEvent.event_time}`);
-          // >>>>> FIN DE LA SECCIÓN QUE FALTÓ DEFINIR <<<<<
-
-
-          if (eventTimestamp <= entryTimestamp) {
-            anomalies.push({
-              type: "Evento Fuera de Secuencia (Posible Entrada Duplicada o Salida Retroactiva)",
-              employee_number: employee,
-              entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-              current_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-              message: `El evento en ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time} es anterior o igual a la entrada previa en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time}. Se asumirá que esta entrada previa fue sobrescrita.`,
-            });
-            lastEntry = currentEvent;
-            continue;
-          }
-
-          const diffMs = exitTimestamp - entryTimestamp; // Ahora exitTimestamp estará definido aquí
-          let hoursWorked = diffMs / (1000 * 60 * 60);
-          hoursWorked = Math.round(hoursWorked * 100) / 100;
-
-          if (hoursWorked > MAX_ALLOWED_SHIFT_HOURS) {
-            anomalies.push({
-              type: "Turno Excede 24 Horas (Descartado)",
-              employee_number: employee,
-              entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-              exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-              hours_worked: hoursWorked,
-              message: `Turno de ${hoursWorked} horas (de ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} a ${formatEventDateForMessage(currentEvent)} ${currentEvent.event_time}) excede el límite de ${MAX_ALLOWED_SHIFT_HOURS} horas.`,
-            });
-            lastEntry = currentEvent;
-            continue;
-          }
-
-          if (hoursWorked >= SHORT_SHIFT_THRESHOLD_HOURS) {
-            workedHoursForCSV.push({
-              numero_empleado: employee,
-              fecha_entrada: formatEventDateForMessage(lastEntry),
-              hora_entrada: lastEntry.event_time,
-              fecha_salida: formatEventDateForMessage(currentEvent),
-              hora_salida: currentEvent.event_time,
-              horas_trabajadas: hoursWorked,
-            });
-          } else {
-             anomalies.push({
-                type: "Turno Demasiado Corto (No Contabilizado)",
-                employee_number: employee,
-                entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-                exit_event: { ...currentEvent, event_date: formatEventDateForMessage(currentEvent) },
-                hours_worked: hoursWorked,
-                message: `Turno de ${hoursWorked} horas es extremadamente corto (< ${SHORT_SHIFT_THRESHOLD_HOURS}h) y no se contabiliza.`,
-              });
-          }
-
-          lastEntry = null; // Pair completed, look for a new entry
         }
-      }
 
-      if (lastEntry !== null) {
-        anomalies.push({
-          type: "Entrada Final sin Salida en Rango",
-          employee_number: employee,
-          entry_event: { ...lastEntry, event_date: formatEventDateForMessage(lastEntry) },
-          message: `La última entrada para ${employee} en ${formatEventDateForMessage(lastEntry)} ${lastEntry.event_time} no tuvo una salida emparejada.`,
+        // --- Manejo de Eventos Fuera de Secuencia ---
+        // Si el evento actual es cronológicamente anterior o igual a la entrada previa,
+        // se asume un error (ej. doble picado, registro retroactivo).
+        // Se descarta la entrada previa y el evento actual se toma como la nueva entrada.
+        if (currentTimestamp <= entryTimestamp) {
+          anomalies.push({
+            type: "Evento Fuera de Secuencia / Entrada Duplicada / Salida Retroactiva",
+            employee_number: employee,
+            entry_event: { ...lastEntry, event_date: formattedLastEntryDate },
+            current_event: { ...currentEvent, event_date: formattedCurrentDate },
+            message: `El evento actual (${formattedCurrentDate} ${currentEvent.event_time}) es anterior o igual a la entrada previa (${formattedLastEntryDate} ${lastEntry.event_time}). Se asumirá que la entrada previa fue sobrescrita y el evento actual es una nueva entrada.`,
+          });
+          lastEntry = currentEvent; // Este evento se convierte en la nueva "entrada".
+          continue; // Pasa al siguiente evento para buscar su salida.
+        }
+
+        // Calcula las horas trabajadas para el par (Entrada -> Salida).
+        const diffMs = currentTimestamp - entryTimestamp;
+        let hoursWorked = diffMs / (1000 * 60 * 60);
+        hoursWorked = Math.round(hoursWorked * 100) / 100; // Redondea a dos decimales.
+
+        let isAnomaly = false; // Se usará internamente para el reporte de anomalías detallado.
+        let anomalyReason = null;
+
+        // --- REGLAS DE ANOMALÍAS Y DESCARTE DE TURNOS ---
+
+        if (hoursWorked < SHORT_SHIFT_THRESHOLD_HOURS) {
+          // --- Caso 1: Turno Extremadamente Corto (Error de Registro) ---
+          // Este par NO se considera un turno válido y se descarta completamente.
+          // La secuencia se "resetea" para buscar una nueva entrada.
+          isAnomaly = true;
+          anomalyReason = "Turno Muy Corto (Descartado)";
+          anomalies.push({
+            type: anomalyReason,
+            employee_number: employee,
+            entry_event: { ...lastEntry, event_date: formattedLastEntryDate },
+            exit_event: { ...currentEvent, event_date: formattedCurrentDate },
+            hours_worked: hoursWorked,
+            message: `Turno de ${hoursWorked} horas es extremadamente corto (< ${SHORT_SHIFT_THRESHOLD_HOURS}h). Este par se considera un error de registro y se descarta. La entrada previa se marca como sin salida.`,
+          });
+          lastEntry = null; // Reinicia 'lastEntry' para que el siguiente evento sea una nueva entrada.
+          continue; // Pasa al siguiente evento.
+        } else if (hoursWorked > MAX_ALLOWED_SHIFT_HOURS) {
+          // --- Caso 2: Turno Excede Límite Máximo Permitido (NO ES UN TURNO VÁLIDO) ---
+          // Si el turno supera el límite de 12.5 horas, no es un turno válido para el cómputo de horas.
+          // NO se cuenta en 'workedHoursForCSV', pero se registra la anomalía.
+          // El 'currentEvent' se convierte en la nueva 'lastEntry' para corregir la secuencia.
+          isAnomaly = true;
+          anomalyReason = "Turno Excede Límite (Descartado)";
+          anomalies.push({
+            type: anomalyReason,
+            employee_number: employee,
+            entry_event: { ...lastEntry, event_date: formattedLastEntryDate },
+            exit_event: { ...currentEvent, event_date: formattedCurrentDate },
+            hours_worked: hoursWorked,
+            message: `El turno de ${hoursWorked} horas (de ${formattedLastEntryDate} ${lastEntry.event_time} a ${formattedCurrentDate} ${currentEvent.event_time}) excede el límite de ${MAX_ALLOWED_SHIFT_HOURS} horas. Este par NO se considera un turno válido. La entrada previa (${formattedLastEntryDate} ${lastEntry.event_time}) se marca como sin salida.`,
+          });
+          lastEntry = currentEvent; // El evento actual se toma como la nueva "entrada" para la siguiente secuencia.
+          continue; // Pasa al siguiente evento para buscar su salida.
+        }
+
+        // --- Casos de Turnos Válidos (No Descartados), pero con Posibles Anomalías de Duración ---
+        // Si llegamos aquí, el turno está dentro de los límites de SHORT_SHIFT_THRESHOLD_HOURS y MAX_ALLOWED_SHIFT_HOURS.
+        // Se calcula y se agrega a workedHoursForCSV, pero puede tener una anomalía de duración "normal".
+        if (hoursWorked < NORMAL_SHIFT_MIN_HOURS) {
+          isAnomaly = true;
+          anomalyReason = "Turno Demasiado Corto";
+          anomalies.push({
+            type: anomalyReason,
+            employee_number: employee,
+            entry_event: { ...lastEntry, event_date: formattedLastEntryDate },
+            exit_event: { ...currentEvent, event_date: formattedCurrentDate },
+            hours_worked: hoursWorked,
+            message: `Turno de ${hoursWorked} horas es inferior al mínimo de ${NORMAL_SHIFT_MIN_HOURS}h.`,
+          });
+        } else if (hoursWorked > NORMAL_SHIFT_MAX_HOURS) {
+          isAnomaly = true;
+          anomalyReason = "Turno Excesivo";
+          anomalies.push({
+            type: anomalyReason,
+            employee_number: employee,
+            entry_event: { ...lastEntry, event_date: formattedLastEntryDate },
+            exit_event: { ...currentEvent, event_date: formattedCurrentDate },
+            hours_worked: hoursWorked,
+            message: `Turno de ${hoursWorked} horas excede el máximo de ${NORMAL_SHIFT_MAX_HOURS}h.`,
+          });
+        }
+
+        // Si el turno no fue descartado en los casos anteriores (muy corto o excesivo), se añade al CSV.
+        workedHoursForCSV.push({
+          numero_empleado: employee,
+          fecha_entrada: formattedLastEntryDate,
+          hora_entrada: lastEntry.event_time,
+          fecha_salida: formattedCurrentDate,
+          hora_salida: currentEvent.event_time,
+          horas_trabajadas: hoursWorked,
+          // Las columnas 'is_anomaly' y 'anomaly_reason' no suelen ir en CSV directo,
+          // pero si se necesitan, se pueden añadir aquí. Por ahora, se omiten para un CSV más limpio.
         });
+
+        lastEntry = null; // El par (entrada -> salida) se ha completado, se resetea para buscar una nueva entrada.
       }
     }
 
-    if (anomalies.length > 0) {
-        console.warn("Anomalías detectadas durante la generación del CSV (servicio):", anomalies);
+    // --- 8. Manejo de Entradas Sin Salida al Final del Procesamiento del Empleado ---
+    // Si queda una 'lastEntry' al final de los eventos de un empleado, significa que no encontró una salida emparejada.
+    if (lastEntry !== null) {
+      anomalies.push({
+        type: "Entrada Sin Salida Detectada (Fin de Rango)",
+        employee_number: employee,
+        entry_event: { ...lastEntry, event_date: safeFormatDate(lastEntry.event_date) },
+        message: `La última entrada para ${employee} en ${safeFormatDate(lastEntry.event_date)} ${lastEntry.event_time} no tuvo una salida emparejada en el rango de fechas o antes del final de los eventos del empleado.`,
+      });
     }
-
-    return workedHoursForCSV;
-
-  } catch (error) {
-    // Es crucial lanzar un error aquí para que el controller lo capture
-    throw new Error(`Error al obtener datos para CSV: ${error.message}`);
   }
+
+  // --- 9. Consolidar Reporte de Anomalías ---
+  if (anomalies.length > 0) {
+      console.warn("⚠️ ADVERTENCIA: Se encontraron anomalías durante la generación del CSV:", anomalies);
+  } else {
+      console.log("✅ PROCESO COMPLETADO: Generación de datos para CSV sin anomalías.");
+  }
+
+  return workedHoursForCSV;
 }
 
 

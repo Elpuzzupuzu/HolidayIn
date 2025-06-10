@@ -51,14 +51,14 @@
 /* Header Styles */
 .employee-resume-header {
   background: linear-gradient(135deg, #2563eb 0%, #4338ca 100%);
-  padding: 1.5rem;
+  padding: 0..25rem 1rem;  /* Reducido el padding vertical a la mitad */
   border-top-left-radius: 1rem;
   border-top-right-radius: 1rem;
   color: white;
-  position: sticky;   /* Cambiado de relative a sticky */
-  top: 0;             /* Define que se quede pegado al top de la ventana */
+  position: sticky;
+  top: 0;
   overflow: hidden;
-  z-index: 10;        /* Para que quede por encima de otros elementos si es necesario */
+  z-index: 10;
 }
 
 .header-decoration-1 {
