@@ -83,29 +83,7 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
     return 0;
   });
 
-  // Función para obtener el icono de FontAwesome para cada tipo de anomalía
-  const getAnomalyIcon = (type) => {
-    switch (type) {
-      case "Turno Muy Corto (Descartado)":
-        return <i className="fas fa-arrows-alt-h anomaly-icon short-shift-icon" title="Turno muy corto"></i>;
-      case "Turno Excede Límite (Descartado)":
-        return <i className="fas fa-clock anomaly-icon excessive-shift-icon" title="Turno excede límite"></i>;
-      case "Turno Demasiado Corto":
-        return <i className="fas fa-hourglass-half anomaly-icon warning-icon" title="Turno más corto de lo normal"></i>;
-      case "Turno Excesivo":
-        return <i className="fas fa-hourglass-end anomaly-icon warning-icon" title="Turno más largo de lo normal"></i>;
-      case "Evento Fuera de Secuencia / Entrada Duplicada / Salida Retroactiva":
-        return <i className="fas fa-exchange-alt anomaly-icon sequence-error-icon" title="Evento fuera de secuencia"></i>;
-      case "Entrada Previa con Fecha/Hora Inválida":
-      case "Evento con Fecha/Hora Inválida":
-        return <i className="fas fa-calendar-times anomaly-icon invalid-date-icon" title="Fecha/hora inválida"></i>;
-      case "Entrada Sin Salida Detectada (Fin de Rango)":
-        return <i className="fas fa-sign-in-alt anomaly-icon missing-exit-icon" title="Entrada sin salida"></i>;
-      default:
-        return <i className="fas fa-exclamation-circle anomaly-icon unknown-icon" title="Anomalía desconocida"></i>;
-    }
-  };
-
+  // buildAnomalyMessage will also need to be updated to remove icon references if they were there
   // Función para construir el mensaje de la anomalía de forma más amigable
   const buildAnomalyMessage = (anomaly) => {
     const entryInfo = anomaly.entry_event ? getDiaConLetraIconoYFecha(anomaly.entry_event.event_date) : null;
@@ -191,7 +169,8 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
 
       {sortedAnomalies && sortedAnomalies.length > 0 && (
         <div className="anomalies-section">
-          <h3><i className="fas fa-exclamation-triangle"></i> Eventos Anómalos Detectados:</h3>
+          {/* Removed Font Awesome icon here */}
+          <h3>Eventos Anómalos Detectados:</h3>
           <p className="anomalies-intro">Se encontraron inconsistencias en los registros. Por favor, revise los detalles:</p>
           <ul className="anomaly-list">
             {sortedAnomalies.map((anomaly, index) => {
@@ -202,7 +181,7 @@ const WorkedHoursSummary = ({ employeeNumber, from, to }) => {
               return (
                 <li key={index} className={`anomaly-item anomaly-type-${anomaly.type.replace(/[^a-zA-Z0-9]/g, '-')}`}>
                   <div className="anomaly-header">
-                    {getAnomalyIcon(anomaly.type)} {/* Icono de FontAwesome para el tipo */}
+                    {/* Removed getAnomalyIcon(anomaly.type) here */}
                     <strong>Tipo:</strong> <span className="anomaly-type">{anomaly.type}</span>
                     <strong>Empleado:</strong> <span className="anomaly-employee">{anomaly.employee_number}</span>
                   </div>
