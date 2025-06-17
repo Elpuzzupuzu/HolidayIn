@@ -1,361 +1,381 @@
+/* ./styles/EmployeeResume.css */
+
+/* Variables de diseño (mantengo las que tenías, puedes ajustarlas si es necesario) */
+:root {
+    --primary-color: #007bff; /* Azul primario */
+    --secondary-color: #6c757d; /* Gris secundario */
+    --success-color: #28a745; /* Verde para éxito */
+    --warning-color: #ffc107; /* Amarillo para advertencias */
+    --danger-color: #dc3545; /* Rojo para errores */
+    --info-color: #17a2b8; /* Azul claro para información */
+
+    --bg-light: #f8f9fa; /* Fondo claro */
+    --bg-card: #ffffff; /* Fondo de tarjetas/contenedores */
+    --border-color: #e9ecef; /* Color de borde suave */
+    --text-color-dark: #343a40; /* Texto principal oscuro */
+    --text-color-light: #6c757d; /* Texto secundario más claro */
+    --text-color-muted: #999; /* Texto muy discreto */
+
+    --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-medium: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+    --font-family-base: "Arial", sans-serif; /* Puedes usar tu fuente preferida */
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+}
+
 /* Employee Resume Modal Overlay */
 .employee-resume-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-  animation: fadeIn 0.3s ease-out;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+    animation: fadeIn 0.3s ease-out;
 }
 
 .employee-resume-modal {
-  background: white;
-  border-radius: 1rem;
-  box-shadow: 0 25px 50px -12px rgba(9, 9, 0, 0.25);
-  max-width: 900px; 
-  width: 90%;
-  max-height: 80vh;       /* Máximo 80% de la altura de la ventana */
-  overflow-y: auto;       /* Scroll vertical si el contenido supera max-height */
-  transform: scale(0.95);
-  animation: slideIn 0.3s ease-out forwards;
-  position: relative;     /* Asegura que los botones se posicionen bien */
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(9, 9, 0, 0.25);
+    /* Valores sugeridos para un modal más grande y ancho */
+    max-width: 1200px; /* Incrementado para mayor ancho */
+    width: 95%;      /* Ocupa más porcentaje del ancho disponible */
+    max-height: 95vh; /* Incrementado para mayor altura */
+    /* Fin de los valores sugeridos */
+    overflow-y: auto;
+    transform: scale(0.95);
+    animation: slideIn 0.3s ease-out forwards;
+    position: relative;
 }
 
 /* Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes slideIn {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+    from {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* Header Styles */
 .employee-resume-header {
-  background: linear-gradient(135deg, #2563eb 0%, #4338ca 100%);
-  padding: 0..25rem 1rem;  /* Reducido el padding vertical a la mitad */
-  border-top-left-radius: 1rem;
-  border-top-right-radius: 1rem;
-  color: white;
-  position: sticky;
-  top: 0;
-  overflow: hidden;
-  z-index: 10;
+    background: linear-gradient(135deg, #2563eb 0%, #4338ca 100%);
+    padding: 0.25rem 1rem; /* CORREGIDO: De 0..25rem a 0.25rem */
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    color: white;
+    position: sticky;
+    top: 0;
+    overflow: hidden;
+    z-index: 10;
 }
 
 .header-decoration-1 {
-  position: absolute;
-  top: -2.5rem;
-  right: -2.5rem;
-  width: 5rem;
-  height: 5rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
+    position: absolute;
+    top: -2.5rem;
+    right: -2.5rem;
+    width: 5rem;
+    height: 5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
 }
 
 .header-decoration-2 {
-  position: absolute;
-  bottom: -2rem;
-  left: -2rem;
-  width: 4rem;
-  height: 4rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
+    position: absolute;
+    bottom: -2rem;
+    left: -2rem;
+    width: 4rem;
+    height: 4rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
 }
 
 .header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: relative;
-  z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 10;
 }
 
 .header-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .header-icon {
-  background-color: rgba(255, 249, 249, 0.868);
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    background-color: rgba(255, 249, 249, 0.868);
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .header-text {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .header-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin: 0;
-  line-height: 1.2;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.2;
 }
 
 .header-subtitle {
-  color: rgb(254, 219, 245);
-  font-size: 0.875rem;
-  margin: 0;
-  margin-top: 0.125rem;
+    color: rgb(254, 219, 245);
+    font-size: 0.875rem;
+    margin: 0;
+    margin-top: 0.125rem;
 }
 
-.employee-resume-modal .close-button {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  z-index: 10;
-  cursor: pointer;
-  
-  background-color: rgba(255, 255, 255, 0.2);
-  border: none;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  color: white;
-  font-size: 1.5rem;
-  
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  transition: all 0.2s ease;
+/* Selector corregido para el botón de cerrar */
+.header-close-btn {
+    position: absolute; /* Mantiene la posición absoluta para flotar */
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    color: white;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
 }
 
-.employee-resume-modal .close-button:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
+.header-close-btn:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
 }
 
 /* Body Styles */
 .employee-resume-body {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
-/* Date Section */
-.date-section {
-  background-color: #f9fafb;
-  border-radius: 0.75rem;
-  padding: 1rem;
+/* Info Section (para Período de Consulta, y ahora Días con Registros) */
+.info-section {
+    background-color: #f9fafb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* Sombra para resaltar las secciones */
 }
 
 .section-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
 }
 
 .section-header svg {
-  color: #6b7280;
+    color: #6b7280;
 }
 
 .section-title {
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  font-size: 0.95rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+    font-size: 0.95rem;
 }
 
-.date-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.date-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.date-info-grid {
+    display: grid;
+    grid-template-columns: auto 1fr; /* Etiqueta a la izquierda, valor a la derecha */
+    gap: 0.5rem 1rem; /* Espacio entre filas y columnas */
+    font-size: 0.875rem;
 }
 
 .date-label {
-  font-size: 0.875rem;
-  color: #6b7280;
+    color: #6b7280;
+    font-weight: 500;
 }
 
 .date-value {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #1f2937;
-  text-align: right;
+    color: #1f2937;
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word; /* Asegura que fechas largas se rompan si es necesario */
 }
 
-/* Hours Section */
-.hours-section {
-  background: rgb(171, 233, 155);
-  border-radius: 0.75rem;
-  padding: 1rem;
-  border: 1px solid #232925;
+/* NUEVO ESTILO: Para el valor de "Días con Registros" cuando está dentro de date-info-grid */
+.days-with-records-value {
+    color: #16a34a; /* Color verde para destacar */
+    font-weight: 700; /* Más negrita */
 }
 
-.hours-content {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
- 
+/* ELIMINADAS LAS REGLAS OLD .days-info y .days-number que robaban espacio */
+
+
+/* Results Wrapper (para el componente WorkedHoursSummary) */
+.results-wrapper {
+    background-color: #f9fafb;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-.hours-icon {
-  background-color: #dcfce7;
-  padding: 0.75rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  
-}
-
-.hours-icon svg {
-  color: #16a34a;
-}
-
-.hours-info {
-  flex: 1;
-  
-}
-
-.hours-title {
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 0.25rem 0;
-  font-size: 0.95rem;
-}
-
-.hours-main {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.hours-number {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: #16a34a;
-  line-height: 1;
-}
-
-.hours-unit {
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-.hours-equivalent {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-/* Average Section */
-.average-section {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border-radius: 0.75rem;
-  padding: 1rem;
-  border: 1px solid #93c5fd;
-}
-
-.average-content {
-  text-align: center;
-}
-
-.average-label {
-  font-size: 0.875rem;
-  color: #2563eb;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-.average-value {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1e40af;
-}
 
 /* Footer Styles */
 .employee-resume-footer {
-  padding: 0 1.5rem 1.5rem 1.5rem;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
 }
 
-.footer-close-btn {
-  width: 20%;
-  background: rgb(212, 65, 65);
-  color: white;
-  font-weight: 500;
-  padding: 0.75rem 1rem;
-  border-radius: 0.75rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 0.95rem;
+.btn {
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.footer-close-btn:hover {
-  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+.btn-download-csv {
+    background: #007bff;
+    color: white;
 }
 
-.footer-close-btn:active {
-  transform: translateY(0);
+.btn-download-csv:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
+
+.btn-close-modal {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-close-modal:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
 
 /* Responsive Design */
-@media (max-width: 640px) {
-  .employee-resume-overlay {
-    padding: 0.5rem;
-  }
-  
-  .employee-resume-modal {
-    max-width: 100%;
-  }
-  
-  .employee-resume-header {
-    padding: 1.25rem;
-  }
-  
-  .employee-resume-body {
-    padding: 1.25rem;
-    gap: 1.25rem;
-  }
-  
-  .header-title {
-    font-size: 1rem;
-  }
-  
-  .hours-number {
-    font-size: 1.5rem;
-  }
-  
-  .date-value {
-    font-size: 0.8rem;
-    max-width: 60%;
-    word-break: break-word;
-  }
+@media (max-width: 768px) {
+    .employee-resume-overlay {
+        padding: 0.5rem;
+    }
+
+    .employee-resume-modal {
+        max-width: 95%;
+        width: 98%;
+        max-height: 90vh;
+    }
+
+    .employee-resume-header {
+        padding: 1rem;
+    }
+
+    .header-title {
+        font-size: 1.05rem;
+    }
+
+    .header-subtitle {
+        font-size: 0.8rem;
+    }
+
+    .employee-resume-body {
+        padding: 1.25rem;
+        gap: 1.25rem;
+    }
+
+    .section-title {
+        font-size: 0.9rem;
+    }
+
+    .date-value, .date-label {
+        font-size: 0.85rem;
+    }
+
+    .employee-resume-footer {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0 1.25rem 1.25rem 1.25rem;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .employee-resume-modal {
+        border-radius: 0.75rem;
+        max-height: 98vh;
+    }
+
+    .employee-resume-header {
+        padding: 0.75rem;
+    }
+
+    .header-title {
+        font-size: 0.95rem;
+    }
+
+    .header-subtitle {
+        font-size: 0.75rem;
+    }
+
+    .employee-resume-body {
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .section-title {
+        font-size: 0.85rem;
+    }
+
+    .date-value, .date-label {
+        font-size: 0.8rem;
+    }
+
+    .btn {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
 }

@@ -65,7 +65,7 @@ h3 {
 
 /* Encabezados sticky */
 .results-section th {
-    position: sticky;
+    /* position: sticky; */
     top: 0;
     background-color: #007bff; /* Color azul para encabezados */
     color: white;
