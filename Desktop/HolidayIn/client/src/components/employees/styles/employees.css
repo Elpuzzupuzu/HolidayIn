@@ -1,0 +1,472 @@
+/* employees.css - Optimizado para tabla predominante */
+
+/* Contenedor principal */
+.employees-management-container {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ================ HEADER COMPACTO ================ */
+.compact-header {
+  background: white;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-left h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.header-stats {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  font-size: 14px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.stat-item strong {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.filter-indicator {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.header-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.compact-filter-select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  color: #374151;
+  min-width: 180px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.compact-filter-select:hover {
+  border-color: #3b82f6;
+}
+
+.compact-filter-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.compact-add-button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.compact-add-button:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* ================ TABLA PRINCIPAL ================ */
+.main-table-section {
+  flex: 1;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 140px); /* Altura dinámica según viewport */
+}
+
+.main-table-container {
+  flex: 1;
+  overflow: auto; /* Scroll vertical y horizontal */
+  min-height: 0; /* Importante para flex */
+}
+
+.main-employees-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  background: white;
+}
+
+/* Encabezado de tabla */
+.main-employees-table thead {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.main-employees-table th {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Anchos de columnas optimizados */
+.col-number {
+  width: 12%;
+  min-width: 100px;
+}
+
+.col-name {
+  width: 28%;
+  min-width: 200px;
+}
+
+.col-position {
+  width: 25%;
+  min-width: 180px;
+}
+
+.col-department {
+  width: 25%;
+  min-width: 180px;
+}
+
+.col-status {
+  width: 10%;
+  min-width: 100px;
+}
+
+/* Filas de tabla */
+.main-employee-row {
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.main-employee-row:hover {
+  background: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.main-employee-row:last-child {
+  border-bottom: none;
+}
+
+.main-employees-table td {
+  padding: 16px 20px;
+  vertical-align: middle;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Elementos específicos de tabla */
+.employee-number-badge {
+  background: #e0e7ff;
+  color: #3730a3;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  display: inline-block;
+  min-width: 60px;
+  text-align: center;
+}
+
+.employee-name-text {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 15px;
+}
+
+.department-tag {
+  background: #f0f9ff;
+  color: #0c4a6e;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #bae6fd;
+}
+
+.status-indicator {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-activo {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.status-inactivo {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Resumen de tabla */
+.table-summary {
+  padding: 16px 20px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.summary-text {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ================ ESTADO VACÍO ================ */
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: #6b7280;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: 16px;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.empty-state-button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.empty-state-button:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* ================ ESTADOS DE CARGA Y ERROR ================ */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #6b7280;
+}
+
+.spinner-circle {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container {
+  text-align: center;
+  padding: 80px 20px;
+  color: #6b7280;
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.error-container h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.error-container p {
+  font-size: 16px;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.retry-button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.retry-button:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* ================ RESPONSIVE ================ */
+@media (max-width: 1024px) {
+  .compact-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .header-controls {
+    justify-content: space-between;
+  }
+  
+  .compact-filter-select {
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .employees-management-container {
+    padding: 12px;
+  }
+  
+  .compact-header {
+    padding: 16px;
+  }
+  
+  .header-left h1 {
+    font-size: 20px;
+  }
+  
+  .header-stats {
+    gap: 12px;
+  }
+  
+  .header-controls {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .compact-filter-select,
+  .compact-add-button {
+    width: 100%;
+  }
+  
+  .main-employees-table {
+    font-size: 13px;
+  }
+  
+  .main-employees-table th,
+  .main-employees-table td {
+    padding: 12px 16px;
+  }
+  
+  .col-number {
+    width: 15%;
+  }
+  
+  .col-name {
+    width: 35%;
+  }
+  
+  .col-position {
+    width: 30%;
+  }
+  
+  .col-department {
+    width: 20%;
+  }
+  
+  .col-status {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-employees-table th,
+  .main-employees-table td {
+    padding: 10px 12px;
+  }
+  
+  .employee-number-badge {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .employee-name-text {
+    font-size: 14px;
+  }
+  
+  .department-tag {
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+}

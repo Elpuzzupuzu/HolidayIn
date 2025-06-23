@@ -19,7 +19,7 @@ const EmployeeResume = ({ resumen, workedHours = [], onClose }) => {
                 const parts = dateString.split(/[-\/]/);
                 if (parts.length === 3) {
                     const year = parseInt(parts[0], 10);
-                    const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+                    const month = parseInt(parts[1], 10) - 1; // Month is 0-indexede
                     const day = parseInt(parts[2], 10);
                     const fallbackDate = new Date(year, month, day, 12);
                     if (!isNaN(fallbackDate.getTime())) {

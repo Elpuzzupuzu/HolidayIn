@@ -1,85 +1,86 @@
 /* src/views/styles/HorariosDeptoView.css */
 
 .horarios-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #3f7ae8 0%, #764ba2 100%);
-  padding: 2rem;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh; /* Ensures the background covers the whole viewport */
+  background: linear-gradient(135deg, #3f7ae8 0%, #764ba2 100%); /* Vibrant gradient background */
+  padding: 2rem; /* Use rem for better scalability */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Modern, readable font */
+  box-sizing: border-box; /* Good practice for consistent box model */
 }
 
 .horarios-container h1 {
   color: white;
   text-align: center;
-  font-size: 2.5rem;
+  font-size: 2.5rem; /* Larger, more impactful heading */
   margin-bottom: 2rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  font-weight: 300;
-  letter-spacing: -0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+  font-weight: 300; /* Lighter font weight for a modern look */
+  letter-spacing: -0.5px; /* Slightly tighter letter spacing */
 }
 
 /* Contenedor de controles de búsqueda */
 .search-controls {
-  background: rgba(230, 229, 229, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
+  background: rgba(230, 229, 229, 0.95); /* Semi-transparent background for modern feel */
+  backdrop-filter: blur(10px); /* Frosted glass effect */
+  border-radius: 20px; /* More rounded corners */
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  display: grid;
-  grid-template-columns: auto 1fr auto 1fr auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); /* Softer, larger shadow */
+  display: grid; /* Use Grid for more flexible and robust layout */
+  grid-template-columns: auto 1fr auto 1fr auto; /* Distribute elements nicely */
   gap: 1rem;
   align-items: center;
-  max-width: 1200px;
+  max-width: 1200px; /* Max width for better readability on large screens */
   margin-left: auto;
-  margin-right: auto;
+  margin-right: auto; /* Center the container */
 }
 
 .search-controls label {
-  font-weight: 600;
-  color: #2d3748;
+  font-weight: 600; /* Stronger label text */
+  color: #2d3748; /* Darker, more professional text color */
   font-size: 0.95rem;
-  white-space: nowrap;
+  white-space: nowrap; /* Prevents labels from wrapping */
 }
 
 .search-controls select,
 .search-controls input {
-  padding: 0.75rem 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  padding: 0.75rem 1rem; /* Increased padding */
+  border: 2px solid #e2e8f0; /* Subtle border */
+  border-radius: 12px; /* More rounded input fields */
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease; /* Smooth transitions for focus states */
   background: white;
   color: #2d3748;
 }
 
 .search-controls select:focus,
 .search-controls input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-  transform: translateY(-1px);
+  outline: none; /* Remove default outline */
+  border-color: #667eea; /* Highlight border on focus */
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); /* Subtle glow on focus */
+  transform: translateY(-1px); /* Slight lift on focus */
 }
 
 .search-controls button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Gradient button background */
   color: white;
   border: none;
-  padding: 0.75rem 2rem;
+  padding: 0.75rem 2rem; /* Larger padding for better touch targets */
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease; /* Smooth hover effects */
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); /* Initial button shadow */
 }
 
 .search-controls button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  transform: translateY(-2px); /* Lift effect on hover */
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); /* Enhanced shadow on hover */
 }
 
 .search-controls button:active {
-  transform: translateY(0);
+  transform: translateY(0); /* Press down effect on click */
 }
 
 /* Título de sección */
@@ -88,65 +89,114 @@
   text-align: center;
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
-  font-weight: 400;
+  font-weight: 400; /* Slightly lighter font weight */
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Tabla de horarios */
-.horarios-table {
-  width: 100%;
-  background: rgba(226, 222, 222, 0.95);
+/* *** Contenedor que envolverá la tabla para el scroll *** */
+.table-responsive-container {
+  max-height: 500px; /* Fixed height for vertical scroll */
+  overflow: auto; /* Enables both vertical and horizontal scroll */
+  background: rgba(226, 222, 222, 0.95); /* Consistent with search controls */
   backdrop-filter: blur(10px);
   border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1); /* Deeper shadow for the table container */
+  max-width: 1400px; /* Allow wider table on large screens */
+  margin: 0 auto; /* Center the container */
+  position: relative; /* Needed for sticky header */
+
+  /* Scrollbar personalizada para este contenedor */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #667eea #f1f5f9; /* Firefox */
+}
+
+/* Webkit (Chrome, Safari) */
+.table-responsive-container::-webkit-scrollbar {
+  width: 8px; /* Ancho para el scrollbar vertical */
+  height: 8px; /* Alto para el scrollbar horizontal */
+}
+
+.table-responsive-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.table-responsive-container::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 4px;
+}
+
+.table-responsive-container::-webkit-scrollbar-thumb:hover {
+  background: #5a67d8;
+}
+
+
+/* Tabla de horarios */
+.horarios-table {
+  /* No display: block; aquí. La tabla se comportará como tabla. */
+  width: 100%; /* La tabla ocupará todo el ancho del contenedor */
   border-collapse: collapse;
-  max-width: 1400px;
-  margin: 0 auto;
+  background: transparent; /* Allows background of container to show */
+  box-shadow: none; /* No shadow on the table itself */
+
+  /* *** IMPORTANTE: Un ancho mínimo para que la tabla pueda desbordar el contenedor *** */
+  /* Ajusta este valor según la suma mínima del ancho de tus columnas */
+  /* Si el contenido de las celdas es muy largo, esto garantizará que el scroll horizontal aparezca */
+  min-width: 900px; /* Ejemplo: 100% o un valor fijo que sea la suma de los anchos mínimos de tus columnas */
+                      /* Si tu tabla tiene 9 columnas y cada una necesita al menos 100px, pon 900px */
+                      /* Experimenta con este valor. Puede ser 'max-content' si es soportado y te da el efecto deseado,
+                         pero 'max-content' puede no ser ideal si las celdas tienen mucho texto. */
 }
 
+/* Encabezado fijo al hacer scroll */
 .horarios-table thead {
-  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  position: sticky;
+  top: 0;
+  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%); /* Darker, more prominent header */
+  z-index: 10; /* Ensures header stays on top of scrolled content */
 }
 
+/* Celdas de la tabla */
 .horarios-table th {
-  padding: 1.25rem;
+  padding: 1.25rem; /* Increased padding for better spacing */
   color: white;
-  font-weight: 600;
+  font-weight: 600; /* Bolder header text */
   font-size: 0.95rem;
   text-align: center;
-  letter-spacing: 0.5px;
-  border-bottom: 3px solid rgba(255, 255, 255, 0.1);
+  letter-spacing: 0.5px; /* Slight letter spacing */
+  border-bottom: 3px solid rgba(255, 255, 255, 0.1); /* Thicker separator */
+  white-space: nowrap; /* Prevent headers from wrapping if content is short */
 }
 
 .horarios-table td {
-  padding: 1rem;
+  padding: 1rem; /* Consistent padding */
   text-align: center;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0; /* Lighter cell borders */
   font-size: 0.9rem;
   color: #2d3748;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease; /* Smooth transition for hover */
+  white-space: nowrap; /* Keep content on one line unless explicitly broken */
 }
 
 .horarios-table tbody tr {
   cursor: pointer;
   transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.8); /* Semi-transparent white rows */
 }
 
 .horarios-table tbody tr:nth-child(even) {
-  background: rgba(247, 250, 252, 0.8);
+  background: rgba(247, 250, 252, 0.8); /* Slightly different shade for even rows */
 }
 
 .horarios-table tbody tr:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); /* Subtle gradient on hover */
+  transform: translateY(-1px); /* Slight lift on hover */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Shadow on hover */
 }
 
 .horarios-table tbody tr:hover td {
-  color: #1a202c;
-  font-weight: 500;
+  color: #1a202c; /* Darker text on hover */
+  font-weight: 500; /* Slightly bolder text on hover */
 }
 
 /* Mensajes de estado */
@@ -161,18 +211,43 @@
   margin: 2rem auto;
   max-width: 600px;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #667eea; /* Accent border */
 }
 
 .error-message {
-  border-left-color: #e53e3e;
-  background: rgba(254, 226, 226, 0.95);
-  color: #c53030;
+  border-left-color: #e53e3e; /* Red accent for errors */
+  background: rgba(254, 226, 226, 0.95); /* Light red background for errors */
+  color: #c53030; /* Darker red text for errors */
 }
 
-/* Responsive Design */
+/* --- Animaciones de carga --- */
+.status-message:not(.error-message) {
+  animation: pulse 2s infinite; /* Gentle pulsing animation for loading */
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* --- Mejoras visuales adicionales --- */
+.horarios-table tbody tr:active {
+  transform: scale(0.98); /* Slight shrink effect on click */
+}
+
+.search-controls select option {
+  padding: 0.5rem; /* Padding for options in dropdown */
+  background: white;
+  color: #2d3748;
+}
+
+/* --- Responsive Design --- */
 @media (max-width: 1200px) {
-  .horarios-table {
+  .table-responsive-container {
     font-size: 0.85rem;
   }
   
@@ -192,18 +267,27 @@
   }
   
   .search-controls {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Stack elements vertically on small screens */
     gap: 1rem;
     text-align: left;
   }
   
   .search-controls label {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.25rem; /* Add some space below labels */
   }
   
-  .horarios-table {
+  /* Ajustes para el CONTENEDOR en responsive */
+  .table-responsive-container { 
     font-size: 0.8rem;
-    border-radius: 15px;
+    border-radius: 15px; /* Bordes redondeados en móvil */
+    padding: 0; /* Sin padding extra para el scroll */
+    max-height: 400px; /* Altura máxima reducida para móviles */
+  }
+
+  /* La tabla misma en responsive (modo tarjeta) */
+  .horarios-table {
+    border-radius: 0; /* La tabla ya no necesita border-radius, el contenedor lo tiene */
+    min-width: 0; /* Desactiva min-width para el modo tarjeta */
   }
   
   .horarios-table th,
@@ -212,79 +296,30 @@
   }
   
   .horarios-table thead {
-    display: none;
+    display: none; /* Hide table header on mobile for a "card" like layout */
   }
   
   .horarios-table tbody tr {
-    display: block;
+    display: block; /* Make table rows behave like blocks */
     background: white;
     margin-bottom: 1rem;
     border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Card-like shadow */
     padding: 1rem;
   }
   
   .horarios-table tbody td {
-    display: block;
+    display: block; /* Make table cells behave like blocks */
     text-align: left;
-    border: none;
+    border: none; /* Remove individual cell borders */
     padding: 0.5rem 0;
   }
   
   .horarios-table tbody td:before {
-    content: attr(data-label);
+    content: attr(data-label); /* Use data-label attribute for pseudo-elements */
     font-weight: bold;
     color: #667eea;
     display: inline-block;
-    width: 120px;
+    width: 120px; /* Fixed width for labels */
   }
-}
-
-/* Animaciones de carga */
-.status-message:not(.error-message) {
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-/* Mejoras visuales adicionales */
-.horarios-table tbody tr:active {
-  transform: scale(0.98);
-}
-
-.search-controls select option {
-  padding: 0.5rem;
-  background: white;
-  color: #2d3748;
-}
-
-/* Scrollbar personalizada para la tabla */
-.horarios-table {
-  scrollbar-width: thin;
-  scrollbar-color: #667eea #f1f5f9;
-}
-
-.horarios-table::-webkit-scrollbar {
-  height: 8px;
-}
-
-.horarios-table::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 4px;
-}
-
-.horarios-table::-webkit-scrollbar-thumb {
-  background: #667eea;
-  border-radius: 4px;
-}
-
-.horarios-table::-webkit-scrollbar-thumb:hover {
-  background: #5a67d8;
 }

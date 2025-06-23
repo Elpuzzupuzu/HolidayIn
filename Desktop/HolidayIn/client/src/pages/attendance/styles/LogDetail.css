@@ -37,14 +37,14 @@
 /* Encabezado Principal del Componente (Resumen por Departamento) */
 .main-header {
     text-align: center;
-    padding-bottom: 20px;
+    padding-bottom: 1px;
     border-bottom: 1px solid var(--border-color);
 }
 
 .main-title {
-    font-size: 2.8em; /* Título grande y prominente */
+    font-size: 1.8em; /* Título grande y prominente */
     color: var(--primary-color);
-    margin-bottom: 8px;
+    margin-bottom: 1px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -213,16 +213,22 @@
     color: var(--primary-color);
 }
 
-/* Contenedor de la Tabla */
+/* Contenedor de la Tabla con Scroll */
 .table-wrapper {
     overflow-x: auto;
+    /* --- NUEVAS PROPIEDADES PARA SCROLL VERTICAL --- */
+    max-height: 600px; /* Altura máxima antes de activar scroll */
+    overflow-y: auto; /* Scroll vertical cuando sea necesario */
+    /* --- FIN DE NUEVAS PROPIEDADES --- */
     border: 1px solid var(--border-color);
     border-radius: 8px;
+    position: relative; /* Para posicionar el header sticky */
 }
 
 .data-table {
     width: 100%;
     border-collapse: collapse;
+    position: relative; /* Para el posicionamiento del header */
 }
 
 .data-table th {
@@ -233,6 +239,11 @@
     border-bottom: 2px solid var(--border-color);
     font-weight: 600;
     font-size: 1em;
+    /* --- HEADER PEGAJOSO (STICKY) --- */
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    /* --- FIN HEADER PEGAJOSO --- */
 }
 
 .data-table td {
@@ -268,6 +279,32 @@
     font-weight: bold;
     font-size: 0.85em;
 }
+
+/* --- ESTILOS PARA LA BARRA DE SCROLL PERSONALIZADA --- */
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: var(--bg-light);
+    border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--secondary-color);
+}
+
+.table-wrapper::-webkit-scrollbar-corner {
+    background: var(--bg-light);
+}
+/* --- FIN ESTILOS SCROLL PERSONALIZADA --- */
 
 /* Mensajes de estado (cargando, error, no resultados) */
 .status-message {
@@ -340,6 +377,10 @@
         padding: 10px 15px;
         font-size: 0.9em;
     }
+    /* --- AJUSTE DE ALTURA MÁXIMA EN TABLETS --- */
+    .table-wrapper {
+        max-height: 500px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -388,6 +429,8 @@
     }
     .table-wrapper {
         border-radius: 6px;
+        /* --- AJUSTE DE ALTURA MÁXIMA EN MÓVILES --- */
+        max-height: 400px;
     }
     .data-table th, .data-table td {
         padding: 8px 12px;
@@ -432,5 +475,9 @@
     .btn {
         width: 100%;
         max-width: none;
+    }
+    /* --- AJUSTE DE ALTURA MÁXIMA EN MÓVILES PEQUEÑOS --- */
+    .table-wrapper {
+        max-height: 350px;
     }
 }

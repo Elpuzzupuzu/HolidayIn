@@ -168,7 +168,7 @@ function EmployeesManagement() {
           <div className="error-icon">⚠️</div>
           <h2>Error al cargar empleados</h2>
           <p>{error || 'No se pudo cargar la lista de empleados.'}</p>
-          <button 
+          <button
             onClick={() => dispatch(fetchEmployees({ departmentId: filterDepartmentId }))}
             className="retry-button"
           >
@@ -181,58 +181,45 @@ function EmployeesManagement() {
 
   return (
     <div className="employees-management-container">
-      <div className="page-header">
-        <div className="header-content">
-          <h1>
-            <span className="header-icon">👥</span>
-            Gestión de Empleados
-          </h1>
+      {/* Header compacto */}
+      <div className="compact-header">
+        <div className="header-left">
+          <h1>👥 Gestión de Empleados</h1>
           <div className="header-stats">
-            <div className="stat-card">
-              <div className="stat-number">{employees.length}</div>
-              <div className="stat-label">Empleados</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-number">
-                {employees.filter(emp => emp.status === 'activo').length}
-              </div>
-              <div className="stat-label">Activos</div>
-            </div>
+            <span className="stat-item">
+              <strong>{employees.length}</strong> Total
+            </span>
+            <span className="stat-item">
+              <strong>{employees.filter(emp => emp.status === 'activo').length}</strong> Activos
+            </span>
+            {filterDepartmentId !== 'all' && (
+              <span className="filter-indicator">
+                📋 {getDepartmentName(parseInt(filterDepartmentId))}
+              </span>
+            )}
           </div>
         </div>
-      </div>
-
-      <div className="controls-section">
-        <div className="controls-card">
-          <div className="controls-row">
-            <div className="filter-group">
-              <label htmlFor="departmentFilter">
-                <span className="filter-icon">🏢</span>
-                Filtrar por Departamento:
-              </label>
-              <select
-                id="departmentFilter"
-                value={filterDepartmentId}
-                onChange={handleFilterChange}
-                className="filter-select"
-              >
-                <option value="all">📋 Todos los departamentos</option>
-                {departments.map((dept) => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            
-            <button 
-              onClick={handleAddNewEmployeeClick} 
-              className="add-employee-button"
-            >
-              <span className="button-icon">➕</span>
-              Agregar Nuevo Empleado
-            </button>
-          </div>
+        
+        <div className="header-controls">
+          <select
+            value={filterDepartmentId}
+            onChange={handleFilterChange}
+            className="compact-filter-select"
+          >
+            <option value="all">Todos los departamentos</option>
+            {departments.map((dept) => (
+              <option key={dept.id} value={dept.id}>
+                {dept.name}
+              </option>
+            ))}
+          </select>
+          
+          <button
+            onClick={handleAddNewEmployeeClick}
+            className="compact-add-button"
+          >
+            ➕ Nuevo Empleado
+          </button>
         </div>
       </div>
 
@@ -251,30 +238,19 @@ function EmployeesManagement() {
         />
       )}
 
-      <div className="employee-list-section">
-        <div className="list-header">
-          <h2>
-            <span className="list-icon">📊</span>
-            Lista de Empleados
-          </h2>
-          {filterDepartmentId !== 'all' && (
-            <div className="filter-badge">
-              Filtrado: {getDepartmentName(parseInt(filterDepartmentId))}
-            </div>
-          )}
-        </div>
-        
+      {/* Tabla predominante */}
+      <div className="main-table-section">
         {employees.length === 0 && status !== 'loading' ? (
           <div className="empty-state">
             <div className="empty-icon">📭</div>
             <h3>No hay empleados registrados</h3>
             <p>
-              {filterDepartmentId === 'all' 
+              {filterDepartmentId === 'all'
                 ? 'Aún no se han registrado empleados en el sistema.'
                 : `No hay empleados registrados en el departamento seleccionado.`
               }
             </p>
-            <button 
+            <button
               onClick={handleAddNewEmployeeClick}
               className="empty-state-button"
             >
@@ -282,90 +258,59 @@ function EmployeesManagement() {
             </button>
           </div>
         ) : (
-          <div className="table-container">
-            <div className="table-wrapper">
-              <table className="employees-table">
-                <thead>
-                  <tr>
-                    <th>
-                      <span className="header-icon">🔢</span>
-                      Número
-                    </th>
-                    <th>
-                      <span className="header-icon">👤</span>
-                      Nombre
-                    </th>
-                    <th>
-                      <span className="header-icon">💼</span>
-                      Puesto
-                    </th>
-                    <th>
-                      <span className="header-icon">🏢</span>
-                      Departamento
-                    </th>
-                    <th>
-                      <span className="header-icon">📈</span>
-                      Estado
-                    </th>
-                    {/* <th>
-                      <span className="header-icon">⚡</span>
-                      Acción
-                    </th> */}
+          <div className="main-table-container">
+            <table className="main-employees-table">
+              <thead>
+                <tr>
+                  <th className="col-number">Número</th>
+                  <th className="col-name">Nombre</th>
+                  <th className="col-position">Puesto</th>
+                  <th className="col-department">Departamento</th>
+                  <th className="col-status">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {employees.map((employee) => (
+                  <tr
+                    key={employee.employee_number}
+                    onClick={() => handleRowClick(employee.employee_number)}
+                    className="main-employee-row"
+                  >
+                    <td className="col-number">
+                      <span className="employee-number-badge">
+                        {employee.employee_number}
+                      </span>
+                    </td>
+                    <td className="col-name">
+                      <span className="employee-name-text">
+                        {employee.name}
+                      </span>
+                    </td>
+                    <td className="col-position">
+                      {employee.puesto}
+                    </td>
+                    <td className="col-department">
+                      <span className="department-tag">
+                        {getDepartmentName(employee.department_id)}
+                      </span>
+                    </td>
+                    <td className="col-status">
+                      <span className={`status-indicator status-${employee.status}`}>
+                        {employee.status}
+                      </span>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {employees.map((employee) => (
-                    <tr 
-                      key={employee.employee_number} 
-                      onClick={() => handleRowClick(employee.employee_number)} 
-                      className="employee-row"
-                    >
-                      <td className="employee-number">
-                        <span className="number-badge">
-                          {employee.employee_number}
-                        </span>
-                      </td>
-                      <td className="employee-name">
-                        <div className="name-cell">
-                          <div className="avatar">
-                            {employee.name.charAt(0).toUpperCase()}
-                          </div>
-                          <span>{employee.name}</span>
-                        </div>
-                      </td>
-                      <td className="employee-position">
-                        {employee.puesto}
-                      </td>
-                      <td className="employee-department">
-                        <span className="department-badge">
-                          {getDepartmentName(employee.department_id)}
-                        </span>
-                      </td>
-                      <td className="employee-status">
-                        <span className={`status-badge status-${employee.status}`}>
-                          <span className="status-indicator"></span>
-                          {employee.status}
-                        </span>
-                      </td>
-                      {/* <td className="employee-actions">
-                        <div className="action-hint">
-                          <span className="action-icon">👁️</span>
-                          Ver detalles
-                        </div>
-                      </td> */}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            <div className="table-footer">
-              <div className="results-summary">
-                Mostrando {employees.length} empleado{employees.length !== 1 ? 's' : ''}
-                {filterDepartmentId !== 'all' && 
+                ))}
+              </tbody>
+            </table>
+
+            <div className="table-summary">
+              <span className="summary-text">
+                {employees.length} empleado{employees.length !== 1 ? 's' : ''}
+                {filterDepartmentId !== 'all' &&
                   ` en ${getDepartmentName(parseInt(filterDepartmentId))}`
                 }
-              </div>
+              </span>
             </div>
           </div>
         )}
